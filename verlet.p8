@@ -1,22 +1,46 @@
 pico-8 cartridge // http://www.pico-8.com
 version 4
 __lua__
+
+-- moving speed of actor
+speed = 3
+
+-- physics parameters
+gravity = 0.3
+friction = 0.899
+bounce = 0.9
+
+-- 
+max_points = 100
 x = 20
 y = 20
 
-gravity = 0.5
+--
+-- math utils
+--
+function distance(p0, p1)
+ local dx = p0.x - p1.x
+ local dy = p0.y - p1.y
+ 
+ return sqrt(dx*dx+dy*dy)
+end
 
-vx = 5
-vy = 0
+--
+-- make functions
+--
+function make_stick(p0,p1)
+ local s = {}
+ 
+ s.p0 = p0
+ s.p1 = p1
+ s.length = distance(p0,p1)
+ 
+ add(sticks, s)
+ 
+ return s
+end
 
-friction = 0.999
-
-max_points = 100
-
-bounce = 0.9
-
-
-function make_point(x,y)
+function make_point(x,y,fixed)
 	local p = {}
 	p.x = x
 	p.y = y
@@ -25,6 +49,7 @@ function make_point(x,y)
 	p.vx = vx
 	p.vy = vy
 	p.color = flr(6+rnd(6))
+	p.fixed = fixed
 	
  if (count(points) < max_points) then
   add(points, p)
@@ -33,16 +58,64 @@ function make_point(x,y)
 	return p
 end
 
+
+--
+-- draw functions
+--
+
 function draw_point(p)
 	 color(p.color)
-  rectfill(p.x-1,p.y-1,p.x,p.y)
-  
+  rectfill(p.x,p.y,p.x,p.y)  
 end
 
+function draw_stick(s)
+  color(8)
+  line(s.p0.x,s.p0.y,s.p1.x,s.p1.y)
+end
+
+
+--
+-- move functions
+--
+
+function move_stick(s)
+  dx = s.p1.x - s.p0.x
+  dy = s.p1.y - s.p0.y
+  
+  dist    = sqrt(dx*dx+dy*dy)
+  diff    = s.length - dist
+  percent = diff/dist/2
+  offsetx = dx*percent
+  offsety = dy*percent
+  
+  if(s.p0.fixed)then
+  	s.p1.x += 2*offsetx
+	  s.p1.y += 2*offsety
+  else
+  	if(s.p1.fixed)then
+  	  s.p0.x -= 2*offsetx
+	    s.p0.y -= 2*offsety
+  	else
+  	  s.p0.x -= offsetx
+	    s.p0.y -= offsety
+	    s.p1.x += offsetx
+	    s.p1.y += offsety
+  	end
+  end
+end
+
+-- recalculate point positions
 function move_point(p)
+
+  if(p.fixed)then
+   p.x = x
+   p.y = y
+   return false
+  end
+   
   p.vx = (p.x - p.oldx) * friction
   p.vy = (p.y - p.oldy) * friction
-  
+
   p.oldx = p.x
   p.oldy = p.y
   
@@ -76,13 +149,19 @@ end
 function _update()
 
 	 foreach(points, move_point)		
-			
+		foreach(sticks, move_stick)
+		
+	 if (btn(0)) then x-=speed end
+	 if (btn(1)) then x+=speed end
+	 if (btn(2)) then y-=speed end
+	 if (btn(3)) then y+=speed end
 end
 
 function _draw()
   color(0)
   rectfill(0,0,128,128)
 
+  foreach(sticks, draw_stick)
   foreach(points, draw_point)
 end
 
@@ -90,11 +169,37 @@ end
 -- called at start by pico-8
 function _init()
  points = {}
+ sticks = {}
  
- -- spawn points
- for i=0,10000 do 
- 	 pnt = make_point(i,rnd(10)+10)
- end
+ ox = 10
+ oy = 30
+ 
+ pnt1 = make_point(ox+10,oy+10)
+ pnt2 = make_point(ox+20,oy+10)
+ pnt3 = make_point(ox+20,oy+20)
+ pnt4 = make_point(ox+10,oy+20)
+	
+	chn1 = make_point(ox+5,oy+5)
+	chn2 = make_point(ox+5,oy)
+	chn3 = make_point(ox+5,oy-5)
+	
+	-- fixed point
+	pntf = make_point(ox+5,oy-10,true)
+	
+	-- make box 
+ make_stick(pnt1,pnt2)
+ make_stick(pnt2,pnt3)
+ make_stick(pnt3,pnt4)
+ make_stick(pnt4,pnt1)
+ make_stick(pnt1,pnt3)
+ make_stick(pnt2,pnt4)
+ 
+ -- create chain link to the fixed point
+ make_stick(chn3,pntf)
+ make_stick(chn2,chn3)
+ make_stick(chn1,chn2)
+ make_stick(pnt1,chn1) 
+
 end
 
 
