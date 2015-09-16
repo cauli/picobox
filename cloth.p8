@@ -7,11 +7,11 @@ speed = 3
 
 -- physics parameters
 gravity = 0.3
-friction = 0.899
+friction = 0.999
 bounce = 0.9
 
 -- 
-max_points = 100
+max_points = 1000
 x = 20
 y = 20
 points = {}
@@ -66,7 +66,10 @@ function draw_point(p)
 end
 
 function draw_stick(s)
-  color(8)
+
+
+  color(4+flr(rnd(2)))
+
   line(s.p0.x,s.p0.y,s.p1.x,s.p1.y)
 end
 
@@ -87,16 +90,16 @@ function move_stick(s)
   
   if(s.p0.fixed)then
   	s.p1.x += 2*offsetx
-	s.p1.y += 2*offsety
+	  s.p1.y += 2*offsety
   else
   	if(s.p1.fixed)then
-  	  s.p0.x -= 2*offsetx
+  	s.p0.x -= 2*offsetx
 	  s.p0.y -= 2*offsety
   	else
   	  s.p0.x -= offsetx
-	  s.p0.y -= offsety
-	  s.p1.x += offsetx
-	  s.p1.y += offsety
+	    s.p0.y -= offsety
+	    s.p1.x += offsetx
+	    s.p1.y += offsety
   	end
   end
 end
@@ -105,8 +108,8 @@ end
 function move_point(p)
 
   if(p.fixed)then
-   p.x = x
-   p.y = y
+   --p.x = x
+   --p.y = y
    return false
   end
    
@@ -158,7 +161,7 @@ function _draw()
   rectfill(0,0,128,128)
 
   foreach(sticks, draw_stick)
-  foreach(points, draw_point)
+ -- foreach(points, draw_point)
 end
 
 
@@ -171,44 +174,39 @@ function _init()
  
  lastpnt = {}
 
- spacing = 10
+ spacing = 5
 
- rows = 5
- cols = 5
+ rows = 15
+ cols = 20
 
  for r=1,rows do 
   for c=1,cols do
+
+  if( (r == 1) or (r == rows))then
+   pnt = make_point(r*spacing,c*spacing,true)
+  else
    pnt = make_point(r*spacing,c*spacing)
+  end
 
    if (count(points) < max_points) then
-	add(points, pnt)
+	  add(points, pnt)
    end
-
-
-    --if(c>1)then
-    --  make_stick(points[r * (cols-1) + c], points[r-1 * (cols-1) + c])
-    --end
   end
  end
 
  for r=1,rows do 
   for c=1,cols do
+    -- CONNECT HORIZONTALLY
     if(r>1)then
-      print((r*(cols-1))+c-1)
-      print((r*(cols-1))+c)
-      
-      make_stick(points[(r*(cols-1))+c-1],points[(r*(cols-1))+c])
+      make_stick(points[((r-1)*(cols))+c],points[((r-2)*(cols))+c])
     end
 
+    -- CONNECT VERTICALLY
     if(c>1)then 
-      make_stick(points[(r*(cols-1))+c],points[((r-1)*(cols-1))+c])
+      make_stick(points[((r-1)*(cols))+c-1],points[((r-1)*(cols))+c])
     end
   end
  end
-
-
-
- make_stick(points[1], points[10])
 
 end
 
