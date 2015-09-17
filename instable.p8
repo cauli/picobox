@@ -3,25 +3,35 @@ version 4
 __lua__
 
 -- debug
-skip_draw_particles = true
+skip_draw_particles = false
+skip_draw_attractions = false
+skip_draw_repulsions = false
+skip_draw_cursor = false
+attract_to_cursor = true
 
 -- moving speed of actor
-sx = 3
-sy = 3
+sx = 6
+sy = 6
 -- current sx and sy for controllables
 csx = 0
 csy = 0
 
 -- physics parameters
-gravity = 0.3
-friction = 0.98
+gravity = 0
+friction = 0.91
 bounce = 0.9
 
 -- 
-max_points = 1000
+max_particles = 1000
+max_attracting = 6
+max_repulsing = 6
 x = 20
 y = 20
-points = {}
+force_repulsion = false
+
+cursor_radius = 40
+
+particles = {}
 sticks = {}
 
 --
@@ -49,17 +59,19 @@ function make_stick(p0,p1)
  return s
 end
 
-function particle(x,y,fixed,controllable)
+function make_particle(x,y,fixed,controllable)
  local p = {}
  p.x = x
  p.y = y
  p.oldx = x-1
  p.oldy = y-1
- p.vx = vx
- p.vy = vy
- p.color = flr(6+rnd(6))
+ p.vx = 0
+ p.vy = 0
+ p.color = 10
  p.fixed = fixed
  p.controllable = controllable
+ p.attracting = {}
+ p.repulsing = {}
  return p
 end
 
@@ -73,9 +85,18 @@ function draw_particle(p)
   rectfill(p.x,p.y,p.x,p.y)  
 end
 
+function draw_attractions(p)
+  color(7)
+  foreach(p.attracting, function(neighbour) line(p.x,p.y,neighbour.x,neighbour.y) del(neighbour.attracting, p) end)
+end
+
+function draw_repulsions(p)
+  color(5)
+  foreach(p.repulsing, function(neighbour) line(p.x,p.y,neighbour.x,neighbour.y) del(neighbour.repulsing, p) end)
+end
+
+
 function draw_stick(s)
-
-
   color(4+flr(rnd(2)))
 
   line(s.p0.x,s.p0.y,s.p1.x,s.p1.y)
@@ -126,8 +147,92 @@ function move_point(p)
    return false
   end
    
-  p.vx = (p.x - p.oldx) * friction
-  p.vy = (p.y - p.oldy) * friction
+  --p.vx = (p.x - p.oldx) * friction
+  --p.vy = (p.y - p.oldy) * friction
+
+  if(attract_to_cursor)then
+
+    if(x<0)then
+      x = 0
+    elseif(x>127)then
+      x = 127
+    end
+
+    if(y<0)then
+      y = 0
+    elseif(y>127)then
+      y = 127
+    end
+
+    dx = p.x - x
+    dy = p.y - y
+    dd = sqrt(dx*dx+dy*dy)
+
+    inverter = 1
+    if(force_repulsion)then
+     inverter = -2
+    end
+
+    if(dd < cursor_radius) then
+     p.vx -= (dx/cursor_radius) * inverter
+     p.vy -= (dy/cursor_radius) * inverter
+    end
+  end
+
+  p.attracting = {}
+  p.repulsing = {}
+
+  i = count(particles)
+  
+  while(i>=1)do
+    neighbour = particles[i]
+
+    dx = p.x - neighbour.x
+    dy = p.y - neighbour.y
+    dd = dx*dx+dy*dy
+
+    if( dd > (12*12) )then
+      -- out of radius
+    elseif( dd > (8*8) )then
+      -- attraction
+      p.vx -= (dx / 400) 
+      p.vy -= (dy / 400) 
+      neighbour.vx += (dx / 400)
+      neighbour.vy += (dy / 400)
+
+      p.vx *= friction
+      p.vy *= friction
+      neighbour.vx *= friction
+      neighbour.vy *= friction
+
+      if(count(p.attracting) < max_attracting)then
+        add(p.attracting,neighbour)
+      end
+    elseif( dd > 0 )then
+      -- repulsion
+      dd = sqrt(dd)
+      dd = 0.5 * ( dd -12 ) / dd
+
+      dx *= dd
+      dy *= dd
+
+      p.vx -= dx
+      p.vy -= dy
+      neighbour.vx += dx
+      neighbour.vy += dy
+
+      p.vx *= friction
+      p.vy *= friction
+      neighbour.vx *= friction
+      neighbour.vy *= friction
+
+      if(count(p.repulsing) < max_repulsing)then
+        add(p.repulsing,neighbour)
+      end
+    end
+
+    i -= 1
+  end
 
   p.oldx = p.x
   p.oldy = p.y
@@ -135,40 +240,53 @@ function move_point(p)
   p.x += p.vx
   p.y += p.vy
 		
-		p.y += gravity
+  p.y += gravity
 
-		if(p.x > 128) then
-		 p.x = 128
-		 p.oldx = p.x + p.vx
-		end
-		
-		if(p.x<0) then
-		 p.x = 0
-		 p.oldx = p.x + p.vx * bounce
-		end
-		
-		if(p.y > 128) then 
-   p.y = 128
-   p.oldy = p.y + p.vy * bounce
-		end
-		
-		if(p.y < 0) then
-			p.y = 0
-			p.oldy = p.y + p.vy * bounce
-		end
-		
+  if(p.x > 128) then
+   p.x = 128
+   --p.oldx = p.x + p.vx
+   p.vx *= -1
+  end
+
+  if(p.x<0) then
+   p.x = 0
+   --p.oldx = p.x + p.vx * bounce
+   p.vx *= -1
+  end
+
+  if(p.y > 128) then 
+    p.y = 128
+    --p.oldy = p.y + p.vy * bounce
+    p.vy *= -1
+  end
+
+  if(p.y < 0) then
+  	p.y = 0
+  	--p.oldy = p.y + p.vy * bounce
+    p.vx *= -1
+  end
+
 end
 
+frame = 0
+
 function _update()
-	 foreach(points, move_point)		
+   frame += 1
+	 foreach(particles, move_point)		
 	 foreach(sticks, move_stick)
-	
+	 
    csx = 0 csy = 0
 
 	 if (btn(0)) then x-=sx csx-=sx end
 	 if (btn(1)) then x+=sx csx+=sx end
 	 if (btn(2)) then y-=sy csy-=sy end
 	 if (btn(3)) then y+=sy csy+=sy end
+
+   if (btn(5)) then
+    force_repulsion = true
+   else
+    force_repulsion = false
+   end
 end
 
 function _draw()
@@ -177,50 +295,57 @@ function _draw()
 
   foreach(sticks, draw_stick)
 
-  if(not skip_draw_particles)then
-   foreach(points, draw_particle)
+  if(not skip_draw_cursor)then
+    -- DRAW CURSOR
+
+    if(force_repulsion)then
+      color(2)
+    else
+      color(1)
+    end
+
+    circ(x,y,cursor_radius)
+
+    color(0)
+    circ(x,y-1,cursor_radius)
+    circ(x,y-3,cursor_radius)
+    circ(x,y+3,cursor_radius)
+
+    rectfill(x-3,y,x+3,y)
+    rectfill(x,y-3,x,y+3)
   end
+
+  if(not skip_draw_attractions)then
+   foreach(particles, draw_attractions)
+  end
+
+  if(not skip_draw_repulsions)then
+   foreach(particles, draw_repulsions)
+  end
+
+  if(not skip_draw_particles)then
+   foreach(particles, draw_particle)
+  end
+
+
 end
 
 
 -- called at start by pico-8
 function _init()
- lastpnt = {}
 
- spacing = 4.5
 
- cols = 10
- rows = 18 
+ num_particles = 80
 
- -- Fixes 0 index 
- cols += 1
- rows += 1
+ for i=1,num_particles do 
+    particle = make_particle(rnd()*128,rnd()*128,false,false)
 
- for c=1,cols do 
-  for r=1,rows do
-
-    if( (r == 1) )then
-     pnt = particle(c*spacing,r*spacing,true,true)
-    else
-     pnt = particle(c*spacing,r*spacing)
+    if (count(particles) < max_particles) then
+	   add(particles, particle)
     end
-
-    if (count(points) < max_points) then
-	   add(points, pnt)
-    end
-
-    -- CONNECT HORIZONTALLY
-    if(c>1)then
-      make_stick(points[((c-1)*(rows))+r],points[((c-2)*(rows))+r])
-    end
-
-    -- CONNECT VERTICALLY
-    if(r>1)then 
-      make_stick(points[((c-1)*(rows))+r-1],points[((c-1)*(rows))+r])
-    end
-
-  end
  end
+
+
 end
 
 
