@@ -4,7 +4,6 @@ __lua__
 
 -- debug
 skip_draw_particles = true
-draw_interpolations = true
 
 -- moving speed of actor
 sx = 3
