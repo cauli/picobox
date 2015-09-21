@@ -4,6 +4,7 @@ __lua__
 
 -- debug
 skip_draw_particles = true
+v = "0.0.2"
 
 -- moving speed of actor
 sx = 3
@@ -57,6 +58,16 @@ did_jump = false
 --
 -- math utils
 --
+
+ease = 0.1
+sqrt0 = sqrt
+
+function sqrt(n)
+  if (n <= 0) return 0
+  if (n >= 32761) return 181.0
+  return sqrt0(n)
+end
+
 function distance(p0, p1)
  local dx = p0.x - p1.x
  local dy = p0.y - p1.y
@@ -64,7 +75,12 @@ function distance(p0, p1)
  return sqrt(dx*dx+dy*dy)
 end
 
---https://gist.github.com/yellowafterlife/34de710baa4422b22c3e
+--
+-- triangle fill ported by YellowAfterlife
+-- https://gist.github.com/yellowafterlife/34de710baa4422b22c3e
+-- from http://forum.devmaster.net/t/advanced-rasterization/6145
+-- edit for cleaner seams by @cauli
+--
 function trifill(p1, p2, p3)
   local x1 = p1.x
   local y1 = p1.y
@@ -98,12 +114,12 @@ function trifill(p1, p2, p3)
   local cy1 = c1 + dx12 * miny - dy12 * minx
   local cy2 = c2 + dx23 * miny - dy23 * minx
   local cy3 = c3 + dx31 * miny - dy31 * minx
-  for y = flr(miny), flr(maxy) - 1 do
+  for y = flr(miny), flr(maxy)  do
     local cx1 = cy1
     local cx2 = cy2
     local cx3 = cy3
-    for x = flr(minx), flr(maxx) - 1 do
-      if cx1 > 0 and cx2 > 0 and cx3 > 0 then
+    for x = flr(minx), flr(maxx) do
+      if cx1 > -5 and cx2 > -5 and cx3 > -5 then
         pset(x, y)
       end
       cx1 -= dy12
@@ -337,13 +353,20 @@ function make_windy()
   w.y=92
   w.vx = 0
   w.vy = 0
-  w.particle = particle(w.x, w.y)
-
+  local target = {}
+  target.x = 0
+  target.y = 0
+  w.target = target
+  w.jumped = false
   w.using_force = false
   return w
 end
 
 function draw_actor(a)
+  if(a.jumped)then
+    spr(52, a.x, a.y)
+    return 
+  end
   if(not a.using_force)then
     spr(a.idle, a.x, a.y)
   else
@@ -351,14 +374,12 @@ function draw_actor(a)
   end
 end
 
-jumped = false
 function jump(a)
 
-  if(not jumped)then
-    jumped = true
-    add(points, a.particle)
-    a.particle.oldx = a.x
-    a.particle.oldy = a.y
+  if(not a.jumped)then
+    a.jumped = true
+    a.vx = - 2
+    a.vy = - 2
   end
 end
 
@@ -366,9 +387,34 @@ end
 -- move functions
 --
 
+function ease_to(a, target, ease)
+    dx = a.x - target.x
+    dy = a.y - target.y
+    a.vx = dx * ease
+    a.vy = dy * ease
+
+    a.x += a.vx
+    a.y += a.vy
+
+    if(abs(dx) < 0.1 and abs(dy) < 0.1)then
+      a.x = target.x
+      a.y = target.y
+      return false
+    end
+
+    return true
+end
+
 function move_actor(a)
-  a.x = a.particle.x
-  a.y = a.particle.y
+  if(a.jumped)then
+    a.x += a.vx
+    a.y += a.vy
+    a.vx *= friction
+    a.vy *= friction
+    a.vy += gravity
+  end
+
+  return false
 end
 
 function move_stick(s)
@@ -433,8 +479,6 @@ function move_point(p)
   end
 
   if(p.fixed)then
-   --p.x = x
-   --p.y = y
    return false
   end
    
@@ -460,53 +504,66 @@ function move_point(p)
     p.y += wind_y
   end
 
-		if(p.x > 128) then
-		 p.x = 128
-		 p.oldx = p.x + p.vx
-		end
-		
-		if(p.x<0) then
-		 p.x = 0
-		 p.oldx = p.x + p.vx * bounce
-		end
-		
-		if(p.y > 128) then 
-     p.y = 128
-     p.oldy = p.y + p.vy * bounce
-		end
-		
-		if(p.y < 0) then
-			p.y = 0
-			p.oldy = p.y + p.vy * bounce
-		end
-		
+  if(p.x > 228)then
+    p.x = 228
+    p.oldx = p.x + p.vx * bounce
+  end
+
+  if(p.x < -100)then
+    p.x = 0
+    p.oldx = p.x + p.vx * bounce
+  end
+
+  if(p.y > 228)then
+    p.y = 228
+    p.oldy = p.y + p.vy * bounce
+  end
+
+  if(p.y < 0)then
+    p.y = 0
+    p.oldy = p.y + p.vy * bounce
+  end
 end
 
 
 function _update()
-   frame += 1
+  frame += 1
 
-   if(wind_x > wind_max_x)then
-    wind_x = wind_max_x
-   elseif(wind_x < -wind_max_x)then
-    wind_x = -wind_max_x
-   end
+  if(sent_f)then
 
-   if(wind_y > wind_max_y)then
-    wind_y = wind_max_y
-   elseif(wind_y < -wind_max_y)then
-    wind_y = -wind_max_y
-   end
+  end
 
-   move_clouds(cloud_circles_fg)
-   move_clouds(cloud_circles)
+  if(wind_x > wind_max_x)then
+   wind_x = wind_max_x
+  elseif(wind_x < -wind_max_x)then
+   wind_x = -wind_max_x
+  end
 
-	 foreach(points, move_point)		
-	 foreach(sticks, move_stick)
+  if(wind_y > wind_max_y)then
+   wind_y = wind_max_y
+  elseif(wind_y < -wind_max_y)then
+   wind_y = -wind_max_y
+  end
 
-   move_actor(windy)
+  local wind_str = abs(wind_x) + abs(wind_y)
 
-   csx = 0 csy = 0
+  if(wind_str < 1 )then
+   sfx(0,1)
+  elseif(wind_str < 2)then
+   sfx(1,1)
+  else
+   sfx(1,2)
+  end
+
+  move_clouds(cloud_circles_fg)
+  move_clouds(cloud_circles)
+
+	foreach(points, move_point)		
+	foreach(sticks, move_stick)
+
+  move_actor(windy)
+
+  csx = 0 csy = 0
 
 	if (btn(0,1)) then x-=sx csx-=sx end
 	if (btn(1,1)) then x+=sx csx+=sx end
@@ -520,14 +577,35 @@ function _update()
   if (btn(2,0)) then wind_y-=0.1 windy.using_force = true end
   if (btn(3,0)) then wind_y+=0.1 windy.using_force = true end
 
-  if (btn(4,0)) then did_jump = true jump(windy) end
+  if (btn(4,0) and btn(5,0)) then did_jump = true jump(windy) end
 
 end
+
+sent_f = false
 
 function _draw()
   draw_scene()
   
   draw_actor(windy) 
+
+  if(windy.jumped)then
+    if(not sent_f)then
+      stop_f = frame + 1
+      sent_f = true
+    end
+
+    if(sent_f and frame > stop_f)then
+     
+    else
+      print("press z+x to jump", 51, 120, 7)
+    end
+  else
+    if(frame > 50)then 
+      print("press z+x to jump", 51, 120, 0)
+    elseif(frame > 45)then 
+      print("press z+x to jump", 51, 120, 1)
+    end
+  end
 
   foreach(triangles, draw_triangle)
 
@@ -537,7 +615,6 @@ function _draw()
    foreach(points, draw_particle)
   end
 
-
 end
 
 
@@ -546,7 +623,7 @@ function _init()
  lastpnt = {}
  windy = make_windy()
 
- make_clouds(cloud_circles, {6, 15,7,20}, 15)
+ make_clouds(cloud_circles,    {6,15,7,20},        15)
  make_clouds(cloud_circles_fg, {3,12,6,7,4,10,12}, 13)
 
  local spacing_x = 7
@@ -589,22 +666,15 @@ function _init()
           fabric_color = fc1
         end
 
-
         t342 = make_triangle(p3, p4, p2, false, fabric_color )-- remove if 3 to 4 breaks or 3 to 2 breaks
         t124 = make_triangle(p1, p2, p4, true,  fabric_color )-- remove if 1 to 2 breaks or 1 to 4 breaks
         
-        t123 = make_triangle(p1, p2, p3, true,  fabric_color )-- remove if 1 to 2 breaks or 1 to 3 breaks
-        t341 = make_triangle(p3, p4, p1, true,  fabric_color )-- remove if 3 to 4 breaks or 3 to 1 breaks
-        
         add(triangles, t342)
         add(triangles, t124)
-        add(triangles, t123)
-        add(triangles, t341)
-        
       end   
     end
 
-    local tris = {count(triangles)-3,count(triangles)-2,count(triangles)-1,count(triangles)}
+    local tris = {count(triangles)-1,count(triangles)}
 
     -- connect horizontally
     if(c>1)then
@@ -644,21 +714,21 @@ fffffffffffffffffff4444050505000000000000000000000000000000000000000000000000000
 44550000445500000445554000000000555555550000000000000000000000000000000000000000000000000000055555555555000555550000000000000000
 44550000445500000445554000000000700007000000000500000000000000000000000000000000000000000000000055555555555555550000000000000000
 445500004455000004455540000000007799ff507000070500000000000000000000000000000000000000000000000055555555055555550000000000000000
-44550000445500000445554000000000cf7fcf077799ff0750000000000000000000000000000000000000000000000055555555005555550000000000000000
-445555554455555554455540000000009f7ff905af7faf5507000000000000000000000000000000000000000000000055555555000555550000000000000000
-44ffffff44fffffff445554000000000777777579f7fff7705000000000000000000000000000000000000000000000055555555000555550000000000000000
-44444444444444444445554000000000007777777777777757000000000000000000000000000000000000000000000055555555000555550000000000000000
-44444444444444444445554000000000005055050057550577000000000000000000000000000000000000000000000055555555000555550000000000000000
-44444444444444444444444000000000007077070070770705000000000000000000000000000000000000000000000055555555000555550000000000000000
-00000000000000000000000000000000000000000000707707000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+44550000445500000445554000000000cf7fcf077799ff0700000000000000000000000000000000000000000000000055555555005555550000000000000000
+445555554455555554455540000000009f7ff905af7faf5500000000000000000000000000000000000000000000000055555555000555550000000000000000
+44ffffff44fffffff445554000000000777777579f7fff7700000000000000000000000000000000000000000000000055555555000555550000000000000000
+44444444444444444445554000000000007777777777777700000000000000000000000000000000000000000000000055555555000555550000000000000000
+44444444444444444445554000000000005055050057550500000000000000000000000000000000000000000000000055555555000555550000000000000000
+44444444444444444444444000000000007077070070770700000000000000000000000000000000000000000000000055555555000555550000000000000000
+000000000000000000000000000000007799ff700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000cf7fcf000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000000000000000000000000000000009f7ff9050000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000777777070000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000057575050000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000706777700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000775750000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000770000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000007077070000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000

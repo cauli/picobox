@@ -53,7 +53,7 @@ function distance(p0, p1)
  local dy = p0.y - p1.y
   
 
- return sqrt0(dx*dx+dy*dy)
+ return sqrt(dx*dx+dy*dy)
 end
 
 --
@@ -123,7 +123,7 @@ function move_stick(s)
   dx = s.p1.x - s.p0.x
   dy = s.p1.y - s.p0.y
   
-  dist    = sqrt0(dx*dx+dy*dy)
+  dist    = sqrt(dx*dx+dy*dy)
   diff    = s.length - dist
   percent = diff/dist/2
   offsetx = dx*percent
@@ -154,11 +154,10 @@ function move_point(p)
   end
 
   if(p.fixed)then
-   --p.x = x
-   --p.y = y
    return false
   end
    
+  -- We are not doing verlet here. Use velocity (vx vy) as a parameter
   --p.vx = (p.x - p.oldx) * friction
   --p.vy = (p.y - p.oldy) * friction
 
@@ -178,7 +177,7 @@ function move_point(p)
 
     dx = p.x - x
     dy = p.y - y
-    dd = sqrt0(dx*dx+dy*dy)
+    dd = sqrt(dx*dx+dy*dy)
 
 
 
@@ -227,7 +226,7 @@ function move_point(p)
       end
     elseif( dd > 0 )then
       -- repulsion
-      dd = sqrt0(dd)
+      dd = sqrt(dd)
       dd = 0.5 * ( dd -9 ) / dd
 
       dx *= dd
