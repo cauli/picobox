@@ -4,7 +4,7 @@ __lua__
 
 -- debug
 skip_draw_particles = true
-v = "0.0.2"
+v = "0.0.2.2"
 
 -- moving speed of actor
 sx = 3
@@ -192,15 +192,15 @@ total_cloud_width_fg = 0
 function make_cloud_circle(sx, sy, r, color,i) 
  local c = {}
  c.x = sx
- c.y = sy - ( sin(1/i) * 6 )
+ c.y = sy - ( sin(1/i) * 10 )
  c.r = r
  c.color = color
  return c
 end
+
 --
 -- draw functions
 --
-
 function make_clouds(cloud_circles_array, r, c)
 
   if(cloud_circles_array == cloud_circles_fg)then
@@ -269,10 +269,10 @@ function draw_clouds()
 
 
   color(cloud_circles_fg[1].color)
-  rectfill(0,55,40,128)
+  rectfill(0,55,40,400)
 
   color(cloud_circles[1].color)
-  rectfill(0,56,40,128)
+  rectfill(0,56,40,400)
 
   for i=1,count(cloud_circles_fg) do
     color(cloud_circles_fg[i].color)
@@ -304,7 +304,6 @@ function draw_stick(s)
 
   color(fc1)
   line(s.p0.x,s.p0.y,s.p1.x,s.p1.y)
-
 end
 
 function draw_triangle(t)
@@ -328,21 +327,39 @@ function draw_scene()
 
  -- draw wall
 	color(5)
-	rectfill(38,0,128,128)
+	rectfill(38,0,128,400)
 	
  -- draw window black
  color(0)
  rectfill(38,28,51+60,28+70)
  
+ draw_window(0,0)
+
+end
+
+function draw_window(x,y)
+
+  -- draw window black
+ color(0)
+ rectfill(x+38,y+28,x+51+60,y+28+70)
+
  palt(0,false)
- map(4,0, 42,97, 12,2 )
- map(15,0, 115,28, 1,10 )
+ map(4,0, x+42,y+97, 12,2 )
+ map(15,0, x+115,y+28, 1,10 )
 
  palt(0,true)
- map(0,0, 28,28, 4,10)
- map(0,0, 92,28, 4,10)
+ map(0,0, x+28,y+28, 4,10)
+ map(0,0, x+92,y+28, 4,10)
+end
 
-
+function make_window(x, y)
+  local w = {}
+  w.x = x
+  w.y = y
+  w.vx = 0
+  w.vy = -4
+  w.class= "window"
+  return w
 end
 
 function make_windy()
@@ -359,6 +376,7 @@ function make_windy()
   w.target = target
   w.jumped = false
   w.using_force = false
+  w.class= "windy"
   return w
 end
 
@@ -405,6 +423,7 @@ function ease_to(a, target, ease)
     return true
 end
 
+
 function move_actor(a)
   if(a.jumped)then
     a.x += a.vx
@@ -412,6 +431,10 @@ function move_actor(a)
     a.vx *= friction
     a.vy *= friction
     a.vy += gravity
+
+    if(a.class == "window" and a.y < 30)then
+      a.y = 256
+    end
   end
 
   return false
@@ -471,8 +494,6 @@ end
 
 -- recalculate point positions
 function move_point(p)
-
-
   if(p.controllable)then
    p.x += csx
    p.y += csy
@@ -527,7 +548,12 @@ end
 
 
 function _update()
-  frame += 1
+  frame += 1 
+  
+  if(cam.vy~= 0 or cam.vx ~= 0)then
+    cam.y += cam.vy
+    cam.x += cam.vx
+  end
 
   if(sent_f)then
 
@@ -558,10 +584,12 @@ function _update()
   move_clouds(cloud_circles_fg)
   move_clouds(cloud_circles)
 
-	foreach(points, move_point)		
+	foreach(points, move_point)
 	foreach(sticks, move_stick)
 
   move_actor(windy)
+  move_actor(window)
+  move_actor(window2)
 
   csx = 0 csy = 0
 
@@ -587,6 +615,14 @@ function _draw()
   draw_scene()
   
   draw_actor(windy) 
+  draw_window(window.x,window.y)
+  draw_window(window2.x,window2.y)
+
+  if(cam.vy ~= 0 or cam.vx ~= 0)then
+    if(cam.y <= 256)then
+      camera(cam.x, cam.y)
+    end
+  end
 
   if(windy.jumped)then
     if(not sent_f)then
@@ -595,7 +631,7 @@ function _draw()
     end
 
     if(sent_f and frame > stop_f)then
-     
+      start_camera_movement()
     else
       print("press z+x to jump", 51, 120, 7)
     end
@@ -618,10 +654,25 @@ function _draw()
 end
 
 
+
+
+function start_camera_movement()
+  cam.vy = 4
+end
+
 -- called at start by pico-8
 function _init()
+
+  cam = {}
+  cam.vx = 0
+  cam.vy = 0
+  cam.x = 0
+  cam.y = 0
+
  lastpnt = {}
  windy = make_windy()
+ window = make_window(0,128)
+ window2 = make_window(0,256)
 
  make_clouds(cloud_circles,    {6,15,7,20},        15)
  make_clouds(cloud_circles_fg, {3,12,6,7,4,10,12}, 13)
