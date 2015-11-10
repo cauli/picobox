@@ -4,7 +4,7 @@ __lua__
 
 -- debug
 skip_draw_particles = true
-v = "0.0.2.2"
+v = "0.0.3"
 
 -- moving speed of actor
 sx = 3
@@ -21,17 +21,21 @@ gravity = 0.3
 friction = 0.98
 bounce = 0.9
 
-wind_x = -0.1
+wind_x = -0.15
 wind_y = -0.4
 
 init_wind_x = wind_x
 init_wind_y = wind_y
 
-wind_max_x = 4
-wind_max_y = 2
+wind_max_x = 4.5
+wind_max_y = 2.5
 
-wind_hit_chance = 0.1
+wind_hit_chance = 0.05
 
+wind_control_strength = 0.1
+
+ripple_quantity = 100
+ripple_max_radius = 100
 -- 
 max_points = 1000
 
@@ -63,9 +67,9 @@ ease = 0.1
 sqrt0 = sqrt
 
 function sqrt(n)
-  if (n <= 0) return 0
-  if (n >= 32761) return 181.0
-  return sqrt0(n)
+	if (n <= 0) return 0
+	if (n >= 32761) return 181.0
+	return sqrt0(n)
 end
 
 function distance(p0, p1)
@@ -76,60 +80,60 @@ function distance(p0, p1)
 end
 
 --
--- triangle fill ported by YellowAfterlife
+-- triangle fill ported by yellowafterlife
 -- https://gist.github.com/yellowafterlife/34de710baa4422b22c3e
 -- from http://forum.devmaster.net/t/advanced-rasterization/6145
 -- edit for cleaner seams by @cauli
 --
 function trifill(p1, p2, p3)
-  local x1 = p1.x
-  local y1 = p1.y
-  local x2 = p2.x
-  local y2 = p2.y
-  local x3 = p3.x
-  local y3 = p3.y
-  
-  local dx12 = x1 - x2
-  local dx23 = x2 - x3
-  local dx31 = x3 - x1
-  local dy12 = y1 - y2
-  local dy23 = y2 - y3
-  local dy31 = y3 - y1
-  local minx = min(x1, min(x2, x3))
-  local maxx = max(x1, max(x2, x3))
-  local miny = min(y1, min(y2, y3))
-  local maxy = max(y1, max(y2, y3))
-  local c1 = dy12 * x1 - dx12 * y1
-  local c2 = dy23 * x2 - dx23 * y2
-  local c3 = dy31 * x3 - dx31 * y3
-  if dy12 < 0 or dy12 == 0 and dx12 > 0 then
-    c1 += 1
-  end
-  if dy23 < 0 or dy23 == 0 and dx23 > 0 then
-    c2 += 1
-  end
-  if dy31 < 0 or dy31 == 0 and dx31 > 0 then
-    c3 += 1
-  end
-  local cy1 = c1 + dx12 * miny - dy12 * minx
-  local cy2 = c2 + dx23 * miny - dy23 * minx
-  local cy3 = c3 + dx31 * miny - dy31 * minx
-  for y = flr(miny), flr(maxy)  do
-    local cx1 = cy1
-    local cx2 = cy2
-    local cx3 = cy3
-    for x = flr(minx), flr(maxx) do
-      if cx1 > -5 and cx2 > -5 and cx3 > -5 then
-        pset(x, y)
-      end
-      cx1 -= dy12
-      cx2 -= dy23
-      cx3 -= dy31
-    end
-    cy1 += dx12
-    cy2 += dx23
-    cy3 += dx31
-  end
+	local x1 = p1.x
+	local y1 = p1.y
+	local x2 = p2.x
+	local y2 = p2.y
+	local x3 = p3.x
+	local y3 = p3.y
+	
+	local dx12 = x1 - x2
+	local dx23 = x2 - x3
+	local dx31 = x3 - x1
+	local dy12 = y1 - y2
+	local dy23 = y2 - y3
+	local dy31 = y3 - y1
+	local minx = min(x1, min(x2, x3))
+	local maxx = max(x1, max(x2, x3))
+	local miny = min(y1, min(y2, y3))
+	local maxy = max(y1, max(y2, y3))
+	local c1 = dy12 * x1 - dx12 * y1
+	local c2 = dy23 * x2 - dx23 * y2
+	local c3 = dy31 * x3 - dx31 * y3
+	if dy12 < 0 or dy12 == 0 and dx12 > 0 then
+		c1 += 1
+	end
+	if dy23 < 0 or dy23 == 0 and dx23 > 0 then
+		c2 += 1
+	end
+	if dy31 < 0 or dy31 == 0 and dx31 > 0 then
+		c3 += 1
+	end
+	local cy1 = c1 + dx12 * miny - dy12 * minx
+	local cy2 = c2 + dx23 * miny - dy23 * minx
+	local cy3 = c3 + dx31 * miny - dy31 * minx
+	for y = flr(miny), flr(maxy)  do
+		local cx1 = cy1
+		local cx2 = cy2
+		local cx3 = cy3
+		for x = flr(minx), flr(maxx) do
+			if cx1 > -5 and cx2 > -5 and cx3 > -5 then
+				pset(x, y)
+			end
+			cx1 -= dy12
+			cx2 -= dy23
+			cx3 -= dy31
+		end
+		cy1 += dx12
+		cy2 += dx23
+		cy3 += dx31
+	end
 end
 
 --
@@ -203,70 +207,69 @@ end
 --
 function make_clouds(cloud_circles_array, r, c)
 
-  if(cloud_circles_array == cloud_circles_fg)then
-    yi = 40
-  else
-    yi = 57
-  end
+	if(cloud_circles_array == cloud_circles_fg)then
+		yi = 40
+	else
+		yi = 57
+	end
 
-  for i=1,count(r) do
-    total_cloud_width += r[i]
-  end
+	for i=1,count(r) do
+		total_cloud_width += r[i]
+	end
 
-  for i=1,count(r) do
+	for i=1,count(r) do
 
 
-    -- sum all radius from before
-    if(i==1)then
-      ix = 0
-    else
-      ix = 0
+		-- sum all radius from before
+		if(i==1)then
+			ix = 0
+		else
+			ix = 0
 
-      for j=1,i do
-        ix += r[j] 
-      end 
-    end
+			for j=1,i do
+				ix += r[j] 
+			end 
+		end
 
-    add(cloud_circles_array, make_cloud_circle(ix-5,yi,r[i],c,i))
-  end
+		add(cloud_circles_array, make_cloud_circle(ix-5,yi,r[i],c,i))
+	end
 end
 
 function move_clouds(cloud_circles_array)
-  max_x = -100
-  min_x = 200
-  cur_max = -1
+	max_x = -100
+	min_x = 200
+	cur_max = -1
 
-  if(cloud_circles_array == cloud_circles)then
-    mp = 0.4
-  else
-    mp = 0.2
-  end
+	if(cloud_circles_array == cloud_circles)then
+		mp = 0.4
+	else
+		mp = 0.2
+	end
 
-  for i=1,count(cloud_circles_array) do
+	for i=1,count(cloud_circles_array) do
 
-    local lastmax = max_x 
-    max_x = max(cloud_circles_array[i].x + cloud_circles_array[i].r -2 , max_x)
+		local lastmax = max_x 
+		max_x = max(cloud_circles_array[i].x + cloud_circles_array[i].r -2 , max_x)
 
-    if(max_x != lastmax)then
-      cur_max = i
-    end
+		if(max_x != lastmax)then
+			cur_max = i
+		end
 
-    min_x = min(cloud_circles_array[i].x - cloud_circles_array[i].r + 2, min_x)
-  end
+		min_x = min(cloud_circles_array[i].x - cloud_circles_array[i].r + 2, min_x)
+	end
 
-  for i=1,count(cloud_circles_array) do
-    cloud_circles_array[i].x += wind_x*mp
+	for i=1,count(cloud_circles_array) do
+		cloud_circles_array[i].x += wind_x*mp
 
-    if(cloud_circles_array[i].x < -cloud_circles_array[i].r and wind_x < 0.0)then
-      cloud_circles_array[i].x = max_x + cloud_circles_array[i].r
-    elseif(cloud_circles_array[i].x > 40 + cloud_circles_array[i].r and wind_x > 0.0)then
-      cloud_circles_array[i].x = min_x - cloud_circles_array[i].r
-    end
-  end
+		if(cloud_circles_array[i].x < -cloud_circles_array[i].r and wind_x < 0.0)then
+			cloud_circles_array[i].x = max_x + cloud_circles_array[i].r
+		elseif(cloud_circles_array[i].x > 40 + cloud_circles_array[i].r and wind_x > 0.0)then
+			cloud_circles_array[i].x = min_x - cloud_circles_array[i].r
+		end
+	end
 end
 
 function draw_clouds()
-
 
   color(cloud_circles_fg[1].color)
   rectfill(0,55,40,400)
@@ -274,47 +277,47 @@ function draw_clouds()
   color(cloud_circles[1].color)
   rectfill(0,56,40,400)
 
-  for i=1,count(cloud_circles_fg) do
-    color(cloud_circles_fg[i].color)
-    circfill(cloud_circles_fg[i].x,cloud_circles_fg[i].y,cloud_circles_fg[i].r)
-    rectfill(cloud_circles_fg[i].x-cloud_circles_fg[i].r, cloud_circles_fg[i].y,cloud_circles_fg[i].x+cloud_circles_fg[i].r, cloud_circles_fg[i].y+50)
-  end
+	for i=1,count(cloud_circles_fg) do
+		color(cloud_circles_fg[i].color)
+		circfill(cloud_circles_fg[i].x,cloud_circles_fg[i].y,cloud_circles_fg[i].r)
+		rectfill(cloud_circles_fg[i].x-cloud_circles_fg[i].r, cloud_circles_fg[i].y,cloud_circles_fg[i].x+cloud_circles_fg[i].r, cloud_circles_fg[i].y+50)
+	end
 
-  for i=1,count(cloud_circles) do
-    color(cloud_circles[i].color)
-    circfill(cloud_circles[i].x,cloud_circles[i].y,cloud_circles[i].r)
-    rectfill(cloud_circles[i].x-cloud_circles[i].r, cloud_circles[i].y,cloud_circles[i].x+cloud_circles[i].r, cloud_circles[i].y+50)
-  end
+	for i=1,count(cloud_circles) do
+		color(cloud_circles[i].color)
+		circfill(cloud_circles[i].x,cloud_circles[i].y,cloud_circles[i].r)
+		rectfill(cloud_circles[i].x-cloud_circles[i].r, cloud_circles[i].y,cloud_circles[i].x+cloud_circles[i].r, cloud_circles[i].y+50)
+	end
 
 
 end
 
 function draw_particle(p)
-  color(p.color)
-  rectfill(p.x,p.y,p.x,p.y)  
+	color(p.color)
+	rectfill(p.x,p.y,p.x,p.y)  
 end
 
 function draw_stick(s)
-  color(fc3)
-  if(s.horizontal)then
-    -- dont draw first horizontal stick. it is weird
-    color(fc3) 
-    return line(s.p0.x,s.p0.y,s.p1.x,s.p1.y)
-  end
+	color(fc3)
+	if(s.horizontal)then
+		-- dont draw first horizontal stick. it is weird
+		color(fc3) 
+		return line(s.p0.x,s.p0.y,s.p1.x,s.p1.y)
+	end
 
-  color(fc1)
-  line(s.p0.x,s.p0.y,s.p1.x,s.p1.y)
+	color(fc1)
+	line(s.p0.x,s.p0.y,s.p1.x,s.p1.y)
 end
 
 function draw_triangle(t)
 
-  if(count(t.p1.sticks) == 1 or count(t.p0.sticks) == 1 or count(t.p2.sticks) == 1)then
-    del(triangles,t)
-    return
-  end
+	if(count(t.p1.sticks) == 1 or count(t.p0.sticks) == 1 or count(t.p2.sticks) == 1)then
+		del(triangles,t)
+		return
+	end
 
-  color(t.color)
-  trifill(t.p1,t.p0,t.p2)
+	color(t.color)
+	trifill(t.p1,t.p0,t.p2)
 end
 
 
@@ -366,6 +369,7 @@ function make_windy()
   local w = {}
   w.idle = 36
   w.force = 37
+  w.force2 = 53
   w.x=68
   w.y=92
   w.vx = 0
@@ -381,24 +385,37 @@ function make_windy()
 end
 
 function draw_actor(a)
-  if(a.jumped)then
-    spr(52, a.x, a.y)
-    return 
-  end
-  if(not a.using_force)then
-    spr(a.idle, a.x, a.y)
-  else
-    spr(a.force, a.x, a.y)
-  end
+	if(a.jumped)then
+		spr(52, a.x, a.y)
+		return 
+	end
+	if(not a.using_force)then
+		spr(a.idle, a.x, a.y)
+	else
+		if(sin((frame % 5) / 5)  > 0)then
+			spr(a.force, a.x, a.y)
+		else
+			spr(a.force2, a.x, a.y)
+		end
+
+
+		if(ripple_radius > ripple_max_radius-5)then
+			draw_ripple(a.x+3, a.y+5, ripple_max_radius - ripple_radius-1)
+			draw_ripple(a.x+3, a.y+5, ripple_max_radius - ripple_radius)
+		end
+
+		draw_ripple(a.x+3, a.y+5, ripple_radius-1)
+		draw_ripple(a.x+3, a.y+5, ripple_radius)
+	end
 end
 
 function jump(a)
 
-  if(not a.jumped)then
-    a.jumped = true
-    a.vx = - 2
-    a.vy = - 2
-  end
+	if(not a.jumped)then
+		a.jumped = true
+		a.vx = - 2
+		a.vy = - 2
+	end
 end
 
 --
@@ -406,21 +423,21 @@ end
 --
 
 function ease_to(a, target, ease)
-    dx = a.x - target.x
-    dy = a.y - target.y
-    a.vx = dx * ease
-    a.vy = dy * ease
+		dx = a.x - target.x
+		dy = a.y - target.y
+		a.vx = dx * ease
+		a.vy = dy * ease
 
-    a.x += a.vx
-    a.y += a.vy
+		a.x += a.vx
+		a.y += a.vy
 
-    if(abs(dx) < 0.1 and abs(dy) < 0.1)then
-      a.x = target.x
-      a.y = target.y
-      return false
-    end
+		if(abs(dx) < 0.1 and abs(dy) < 0.1)then
+			a.x = target.x
+			a.y = target.y
+			return false
+		end
 
-    return true
+		return true
 end
 
 
@@ -441,54 +458,54 @@ function move_actor(a)
 end
 
 function move_stick(s)
-  dx = s.p1.x - s.p0.x
-  dy = s.p1.y - s.p0.y
-  
-  dist    = sqrt(dx*dx+dy*dy)
-  diff    = s.length - dist
+	dx = s.p1.x - s.p0.x
+	dy = s.p1.y - s.p0.y
+	
+	dist    = sqrt(dx*dx+dy*dy)
+	diff    = s.length - dist
 
-  if(s.horizontal)then
-    if(diff > resist_x)then
+	if(s.horizontal)then
+		if(diff > resist_x)then
 
-      for i=1,count(s.triangles) do
-        del(triangles,triangles[s.triangles[i]])
-      end
+			for i=1,count(s.triangles) do
+				del(triangles,triangles[s.triangles[i]])
+			end
 
-      del(s.p0.sticks,s)
-      del(s.p1.sticks,s)
-      del(sticks,s)
-    end
-  else
-    if(diff > resist_y)then
+			del(s.p0.sticks,s)
+			del(s.p1.sticks,s)
+			del(sticks,s)
+		end
+	else
+		if(diff > resist_y)then
 
-      for i=1,count(s.triangles) do
-        del(triangles,triangles[s.triangles[i]])
-      end
+			for i=1,count(s.triangles) do
+				del(triangles,triangles[s.triangles[i]])
+			end
 
-      del(s.p0.sticks,s)
-      del(s.p1.sticks,s)
-      del(sticks,s)
-    end
-  end
+			del(s.p0.sticks,s)
+			del(s.p1.sticks,s)
+			del(sticks,s)
+		end
+	end
 
-  percent = diff/dist/2
-  offsetx = dx*percent
-  offsety = dy*percent
-  
-  if(s.p0.fixed)then
-  	s.p1.x += 2*offsetx
-	  s.p1.y += 2*offsety
-  else
-  	if(s.p1.fixed)then
-  	s.p0.x -= 2*offsetx
-	  s.p0.y -= 2*offsety
-  	else
-  	  s.p0.x -= offsetx
-	    s.p0.y -= offsety
-	    s.p1.x += offsetx
-	    s.p1.y += offsety
-  	end
-  end
+	percent = diff/dist/2
+	offsetx = dx*percent
+	offsety = dy*percent
+	
+	if(s.p0.fixed)then
+		s.p1.x += 2*offsetx
+		s.p1.y += 2*offsety
+	else
+		if(s.p1.fixed)then
+		s.p0.x -= 2*offsetx
+		s.p0.y -= 2*offsety
+		else
+			s.p0.x -= offsetx
+			s.p0.y -= offsety
+			s.p1.x += offsetx
+			s.p1.y += offsety
+		end
+	end
 
 end
 
@@ -516,34 +533,34 @@ function move_point(p)
   p.x += p.vx
   p.y += p.vy
 		
-		p.y += gravity
+	p.y += gravity
 
-  local wind_dice = rnd(1)
+	local wind_dice = rnd(1)
 
-  if(wind_dice < wind_hit_chance)then
-    p.x += wind_x
-    p.y += wind_y
-  end
+	if(wind_dice < wind_hit_chance)then
+		p.x += wind_x
+		p.y += wind_y
+	end
 
-  if(p.x > 228)then
-    p.x = 228
-    p.oldx = p.x + p.vx * bounce
-  end
+	if(p.x > 228)then
+		p.x = 228
+		p.oldx = p.x + p.vx * bounce
+	end
 
-  if(p.x < -100)then
-    p.x = 0
-    p.oldx = p.x + p.vx * bounce
-  end
+	if(p.x < -100)then
+		p.x = 0
+		p.oldx = p.x + p.vx * bounce
+	end
 
-  if(p.y > 228)then
-    p.y = 228
-    p.oldy = p.y + p.vy * bounce
-  end
+	if(p.y > 228)then
+		p.y = 228
+		p.oldy = p.y + p.vy * bounce
+	end
 
-  if(p.y < 0)then
-    p.y = 0
-    p.oldy = p.y + p.vy * bounce
-  end
+	if(p.y < 0)then
+		p.y = 0
+		p.oldy = p.y + p.vy * bounce
+	end
 end
 
 
@@ -555,34 +572,38 @@ function _update()
     cam.x += cam.vx
   end
 
-  if(sent_f)then
+	if(sent_f)then
 
-  end
+	end
 
-  if(wind_x > wind_max_x)then
-   wind_x = wind_max_x
-  elseif(wind_x < -wind_max_x)then
-   wind_x = -wind_max_x
-  end
+	if(wind_x > wind_max_x)then
+	 wind_x = wind_max_x
+	elseif(wind_x < -wind_max_x)then
+	 wind_x = -wind_max_x
+	end
 
-  if(wind_y > wind_max_y)then
-   wind_y = wind_max_y
-  elseif(wind_y < -wind_max_y)then
-   wind_y = -wind_max_y
-  end
+	if(wind_y > wind_max_y)then
+	 wind_y = wind_max_y
+	elseif(wind_y < -wind_max_y)then
+	 wind_y = -wind_max_y
+	end
 
-  local wind_str = abs(wind_x) + abs(wind_y)
+	local wind_str = abs(wind_x) + abs(wind_y)
 
-  if(wind_str < 1 )then
-   sfx(0,1)
-  elseif(wind_str < 2)then
-   sfx(1,1)
-  else
-   sfx(1,2)
-  end
+	if(wind_str < 2 )then
+	 sfx(5,1)
+	elseif(wind_str < 4)then
+	 sfx(1,1)
+	elseif(wind_str < 5)then
+	 sfx(2,1)	
+	elseif(wind_str < 6)then
+	 sfx(3,1)
+	else
+	 sfx(4,1)
+	end
 
-  move_clouds(cloud_circles_fg)
-  move_clouds(cloud_circles)
+	move_clouds(cloud_circles_fg)
+	move_clouds(cloud_circles)
 
 	foreach(points, move_point)
 	foreach(sticks, move_stick)
@@ -591,25 +612,29 @@ function _update()
   move_actor(window)
   move_actor(window2)
 
-  csx = 0 csy = 0
+	csx = 0 csy = 0
 
 	if (btn(0,1)) then x-=sx csx-=sx end
 	if (btn(1,1)) then x+=sx csx+=sx end
 	if (btn(2,1)) then y-=sy csy-=sy end
 	if (btn(3,1)) then y+=sy csy+=sy end
 
-  windy.using_force = false
+	windy.using_force = false
 
-  if (btn(0,0)) then wind_x-=0.1 windy.using_force = true end
-  if (btn(1,0)) then wind_x+=0.1 windy.using_force = true end
-  if (btn(2,0)) then wind_y-=0.1 windy.using_force = true end
-  if (btn(3,0)) then wind_y+=0.1 windy.using_force = true end
+	if (btn(0,0)) then wind_x-=wind_control_strength windy.using_force = true end
+	if (btn(1,0)) then wind_x+=wind_control_strength windy.using_force = true end
+	if (btn(2,0)) then wind_y-=wind_control_strength windy.using_force = true end
+	if (btn(3,0)) then wind_y+=wind_control_strength windy.using_force = true end
 
-  if (btn(4,0) and btn(5,0)) then did_jump = true jump(windy) end
+	if (btn(4,0) and btn(5,0)) then did_jump = true jump(windy) end
 
+
+  ripple_radius += ripple_speed
+
+  if(ripple_radius > ripple_max_radius)then
+  	ripple_radius = 0
+  end
 end
-
-sent_f = false
 
 function _draw()
   draw_scene()
@@ -617,6 +642,9 @@ function _draw()
   draw_actor(windy) 
   draw_window(window.x,window.y)
   draw_window(window2.x,window2.y)
+
+  print(count(points), 0, 0, 0)
+  print(count(sticks), 0, 30, 0)
 
   if(cam.vy ~= 0 or cam.vx ~= 0)then
     if(cam.y <= 256)then
@@ -629,7 +657,7 @@ function _draw()
       stop_f = frame + 1
       sent_f = true
     end
-
+    
     if(sent_f and frame > stop_f)then
       start_camera_movement()
     else
@@ -643,16 +671,43 @@ function _draw()
     end
   end
 
-  foreach(triangles, draw_triangle)
+ 	foreach(triangles, draw_triangle)
 
-  foreach(sticks, draw_stick)
+	foreach(sticks, draw_stick)
 
-  if(not skip_draw_particles)then
-   foreach(points, draw_particle)
-  end
+	if(not skip_draw_particles)then
+	 foreach(points, draw_particle)
+	end
 
 end
 
+sent_f = false
+
+
+-- http://webstaff.itn.liu.se/~stegu/circle/circlealgorithm.pdf
+function draw_ripple(x0,y0,radius)
+	local x = radius
+	local y = 0
+  decisionOver2 = 1 - x
+
+  while( y <= x )do
+    pset( x + x0,  y + y0,    pget( x + x0 + 1,  y + y0 +1))
+    --pset( y + x0,  x + y0)
+    pset(-x + x0,  y + y0,    pget( -x + x0 -1,  y + y0 +1))
+    --pset(-y + x0,  x + y0)
+    pset(-x + x0, -y + y0,   pget(-x + x0 -1, -y + y0 -1))
+    --pset(-y + x0, -x + y0)
+    pset( x + x0, -y + y0,   pget(x + x0 +1, -y + y0 -1))
+    --pset( y + x0, -x + y0)
+    y += 1
+    if(decisionOver2 <= 0)then
+    	decisionOver2 += 1 * y + 1
+    else
+    	x -= 1
+    	decisionOver2 += 1 * (y - x) + 1
+    end
+  end 
+end
 
 
 
@@ -674,6 +729,11 @@ function _init()
  window = make_window(0,128)
  window2 = make_window(0,256)
 
+ ripple_radius = 3
+ ripple_speed  = 1
+
+ pi = 3.1416
+
  make_clouds(cloud_circles,    {6,15,7,20},        15)
  make_clouds(cloud_circles_fg, {3,12,6,7,4,10,12}, 13)
 
@@ -681,65 +741,65 @@ function _init()
  local spacing_y = 7
 
  cols = 5
- rows = 9
+ rows = 7
 
  -- fixes 0 index 
  cols += 1
  rows += 1
 
  for c=1,cols do 
-  for r=1,rows do
+	for r=1,rows do
 
-    if( (r == 1) )then
-     pnt = particle(x+ c*spacing_x, y+r*spacing_y,true,true)
-    elseif( r==8 )then
-     pnt = particle(x+c*spacing_x,y+r*spacing_y,false,false)
-    else
-     pnt = particle(x+c*spacing_x,y+r*spacing_y)
-    end
+		if( (r == 1) )then
+		 pnt = particle(x+ c*spacing_x, y+r*spacing_y,true,true)
+		elseif( r==8 )then
+		 pnt = particle(x+c*spacing_x,y+r*spacing_y,false,false)
+		else
+		 pnt = particle(x+c*spacing_x,y+r*spacing_y)
+		end
 
-    if (count(points) < max_points) then
-	   add(points, pnt)
-    end
+		if (count(points) < max_points) then
+		 add(points, pnt)
+		end
 
-    local tri_size = 2
-    local tri_size_minus = tri_size - 1
+		local tri_size = 2
+		local tri_size_minus = tri_size - 1
 
-    local p1 =  points[((c-tri_size)*(rows))+r-tri_size_minus]
-    local p2 =  points[((c-1)*(rows))+r-tri_size_minus] 
-    local p3 =  points[((c-1)*(rows))+r]
-    local p4 =  points[((c-tri_size)*(rows))+r]
+		local p1 =  points[((c-tri_size)*(rows))+r-tri_size_minus]
+		local p2 =  points[((c-1)*(rows))+r-tri_size_minus] 
+		local p3 =  points[((c-1)*(rows))+r]
+		local p4 =  points[((c-tri_size)*(rows))+r]
 
-    if(c>tri_size_minus and r>tri_size_minus)then
+		if(c>tri_size_minus and r>tri_size_minus)then
 
-      if(c%tri_size_minus ==0 and r%tri_size_minus ==0)then
-        if(c%2==0)then
-          fabric_color = fc1
-        end
+			if(c%tri_size_minus ==0 and r%tri_size_minus ==0)then
+				if(c%2==0)then
+					fabric_color = fc1
+				end
 
-        t342 = make_triangle(p3, p4, p2, false, fabric_color )-- remove if 3 to 4 breaks or 3 to 2 breaks
-        t124 = make_triangle(p1, p2, p4, true,  fabric_color )-- remove if 1 to 2 breaks or 1 to 4 breaks
-        
-        add(triangles, t342)
-        add(triangles, t124)
-      end   
-    end
+				t342 = make_triangle(p3, p4, p2, false, fabric_color )-- remove if 3 to 4 breaks or 3 to 2 breaks
+				t124 = make_triangle(p1, p2, p4, true,  fabric_color )-- remove if 1 to 2 breaks or 1 to 4 breaks
+				
+				add(triangles, t342)
+				add(triangles, t124)
+			end   
+		end
 
-    local tris = {count(triangles)-1,count(triangles)}
+		local tris = {count(triangles)-1,count(triangles)}
 
-    -- connect horizontally
-    if(c>1)then
-      make_stick(p3,p4, true, tris, c)
-    end
+		-- connect horizontally
+		if(c>1)then
+			make_stick(p3,p4, true, tris, c)
+		end
 
-    fabric_color = fc1
+		fabric_color = fc1
 
-    -- connect vertically
-    if(r>1)then 
-      make_stick(p2,p3, false, tris, r)
-    end
+		-- connect vertically
+		if(r>1)then 
+			make_stick(p2,p3, false, tris, r)
+		end
 
-  end
+	end
  end
 
  cp = count(points)
@@ -771,14 +831,14 @@ fffffffffffffffffff4444050505000000000000000000000000000000000000000000000000000
 44444444444444444445554000000000007777777777777700000000000000000000000000000000000000000000000055555555000555550000000000000000
 44444444444444444445554000000000005055050057550500000000000000000000000000000000000000000000000055555555000555550000000000000000
 44444444444444444444444000000000007077070070770700000000000000000000000000000000000000000000000055555555000555550000000000000000
-000000000000000000000000000000007799ff700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000cf7fcf000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-000000000000000000000000000000009f7ff9050000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000777777070000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000057575050000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000706777700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000775750000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000770000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000000000000000000000000000000007799ff700000000500000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000cf7fcf000700007500000000000000000000000000000000000000000000000000000000000000000000000000000000
+000000000000000000000000000000009f7ff90507799ff700000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000777777070af7faf500000000000000000000000000000000000000000000000000000000000000000000000000000000
+000000000000000000000000000000000575750509f7fff700000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000706777700777777700000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000775750057550500000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000770070770700000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000007077070000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -912,12 +972,12 @@ __map__
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __sfx__
-000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0004001f07620086200862009620096200a6200a6200a6200a6200a62009620096200862007620076200662005620056200462004620036200362003620036200362004620046200662007620096200a6200a620
+000b00200162003620046200462005620056200562005620046200462004620046200362003620036200362003620036200362003620036200362003620046200462005620056200562005620056200462004620
+000600200662003620056200562006620066200662007620076200762007620076200662005620056200462004620046200462004620046200562007620086200962009620096200962009620096200762006620
+000d00200a6200a6200b6200b6200c6200c6200c6200b6200b6200a6200962009620086200762007620076200762008620096200a6200b6200b6200c6200c6200c6200b6200b6200b6200b6200b6200b6200e620
+001000000f6200e6200f6200f620106201062010620116201162011620106200f6200f6200e6200e6200e6200e6200e6200f62010620116201262013620156201562015620156201562014620146201362012620
+000f001b0261002610026100261002610026100161001610026100161001610016100161001610026100361003610036100461004610046100461004610026100261001610016100161002610036100461004610
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
