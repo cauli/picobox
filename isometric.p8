@@ -6,6 +6,12 @@ th = 25
 tz = 12.5/2
 
 rndcol = flr(rnd()*16)
+
+-- physics parameters
+gravity = 0.3
+friction = 0.98
+bounce = 0.9
+
 --
 -- triangle fill ported by yellowafterlife
 -- https://gist.github.com/yellowafterlife/34de710baa4422b22c3e
@@ -74,11 +80,60 @@ function make_point(x,y)
   return p
 end
 
+-- grid coordinates
+function make_ball(x0,y0,z0)
+  local b = {}
+
+  -- convert to global
+  local x = (x0-y0) * tw/2
+  local y = (x0+y0) * th/2
+  local z = (z0 * tz) - tz
+
+  b.x = x
+  b.y = y
+  b.z = z
+
+  b.oldx = x
+  b.oldy = y
+  b.oldz = z
+
+  b.vx = vx
+  b.vy = vy
+  b.vz = vz
+
+  return b
+end
+
+function move_ball(b)
+
+  b.vx = (b.x - b.oldx) * friction
+  b.vy = (b.y - b.oldy) * friction
+  b.vz = (b.z - b.oldz) * friction
+
+  b.oldx = b.x
+  b.oldy = b.y
+  b.oldz = b.z
+  
+  b.x += b.vx
+  b.y += b.vy
+  b.z += b.vz
+
+  --b.z += gravity
+
+end
+
+function draw_ball(b)
+
+  print("x " .. b.x .. "   y " .. b.y .. "   z " .. b.z, 1, 20, 6)
+
+  pset(b.x, b.y, 0)
+  pset(b.x, b.y - b.z, 7)
+end
+
 
 function draw_block(x0,y0,z0,i)
   local x = (x0-y0) * tw/2
   local y = (x0+y0) * th/2
-
   local z = tz + (z0 * tz)
 
   -- top 4
@@ -86,6 +141,10 @@ function draw_block(x0,y0,z0,i)
   local p2 = make_point(x+tw/2,y+th/2-z)   -- TCR
   local p3 = make_point(x,y+th-z) -- TBC
   local p4 = make_point(x-tw/2,y+th/2-z) -- TCL
+  
+  local pc = make_point(x, y)
+
+  print("x " .. pc.x .. "   y " .. pc.y, 1, 1, 7)
 
   -- bottom 4
   local p5 = make_point(x, y)  -- BTC
@@ -101,8 +160,7 @@ function draw_block(x0,y0,z0,i)
   --  .     ..3..     .
   --  8..     .     ..6
   --     ...  .  ...
-  --        ..7..
-  --      
+  --        ..7..  
 
   -- i == 1 
   --        ..1.\
@@ -165,26 +223,24 @@ function draw_tile(x0,y0)
   line(x-tw/2,y+th/2,x,y)
 end
 
-function _update()
+function _init()
+  ball = make_ball(4,2,3)
+end
 
+function _update()
+  move_ball(ball)
 end
 
 function _draw()
-	rectfill(0,0,128,128,1     )
+	rectfill(0,0,128,128,1)
 
+  draw_block(4,2,1,0)
+  --draw_block(3,0,1,0)
+  --draw_block(3,1,1,0)
+  --draw_block(3,2,1,2) -- 2
+  --draw_block(4,0,1,1) -- 1
 
-
-  draw_block(2,1,1,0)
-
-  draw_block(3,0,1,0)
-
-
-
-  draw_block(3,1,1,0)
-
-  draw_block(3,2,1,2)
-
-  draw_block(4,0,1,1)
+  draw_ball(ball)
 
 end
 __gfx__
