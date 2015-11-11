@@ -3,12 +3,161 @@ version 5
 __lua__
 tw = 50
 th = 25
+tz = 12.5/2
+
+rndcol = flr(rnd()*16)
+--
+-- triangle fill ported by yellowafterlife
+-- https://gist.github.com/yellowafterlife/34de710baa4422b22c3e
+-- from http://forum.devmaster.net/t/advanced-rasterization/6145
+--
+function trifill(p1, p2, p3, col)
+  color(col)
+
+  local x1 = p1.x
+  local y1 = p1.y
+  local x2 = p2.x
+  local y2 = p2.y
+  local x3 = p3.x
+  local y3 = p3.y
+  
+  local dx12 = x1 - x2
+  local dx23 = x2 - x3
+  local dx31 = x3 - x1
+  local dy12 = y1 - y2
+  local dy23 = y2 - y3
+  local dy31 = y3 - y1
+  local minx = min(x1, min(x2, x3))
+  local maxx = max(x1, max(x2, x3))
+  local miny = min(y1, min(y2, y3))
+  local maxy = max(y1, max(y2, y3))
+  local c1 = dy12 * x1 - dx12 * y1
+  local c2 = dy23 * x2 - dx23 * y2
+  local c3 = dy31 * x3 - dx31 * y3
+  if dy12 < 0 or dy12 == 0 and dx12 > 0 then
+    c1 += 1
+  end
+  if dy23 < 0 or dy23 == 0 and dx23 > 0 then
+    c2 += 1
+  end
+  if dy31 < 0 or dy31 == 0 and dx31 > 0 then
+    c3 += 1
+  end
+  local cy1 = c1 + dx12 * miny - dy12 * minx
+  local cy2 = c2 + dx23 * miny - dy23 * minx
+  local cy3 = c3 + dx31 * miny - dy31 * minx
+  for y = flr(miny), flr(maxy)  do
+    local cx1 = cy1
+    local cx2 = cy2
+    local cx3 = cy3
+    for x = flr(minx), flr(maxx) do
+      if cx1 > -1 and cx2 > -1 and cx3 > -1 then
+        pset(x, y)
+      end
+      cx1 -= dy12
+      cx2 -= dy23
+      cx3 -= dy31
+    end
+    cy1 += dx12
+    cy2 += dx23
+    cy3 += dx31
+  end
+end
+
+-- returns a point object
+-- p.x 
+-- p.y
+function make_point(x,y)
+  local p = {}
+  p.x = x
+  p.y = y
+  return p
+end
+
+
+function draw_block(x0,y0,z0,i)
+  local x = (x0-y0) * tw/2
+  local y = (x0+y0) * th/2
+
+  local z = tz + (z0 * tz)
+
+  -- top 4
+  local p1 = make_point(x, y-z) -- TTC
+  local p2 = make_point(x+tw/2,y+th/2-z)   -- TCR
+  local p3 = make_point(x,y+th-z) -- TBC
+  local p4 = make_point(x-tw/2,y+th/2-z) -- TCL
+
+  -- bottom 4
+  local p5 = make_point(x, y)  -- BTC
+  local p6 = make_point(x+tw/2, y+th/2) -- BCR
+  local p7 = make_point(x, y+th)  -- BBC
+  local p8 = make_point(x-tw/2, y+th/2)  -- BCL
+  
+  -- i == 0
+  --        ..1..
+  --     ...     ...
+  --  4..           ..2
+  --  .  ...     ...  .
+  --  .     ..3..     .
+  --  8..     .     ..6
+  --     ...  .  ...
+  --        ..7..
+  --      
+
+  -- i == 1 
+  --        ..1.\
+  --     ...     \..
+  --  4.\         \ ..X
+  --  .  \...    ..\  .
+  --  .   \ ..X..   \ .
+  --  8..  \  .     ..6
+  --     ...\ .  ...
+  --        ..7..
+
+  -- i == 2 
+  --        ..1..
+  --     ... /    ...
+  --  X..  /        ..2
+  --  .  ./.     .../ .
+  --  . /   ..X..  /  .
+  --  8..     .  /  ..6
+  --     ...  . /...
+  --        ..7..
 
 
 
-function drawtile(x0,y0)
-  x = (x0-y0) * tw/2
-  y = (x0+y0) * th/2
+  if(i == 0)then
+    --draw top
+    trifill(p3,p2,p1,3)
+    trifill(p1,p4,p3,3)
+
+    --draw left
+    trifill(p8,p7,p3,9)
+    trifill(p3,p4,p8,9)
+   
+    --draw right
+    trifill(p7,p6,p2,11)
+    trifill(p2,p3,p7,11)
+  elseif(i == 1)then
+    --draw top
+    trifill(p1,p4,p7,3)
+    trifill(p7,p6,p1,3)
+
+    --draw left
+    trifill(p8,p7,p4,9)
+  elseif(i == 2)then
+    -- draw top
+    trifill(p1,p8,p7,3)
+    trifill(p7,p2,p1,3)
+
+    --draw right
+    trifill(p7,p6,p2,11)
+  end
+end
+
+function draw_tile(x0,y0)
+  local x = (x0-y0) * tw/2
+  local y = (x0+y0) * th/2
   
   line(x,y,x+tw/2,y+th/2)
   line(x+tw/2,y+th/2,x,y+th)
@@ -21,12 +170,22 @@ function _update()
 end
 
 function _draw()
-	 cls()
-  drawtile(3,1)
-  drawtile(4,1)
-  drawtile(5,1)
-  
-  drawtile(4,0)
+	rectfill(0,0,128,128,1     )
+
+
+
+  draw_block(2,1,1,0)
+
+  draw_block(3,0,1,0)
+
+
+
+  draw_block(3,1,1,0)
+
+  draw_block(3,2,1,2)
+
+  draw_block(4,0,1,1)
+
 end
 __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
