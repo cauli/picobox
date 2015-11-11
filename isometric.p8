@@ -70,6 +70,22 @@ function trifill(p1, p2, p3, col)
   end
 end
 
+
+function px_to_grid(x,y)
+  local current_grid = {}
+  current_grid.x = flr((x / (tw/2) + y / (th/2)) /2);
+  current_grid.y = flr((y / (th/2) -(x/ (tw/2))) /2);
+  return current_grid
+end
+
+
+function px_to_grid_float(x,y)
+  local current_grid = {}
+  current_grid.x = (x / (tw/2) + y / (th/2)) /2;
+  current_grid.y = (y / (th/2) -(x/ (tw/2))) /2;
+  return current_grid
+end
+
 -- returns a point object
 -- p.x 
 -- p.y
@@ -101,6 +117,8 @@ function make_ball(x0,y0,z0)
   b.vy = vy
   b.vz = vz
 
+  b.floor_height = 0
+
   return b
 end
 
@@ -118,40 +136,23 @@ function move_ball(b)
   b.y += b.vy
   b.z += b.vz
 
-  --b.z += gravity
+  b.current_grid =       px_to_grid(b.x, b.y)
+  b.current_grid_float = px_to_grid_float(ball.x, ball.y + ball.z)
 
 end
 
 function draw_ball(b)
 
-  print("x " .. b.x .. "   y " .. b.y .. "   z " .. b.z, 1, 20, 6)
+  print("ball  x:" .. b.x .. "   y:" .. b.y .. "   z:" .. b.z, 1, 7, 6)
+  print("ballg x:" .. b.current_grid.x .. "   y:" .. b.current_grid.y , 1, 14, 6)
+  --print("floor@z:" .. b.z , 1, 7, 6)
 
-  pset(b.x, b.y, 0)
-  pset(b.x, b.y - b.z, 7)
+  pset(b.x, b.y + b.floor_height, 0)
+  pset(b.x, b.y - b.z , 7)
 end
 
 
-function draw_block(x0,y0,z0,i)
-  local x = (x0-y0) * tw/2
-  local y = (x0+y0) * th/2
-  local z = tz + (z0 * tz)
-
-  -- top 4
-  local p1 = make_point(x, y-z) -- TTC
-  local p2 = make_point(x+tw/2,y+th/2-z)   -- TCR
-  local p3 = make_point(x,y+th-z) -- TBC
-  local p4 = make_point(x-tw/2,y+th/2-z) -- TCL
-  
-  local pc = make_point(x, y)
-
-  print("x " .. pc.x .. "   y " .. pc.y, 1, 1, 7)
-
-  -- bottom 4
-  local p5 = make_point(x, y)  -- BTC
-  local p6 = make_point(x+tw/2, y+th/2) -- BCR
-  local p7 = make_point(x, y+th)  -- BBC
-  local p8 = make_point(x-tw/2, y+th/2)  -- BCL
-  
+function make_block(x0,y0,z0,i)
   -- i == 0
   --        ..1..
   --     ...     ...
@@ -166,7 +167,7 @@ function draw_block(x0,y0,z0,i)
   --        ..1.\
   --     ...     \..
   --  4.\         \ ..X
-  --  .  \...    ..\  .
+  --  .  \..     ..\  .
   --  .   \ ..X..   \ .
   --  8..  \  .     ..6
   --     ...\ .  ...
@@ -174,7 +175,7 @@ function draw_block(x0,y0,z0,i)
 
   -- i == 2 
   --        ..1..
-  --     ... /    ...
+  --     ... /   ...
   --  X..  /        ..2
   --  .  ./.     .../ .
   --  . /   ..X..  /  .
@@ -183,33 +184,73 @@ function draw_block(x0,y0,z0,i)
   --        ..7..
 
 
+  local block = {}
+  block.x0 = x0
+  block.y0 = y0
+  block.z0 = z0
+  block.i =  i
+  return block
+end
+
+function draw_block(block)
+  local x = (block.x0-block.y0) * tw/2
+  local y = (block.x0+block.y0) * th/2
+  local z = tz + (block.z0 * tz)
+
+  -- top 4
+  local p1 = make_point(x, y-z) -- TTC
+  local p2 = make_point(x+tw/2,y+th/2-z)   -- TCR
+  local p3 = make_point(x,y+th-z) -- TBC
+  local p4 = make_point(x-tw/2,y+th/2-z) -- TCL
+  
+  local pc = make_point(x, y)
+
+
+  -- bottom 4
+  local p5 = make_point(x, y)  -- BTC
+  local p6 = make_point(x+tw/2, y+th/2) -- BCR
+  local p7 = make_point(x, y+th)  -- BBC
+  local p8 = make_point(x-tw/2, y+th/2)  -- BCL
+  
+  c1 = 3
+  c2 = 9
+  c3 = 11
+
+  if(block.x0 == ball.current_grid.x and block.y0 == ball.current_grid.y)then
+    c1 = 4
+    c2 = 10
+    c3 = 12
+    print("block x:" .. pc.x .. "   y:" .. pc.y .. "   h:" .. z, 1, 1, 7)
+  end
+
+
 
   if(i == 0)then
     --draw top
-    trifill(p3,p2,p1,3)
-    trifill(p1,p4,p3,3)
+    trifill(p3,p2,p1,c1)
+    trifill(p1,p4,p3,c1)
 
     --draw left
-    trifill(p8,p7,p3,9)
-    trifill(p3,p4,p8,9)
+    trifill(p8,p7,p3,c2)
+    trifill(p3,p4,p8,c2)
    
     --draw right
-    trifill(p7,p6,p2,11)
-    trifill(p2,p3,p7,11)
+    trifill(p7,p6,p2,c3)
+    trifill(p2,p3,p7,c3)
   elseif(i == 1)then
     --draw top
-    trifill(p1,p4,p7,3)
-    trifill(p7,p6,p1,3)
+    trifill(p1,p4,p7,c1)
+    trifill(p7,p6,p1,c1)
 
     --draw left
-    trifill(p8,p7,p4,9)
+    trifill(p8,p7,p4,c2)
   elseif(i == 2)then
     -- draw top
-    trifill(p1,p8,p7,3)
-    trifill(p7,p2,p1,3)
+    trifill(p1,p8,p7,c1)
+    trifill(p7,p2,p1,c1)
 
     --draw right
-    trifill(p7,p6,p2,11)
+    trifill(p7,p6,p2,c3)
   end
 end
 
@@ -224,21 +265,36 @@ function draw_tile(x0,y0)
 end
 
 function _init()
-  ball = make_ball(4,2,3)
+  ball = make_ball(3,0,3)
+
+  b1 = make_block(3,0,1,0)
+  b2 = make_block(3,1,1,0)
+  b3 = make_block(3,2,1,2) 
+  b4 = make_block(4,0,1,1)
+
 end
 
 function _update()
-  move_ball(ball)
+  --move_ball(ball)
+
+  if (btn(0)) then ball.x=ball.x-1 end
+  if (btn(1)) then ball.x=ball.x+1 end
+  if (btn(2)) then ball.y=ball.y-1 end
+  if (btn(3)) then ball.y=ball.y+1 end
+
+  -- no need to call this if move_ball is one
+  ball.current_grid =       px_to_grid(ball.x, ball.y + ball.z)
+  ball.current_grid_float = px_to_grid_float(ball.x, ball.y + ball.z)
+  ball.floor_height = 0;
 end
 
 function _draw()
 	rectfill(0,0,128,128,1)
 
-  draw_block(4,2,1,0)
-  --draw_block(3,0,1,0)
-  --draw_block(3,1,1,0)
-  --draw_block(3,2,1,2) -- 2
-  --draw_block(4,0,1,1) -- 1
+  draw_block(b1);
+  draw_block(b2);
+  draw_block(b3);
+  draw_block(b4);
 
   draw_ball(ball)
 
