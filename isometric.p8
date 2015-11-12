@@ -12,6 +12,8 @@ gravity = 0.3
 friction = 0.98
 bounce = 0.9
 
+blocks = {}
+
 --
 -- triangle fill ported by yellowafterlife
 -- https://gist.github.com/yellowafterlife/34de710baa4422b22c3e
@@ -117,6 +119,8 @@ function make_ball(x0,y0,z0)
   b.vy = vy
   b.vz = vz
 
+  b.color = 7
+
   b.floor_height = 0
 
   return b
@@ -128,6 +132,21 @@ function move_ball(b)
   b.vy = (b.y - b.oldy) * friction
   b.vz = (b.z - b.oldz) * friction
 
+  if(ball.z < ball.floor_height)then
+    ball.z = ball.floor_height
+
+    if(abs(ball.vz) < 0.5)then
+      ball.vz = 0
+    else
+      ball.vz *= -1
+      sfx(0)
+    end
+
+    ball.color = 7
+  else
+     ball.color = 7
+  end
+
   b.oldx = b.x
   b.oldy = b.y
   b.oldz = b.z
@@ -136,8 +155,12 @@ function move_ball(b)
   b.y += b.vy
   b.z += b.vz
 
+  b.z -= gravity
+
   b.current_grid =       px_to_grid(b.x, b.y)
   b.current_grid_float = px_to_grid_float(ball.x, ball.y + ball.z)
+
+
 
 end
 
@@ -145,10 +168,11 @@ function draw_ball(b)
 
   print("ball  x:" .. b.x .. "   y:" .. b.y .. "   z:" .. b.z, 1, 7, 6)
   print("ballg x:" .. b.current_grid.x .. "   y:" .. b.current_grid.y , 1, 14, 6)
-  --print("floor@z:" .. b.z , 1, 7, 6)
+  print("floor z:" .. b.floor_height , 1, 21, 6)
 
-  pset(b.x, b.y + b.floor_height, 0)
-  pset(b.x, b.y - b.z , 7)
+
+  pset(b.x, b.y - b.floor_height, 0) -- shadow
+  pset(b.x, b.y - b.z , ball.color)
 end
 
 
@@ -216,16 +240,8 @@ function draw_block(block)
   c2 = 9
   c3 = 11
 
-  if(block.x0 == ball.current_grid.x and block.y0 == ball.current_grid.y)then
-    c1 = 4
-    c2 = 10
-    c3 = 12
-    print("block x:" .. pc.x .. "   y:" .. pc.y .. "   h:" .. z, 1, 1, 7)
-  end
 
-
-
-  if(i == 0)then
+  if(block.i == 0)then
     --draw top
     trifill(p3,p2,p1,c1)
     trifill(p1,p4,p3,c1)
@@ -237,14 +253,14 @@ function draw_block(block)
     --draw right
     trifill(p7,p6,p2,c3)
     trifill(p2,p3,p7,c3)
-  elseif(i == 1)then
+  elseif(block.i == 1)then
     --draw top
     trifill(p1,p4,p7,c1)
     trifill(p7,p6,p1,c1)
 
     --draw left
     trifill(p8,p7,p4,c2)
-  elseif(i == 2)then
+  elseif(block.i == 2)then
     -- draw top
     trifill(p1,p8,p7,c1)
     trifill(p7,p2,p1,c1)
@@ -252,6 +268,20 @@ function draw_block(block)
     --draw right
     trifill(p7,p6,p2,c3)
   end
+
+
+  if(block.x0 == ball.current_grid.x and block.y0 == ball.current_grid.y)then
+    color(7)
+    line(p1.x, p1.y, p2.x, p2.y)
+    line(p2.x, p2.y, p3.x, p3.y)
+    line(p3.x, p3.y, p4.x, p4.y)
+    line(p4.x, p4.y, p1.x, p1.y)
+
+    print("block x:" .. pc.x .. "   y:" .. pc.y .. "   h:" .. z, 1, 1, 7)
+  end
+
+
+
 end
 
 function draw_tile(x0,y0)
@@ -265,39 +295,74 @@ function draw_tile(x0,y0)
 end
 
 function _init()
-  ball = make_ball(3,0,3)
+  ball = make_ball(3,0,1)
 
   b1 = make_block(3,0,1,0)
   b2 = make_block(3,1,1,0)
   b3 = make_block(3,2,1,2) 
   b4 = make_block(4,0,1,1)
 
+  add(blocks, b1)
+  add(blocks, b2)
+  add(blocks, b3)
+  add(blocks, b4)
+  
+end
+
+function get_current_block(x,y)
+  for block in all(blocks) do
+    if(block.x0 == x and block.y0 == y)then
+      return block
+    end
+  end
+
+  return nil
+end
+
+function raise(thing)
+  thing.z += tz
+end
+function lower(thing)
+  thing.z -= tz
 end
 
 function _update()
-  --move_ball(ball)
+  move_ball(ball)
 
-  if (btn(0)) then ball.x=ball.x-1 end
-  if (btn(1)) then ball.x=ball.x+1 end
-  if (btn(2)) then ball.y=ball.y-1 end
-  if (btn(3)) then ball.y=ball.y+1 end
+  if (btn(0)) then ball.x=ball.x-0.1 end
+  if (btn(1)) then ball.x=ball.x+0.1 end
+  if (btn(2)) then ball.y=ball.y-0.1 end
+  if (btn(3)) then ball.y=ball.y+0.1 end
+
+  if (btnp(4,0)) then raise(ball) end
+  if (btnp(5,0)) then lower(ball) end
 
   -- no need to call this if move_ball is one
-  ball.current_grid =       px_to_grid(ball.x, ball.y + ball.z)
-  ball.current_grid_float = px_to_grid_float(ball.x, ball.y + ball.z)
-  ball.floor_height = 0;
+  ball.current_grid =       px_to_grid(ball.x, ball.y)
+  ball.current_grid_float = px_to_grid_float(ball.x, ball.y)
+
+
+  block = get_current_block(ball.current_grid.x, ball.current_grid.y)
+
+  if block == nil then
+    ball.floor_height = 0
+  else 
+    ball.floor_height = (block.z0  * tz * 2)
+  end
 end
 
 function _draw()
 	rectfill(0,0,128,128,1)
 
-  draw_block(b1);
-  draw_block(b2);
-  draw_block(b3);
-  draw_block(b4);
+  foreach(blocks, draw_block)
+
+  if block == nil then
+    print("NIL BLOCK AT " .. ball.current_grid.x .. "," .. ball.current_grid.y, 1, 32, 5)
+  else 
+    print(block.x0 .. " " .. block.y0, 1, 32, 5)
+  end
 
   draw_ball(ball)
-
 end
 __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -465,7 +530,7 @@ __map__
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __sfx__
-000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000100000000000000000001101013010030100000023020000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
