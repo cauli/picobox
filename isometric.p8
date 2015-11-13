@@ -213,6 +213,18 @@ function make_block(x0,y0,z0,i)
   block.y0 = y0
   block.z0 = z0
   block.i =  i
+
+  if(i == 0)then
+    block.slope = 0
+    block.directionUp = nil
+  elseif(i == 1) then
+    block.slope = 1
+    block.directionUp = "W"
+  elseif(i == 2) then
+    block.slope = 1
+    block.directionUp = "N"
+  end
+
   return block
 end
 
@@ -279,9 +291,6 @@ function draw_block(block)
 
     print("block x:" .. pc.x .. "   y:" .. pc.y .. "   h:" .. z, 1, 1, 7)
   end
-
-
-
 end
 
 function draw_tile(x0,y0)
@@ -327,12 +336,23 @@ function lower(thing)
 end
 
 function _update()
-  move_ball(ball)
 
-  if (btn(0)) then ball.x=ball.x-0.1 end
-  if (btn(1)) then ball.x=ball.x+0.1 end
-  if (btn(2)) then ball.y=ball.y-0.1 end
-  if (btn(3)) then ball.y=ball.y+0.1 end
+  move_ball(ball)
+  -- SOUTH
+  if (btn(0)) then
+   ball.oldx += 0.2
+   ball.oldy -= 0.1
+  elseif (btn(1)) then -- NORTH
+   ball.oldx -= 0.2
+   ball.oldy += 0.1
+  elseif (btn(2)) then -- WEST
+    ball.oldx += 0.3
+    ball.oldy += 0.1
+  elseif (btn(3)) then  -- EAST
+    ball.oldx -= 0.3
+    ball.oldy -= 0.1
+  end
+
 
   if (btnp(4,0)) then raise(ball) end
   if (btnp(5,0)) then lower(ball) end
