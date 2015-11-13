@@ -160,16 +160,13 @@ function move_ball(b)
   b.current_grid =       px_to_grid(b.x, b.y)
   b.current_grid_float = px_to_grid_float(ball.x, ball.y + ball.z)
 
-
-
 end
 
 function draw_ball(b)
-
-  print("ball  x:" .. b.x .. "   y:" .. b.y .. "   z:" .. b.z, 1, 7, 6)
+  print("b x:" .. b.x .. " y:" .. b.y .. " z:" .. b.z, 1, 7, 6)
   print("ballg x:" .. b.current_grid.x .. "   y:" .. b.current_grid.y , 1, 14, 6)
-  print("floor z:" .. b.floor_height , 1, 21, 6)
-
+  print("ballf x:" .. b.current_grid_float.x .. "   y:" .. b.current_grid_float.y , 1, 21, 6)
+  print("floor z:" .. b.floor_height , 1, 28, 6)
 
   pset(b.x, b.y - b.floor_height, 0) -- shadow
   pset(b.x, b.y - b.z , ball.color)
@@ -207,6 +204,25 @@ function make_block(x0,y0,z0,i)
   --     ...  . /...
   --        ..7..
 
+  -- i == 3
+  --        ..1..
+  --     ...     ...
+  --  4..           ..2
+  --  .  ...     ...  .
+  --  --------.3..     .
+  --  8..     .     ..6
+  --     ...  .  ...
+  --        ..7..
+
+  -- i == 4
+  --        ..1..
+  --     ...     ...
+  --  4..           ..2
+  --  .  ...     ...  .
+  --  .     ..3--------
+  --  8..     .     ..6
+  --     ...  .  ...
+  --        ..7..
 
   local block = {}
   block.x0 = x0
@@ -217,12 +233,15 @@ function make_block(x0,y0,z0,i)
   if(i == 0)then
     block.slope = 0
     block.directionUp = nil
+    block.directionDown = nil
   elseif(i == 1) then
-    block.slope = 1
+    block.slope = 0.5
     block.directionUp = "W"
+    block.directionDown = "E"
   elseif(i == 2) then
-    block.slope = 1
+    block.slope = 0.5
     block.directionUp = "N"
+    block.directionDown = "S"
   end
 
   return block
@@ -238,9 +257,8 @@ function draw_block(block)
   local p2 = make_point(x+tw/2,y+th/2-z)   -- TCR
   local p3 = make_point(x,y+th-z) -- TBC
   local p4 = make_point(x-tw/2,y+th/2-z) -- TCL
-  
-  local pc = make_point(x, y)
 
+  local pc = make_point(x, y)
 
   -- bottom 4
   local p5 = make_point(x, y)  -- BTC
@@ -251,7 +269,6 @@ function draw_block(block)
   c1 = 3
   c2 = 9
   c3 = 11
-
 
   if(block.i == 0)then
     --draw top
@@ -288,7 +305,6 @@ function draw_block(block)
     line(p2.x, p2.y, p3.x, p3.y)
     line(p3.x, p3.y, p4.x, p4.y)
     line(p4.x, p4.y, p1.x, p1.y)
-
     print("block x:" .. pc.x .. "   y:" .. pc.y .. "   h:" .. z, 1, 1, 7)
   end
 end
@@ -304,18 +320,23 @@ function draw_tile(x0,y0)
 end
 
 function _init()
-  ball = make_ball(3,0,1)
+  ball = make_ball(3,1,1)
 
-  b1 = make_block(3,0,1,0)
-  b2 = make_block(3,1,1,0)
-  b3 = make_block(3,2,1,2) 
-  b4 = make_block(4,0,1,1)
+  --b1 = make_block(3,0,1,0)
+  --b2 = make_block(3,1,1,0)
+  --b3 = make_block(3,2,1,2) 
+  --b4 = make_block(4,0,1,1)
+
+  --add(blocks, b1)
+  --add(blocks, b2)
+  --add(blocks, b3)
+  --add(blocks, b4)
+
+  b1 = make_block(3,0,1,2) 
+  b2 = make_block(3,2,1,2) 
 
   add(blocks, b1)
   add(blocks, b2)
-  add(blocks, b3)
-  add(blocks, b4)
-  
 end
 
 function get_current_block(x,y)
@@ -335,22 +356,41 @@ function lower(thing)
   thing.z -= tz
 end
 
+function move_direction(dir, force)
+  
+  if(dir == "S")then
+   ball.oldx += 0.2 * force
+   ball.oldy -= 0.1 * force
+  end
+
+  if(dir == "N")then
+   ball.oldx -= 0.2 * force
+   ball.oldy += 0.1 * force
+  end
+
+  if(dir == "W")then
+   ball.oldx += 0.3 * force
+   ball.oldy += 0.15 * force
+  end
+
+  if(dir == "E")then
+   ball.oldx -= 0.3 * force
+   ball.oldy -= 0.15 * force
+  end
+end
+
 function _update()
 
   move_ball(ball)
-  -- SOUTH
-  if (btn(0)) then
-   ball.oldx += 0.2
-   ball.oldy -= 0.1
+
+  if (btn(0)) then -- SOUTH
+    move_direction("S", 1) 
   elseif (btn(1)) then -- NORTH
-   ball.oldx -= 0.2
-   ball.oldy += 0.1
+    move_direction("N", 1)
   elseif (btn(2)) then -- WEST
-    ball.oldx += 0.3
-    ball.oldy += 0.1
+    move_direction("W", 1)
   elseif (btn(3)) then  -- EAST
-    ball.oldx -= 0.3
-    ball.oldy -= 0.1
+    move_direction("E", 1)
   end
 
 
@@ -367,7 +407,30 @@ function _update()
   if block == nil then
     ball.floor_height = 0
   else 
-    ball.floor_height = (block.z0  * tz * 2)
+    -- bloco reto é simples de calcular a altura
+    if(block.i == 0)then
+      ball.floor_height = (block.z0  * tz * 2)
+    else
+      if(block.directionUp == "N" or block.directionUp == "S")then
+        percent = ball.current_grid_float.y % flr(ball.current_grid_float.y)
+      elseif(block.directionUp == "W" or block.directionUp == "E")then
+        percent = ball.current_grid_float.x % flr(ball.current_grid_float.x)
+      end
+
+      if(block.directionUp == "W")then
+        percent = abs(percent - 1)
+      end
+
+      if(block.directionUp == "N")then
+        percent = abs(percent - 1)
+      end
+
+      ball.floor_height = (block.z0  * tz * 2) * percent
+    end
+
+    if(ball.slope != 0)then
+      move_direction(block.directionDown, block.slope) 
+    end
   end
 end
 
@@ -377,9 +440,9 @@ function _draw()
   foreach(blocks, draw_block)
 
   if block == nil then
-    print("NIL BLOCK AT " .. ball.current_grid.x .. "," .. ball.current_grid.y, 1, 32, 5)
+    print(ball.current_grid.x .. ", " .. ball.current_grid.y, 1, 120, 5)
   else 
-    print(block.x0 .. " " .. block.y0, 1, 32, 5)
+    print(block.x0 .. ", " .. block.y0, 1, 120, 9)
   end
 
   draw_ball(ball)
