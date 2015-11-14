@@ -25,11 +25,30 @@ c4 = 12
 
 c5 = 1
 c6 = 5
---c1 = rndcol
---c2 = rndcol2
---c3 = rndcol3
+
+
+--c1 = 5
+--c2 = 0
+--c3 = 14
 --c4 = rndcol4
---c5 = rndcol5
+--c5 = 13
+--c6 = flr(rnd()*16)
+lg = 5
+
+debug_quadrants = true
+
+triangles = 0
+
+sqrt0 = sqrt
+
+
+distance_to_hole = 9999
+
+function sqrt(n)
+  if (n <= 0) return 0
+  if (n >= 32761) return 181.0
+  return sqrt0(n)
+end
 
 -- http://gamedev.stackexchange.com/questions/25579/how-to-detect-what-portion-of-a-rectangle-a-point-is-in
 function get_quadrant(x,y)
@@ -71,12 +90,71 @@ function get_quadrant(x,y)
 
   return nil
 end
+
+function min3(a,b,c)
+  local mab = min(a,b)
+  return min(mab,c)
+end
+
+function max3(a,b,c)
+  local mab = max(a,b)
+  return max(mab,c)
+end
+
+function orient2d(a, b, c)
+    return (b.x-a.x)*(c.y-a.y) - (b.y-a.y)*(c.x-a.x);
+end
+
+-- https://fgiesen.wordpress.com/2013/02/08/triangle-rasterization-in-practice/
+function trifill1(v0, v1, v2, col)
+    color(col)
+    -- Compute triangle bounding box
+    minX = min3(v0.x, v1.x, v2.x);
+    minY = min3(v0.y, v1.y, v2.y);
+    maxX = max3(v0.x, v1.x, v2.x);
+    maxY = max3(v0.y, v1.y, v2.y);
+
+    -- Clip against screen bounds
+    minX = max(minX, 0);
+    minY = max(minY, 0);
+    maxX = min(maxX, 128 - 1);
+    maxY = min(maxY, 128 - 1);
+
+    local ix = 0
+    local iy = 0
+    local ix1 = 0
+    local iy1 = 0
+    -- Rasterize
+    local p = {};
+    for iy = minY, maxY do
+      iy1 += 1
+      p.y = iy1
+
+      for ix = minX, maxX do
+          --ix += 1
+          p.x = ix1
+          
+          w0 = orient2d(v1, v2, p);
+          w1 = orient2d(v2, v0, p);
+          w2 = orient2d(v0, v1, p);
+
+          -- If p is on or inside all edges, render pixel.
+          if (w0 >= 0 and w1 >= 0 and w2 >= 0) then
+              --renderPixel(p, w0, w1, w2);
+              pset(p.x, p.y)
+          end     
+      end
+    end
+
+end
+
 --
 -- triangle fill ported by yellowafterlife
 -- https://gist.github.com/yellowafterlife/34de710baa4422b22c3e
 -- from http://forum.devmaster.net/t/advanced-rasterization/6145
 --
-function trifill(p1, p2, p3, col)
+function trifill2(p1, p2, p3, col)
+  triangles += 1
   color(col)
 
   local x1 = p1.x
@@ -200,7 +278,9 @@ function move_ball(b)
         sfx(0)
       end
 
-      ball.color = 9
+      if(debug_quadrants)then
+        ball.color = 9
+      end
   else
      ball.color = 7
   end
@@ -231,7 +311,7 @@ function draw_ball(b)
 end
 
 
-function make_block(x0,y0,z0,i)
+function make_block(x0,y0,z0,i,has_hole)
   -- i == 0
   --        ..1..
   --     ...     ...
@@ -299,27 +379,31 @@ function make_block(x0,y0,z0,i)
   block.y0 = y0
   block.z0 = z0
   block.i =  i
-
+  block.has_hole = has_hole
   block.friction = 0.99
+
+  block.x = (block.x0-block.y0) * tw/2
+  block.y = (block.x0+block.y0) * th/2
+  block.z = tz + (block.z0 * tz)
 
   if(i == 0)then
     block.slope = 0
     block.directionup = nil
     block.directiondown = nil
   elseif(i == 1) then
-    block.slope = 0.5
+    block.slope = 0.25
     block.directionup = "w"
     block.directiondown = "e"
   elseif(i == 2) then
-    block.slope = 0.5
+    block.slope = 0.25
     block.directionup = "n"
     block.directiondown = "s"
   elseif(i == 3) then
-    block.slope = 0.5
+    block.slope = 0.25
     block.directionup = "e"
     block.directiondown = "w"
   elseif(i == 4) then
-    block.slope = 0.5
+    block.slope = 0.25
     block.directionup = "s"
     block.directiondown = "n"
   elseif(i == 5) then
@@ -352,9 +436,9 @@ function make_block(x0,y0,z0,i)
 end
 
 function draw_block(block)
-  local x = (block.x0-block.y0) * tw/2
-  local y = (block.x0+block.y0) * th/2
-  local z = tz + (block.z0 * tz)
+  local x = block.x
+  local y = block.y
+  local z = block.z
 
   -- top 4
   local p1 = make_point(x, y-z) -- ttc
@@ -372,31 +456,42 @@ function draw_block(block)
   
   if(block.i == 0)then
     --draw top
-    trifill(p3,p2,p1,c1)
-    trifill(p1,p4,p3,c1)
+    trifill2(p3,p2,p1,c1)
+    trifill2(p1,p4,p3,c1)
 
     --draw left
-    trifill(p8,p7,p3,c2)
-    trifill(p3,p4,p8,c2)
+    trifill2(p8,p7,p3,c2)
+    trifill2(p3,p4,p8,c2)
    
     --draw right
-    trifill(p7,p6,p2,c3)
-    trifill(p2,p3,p7,c3)
+    trifill2(p7,p6,p2,c3)
+    trifill2(p2,p3,p7,c3)
+
+    if(block.has_hole)then
+      palt(14, true)
+      palt(0,false)
+      spr(21,pc.x-4,pc.y-4)
+
+      palt() 
+
+      spr(22,pc.x-4,pc.y-4)
+      spr(6,pc.x-4,pc.y-4-8)
+    end
   elseif(block.i == 1)then
     --draw top
-    trifill(p1,p4,p7,c1)
-    trifill(p7,p6,p1,c1)
+    trifill2(p1,p4,p7,c1)
+    trifill2(p7,p6,p1,c1)
 
     --draw left
-    trifill(p8,p7,p4,c2)
+    trifill2(p8,p7,p4,c2)
   elseif(block.i == 2)then
 
     -- draw top
-    trifill(p1,p8,p7,c1)
-    trifill(p7,p2,p1,c1)
+    trifill2(p1,p8,p7,c1)
+    trifill2(p7,p2,p1,c1)
 
     --draw right
-    trifill(p7,p6,p2,c3)
+    trifill2(p7,p6,p2,c3)
 
 
   elseif(block.i == 3)then
@@ -411,15 +506,15 @@ function draw_block(block)
   --        ..7..
 
     -- draw top
-    trifill(p7,p6,p2,c3)
-    trifill(p2,p3,p7,c3)
+    trifill2(p7,p6,p2,c3)
+    trifill2(p2,p3,p7,c3)
 
     --draw left
-    trifill(p8,p7,p3,c2)
+    trifill2(p8,p7,p3,c2)
 
     --draw top
-    trifill(p8,p3,p2,c1)
-    trifill(p5,p8,p2,c1)
+    trifill2(p8,p3,p2,c1)
+    trifill2(p5,p8,p2,c1)
   elseif(block.i == 4)then
     -- i == 4
     --        ..1..
@@ -431,13 +526,13 @@ function draw_block(block)
     --     ...  .  ...
     --        ..7..
 
-    trifill(p4,p8,p3,c2) 
-    trifill(p8,p7,p3,c2) -- l
+    trifill2(p4,p8,p3,c2) 
+    trifill2(p8,p7,p3,c2) -- l
 
-    trifill(p7,p6,p3,c3) -- r
+    trifill2(p7,p6,p3,c3) -- r
 
-    trifill(p3,p6,p5,c1) --t
-    trifill(p5,p4,p3,c1) 
+    trifill2(p3,p6,p5,lg) --t
+    trifill2(p5,p4,p3,lg) 
   elseif(block.i == 5)then
   -- i == 5
   --        ./1..
@@ -449,14 +544,14 @@ function draw_block(block)
   --     ...  .  ...
   --        ..7..
 
-    trifill(p1,p3,p2,c1) -- t
+    trifill2(p1,p3,p2,c1) -- t
 
-    trifill(p1,p8,p3,c3) -- sw
+    trifill2(p1,p8,p3,lg) -- sw
 
-    trifill(p3,p8,p7,c2) -- l
+    trifill2(p3,p8,p7,c2) -- l
 
-    trifill(p2,p3,p7,c3) -- r
-    trifill(p7,p6,p2,c3) 
+    trifill2(p2,p3,p7,c3) -- r
+    trifill2(p7,p6,p2,c3) 
   elseif(block.i == 6)then
   -- i == 6
   --          1 
@@ -467,15 +562,15 @@ function draw_block(block)
   --  8..     .     ..6
   --     ...  .  ...
   --        ..7..
-    trifill(p3,p2,p4,c1) -- t
+    trifill2(p3,p2,p4,c1) -- t
 
-    trifill(p4,p2,p5,c3) -- NW
+    trifill2(p4,p2,p5,lg) -- NW
 
-    trifill(p4,p8,p3,c2) -- l
-    trifill(p8,p7,p3,c2) -- l
+    trifill2(p4,p8,p3,c2) -- l
+    trifill2(p8,p7,p3,c2) -- l
 
-    trifill(p7,p6,p3,c3) -- r
-    trifill(p2,p3,p6,c3) -- r
+    trifill2(p7,p6,p3,c3) -- r
+    trifill2(p2,p3,p6,c3) -- r
     
   elseif(block.i == 7)then
   -- i == 7
@@ -488,14 +583,14 @@ function draw_block(block)
   --     ...  .  ...
   --        ..7..  
 
-    trifill(p4,p3,p1,c1) -- t
+    trifill2(p4,p3,p1,c1) -- t
 
-    trifill(p3,p6,p1,c3) -- NE
+    trifill2(p3,p6,p1,lg) -- NE
 
-    trifill(p4,p8,p3,c2) -- l
-    trifill(p8,p7,p3,c2) -- l
+    trifill2(p4,p8,p3,c2) -- l
+    trifill2(p8,p7,p3,c2) -- l
 
-    trifill(p7,p6,p3,c3) -- r
+    trifill2(p7,p6,p3,c3) -- r
   elseif(block.i == 8)then
   -- i == 8
   --        ..1..
@@ -506,62 +601,73 @@ function draw_block(block)
   --  8..  \     /  ..6
   --     ... \ /  ...
   --        ..7..  
-    trifill(p1,p4,p2,c1) -- t
+    trifill2(p1,p4,p2,c1) -- t
 
-    trifill(p4,p7,p2,c6) -- SE
+    trifill2(p4,p7,p2,c3) -- SE
 
-    trifill(p8,p7,p4,c2) -- l
+    trifill2(p8,p7,p4,c2) -- l
 
-    trifill(p6,p2,p7,c3) -- r
+    trifill2(p6,p2,p7,c3) -- r
 
   elseif(block.i == 9)then
   end
 
-  if(block.x0 == ball.current_grid.x and block.y0 == ball.current_grid.y)then
-    color(7)
-    line(p1.x, p1.y, p2.x, p2.y)
-    line(p2.x, p2.y, p3.x, p3.y)
-    line(p3.x, p3.y, p4.x, p4.y)
-    line(p4.x, p4.y, p1.x, p1.y)
-
-    q = get_quadrant(ball.current_grid_float.x % flr(ball.current_grid_float.x),ball.current_grid_float.y % flr(ball.current_grid_float.y))
-    print(q, 1, 100, 9)
-
  
-    color(c4)
- 
+  if(debug_quadrants)then
 
-    if(q == "a")then
- 
-      line(p3.x,p3.y,pc.x,pc.y)
-      line(pc.x,pc.y,p4.x,p4.y)
-      line(p4.x,p4.y,p3.x,p3.y)
-      
-      -- trifill(p3,pc,p4,12) 
-    elseif(q == "b")then
 
-      line(p4.x,p4.y,pc.x,pc.y)
-      line(pc.x,pc.y,p1.x,p1.y)
-      line(p1.x,p1.y,p4.x,p4.y)
-      
-      --trifill(p4,pc,p1,12) 
-    elseif(q == "c")then
+    if(block.x0 == ball.current_grid.x and block.y0 == ball.current_grid.y)then
 
-      line(p1.x,p1.y,pc.x,pc.y)
-      line(pc.x,pc.y,p2.x,p2.y)
-      line(p2.x,p2.y,p1.x,p1.y)
+      if(block.has_hole)then
+        line(ball.x, ball.y - ball.z, hole.x, hole.y, 4)
+      end
 
-      --trifill(p1,pc,p2,12) 
-    elseif(q == "d")then
+      print("block x:" .. pc.x .. "   y:" .. pc.y .. "   h:" .. z, 1, 1, 7)
 
-      line(p2.x,p2.y,pc.x,pc.y)
-      line(pc.x,pc.y,p3.x,p3.y)
-      line(p3.x,p3.y,p2.x,p2.y)
+      color(7)
+      line(p1.x, p1.y, p2.x, p2.y)
+      line(p2.x, p2.y, p3.x, p3.y)
+      line(p3.x, p3.y, p4.x, p4.y)
+      line(p4.x, p4.y, p1.x, p1.y)
 
-      --trifill(p2,pc,p3,12) 
+      q = get_quadrant(ball.current_grid_float.x % flr(ball.current_grid_float.x),ball.current_grid_float.y % flr(ball.current_grid_float.y))
+      print(q, 1, 100, 9)
+
+   
+      color(c4)
+   
+
+      if(q == "a")then
+   
+        line(p3.x,p3.y,pc.x,pc.y)
+        line(pc.x,pc.y,p4.x,p4.y)
+        line(p4.x,p4.y,p3.x,p3.y)
+        
+        -- trifill(p3,pc,p4,12) 
+      elseif(q == "b")then
+
+        line(p4.x,p4.y,pc.x,pc.y)
+        line(pc.x,pc.y,p1.x,p1.y)
+        line(p1.x,p1.y,p4.x,p4.y)
+        
+        --trifill(p4,pc,p1,12) 
+      elseif(q == "c")then
+
+        line(p1.x,p1.y,pc.x,pc.y)
+        line(pc.x,pc.y,p2.x,p2.y)
+        line(p2.x,p2.y,p1.x,p1.y)
+
+        --trifill(p1,pc,p2,12) 
+      elseif(q == "d")then
+
+        line(p2.x,p2.y,pc.x,pc.y)
+        line(pc.x,pc.y,p3.x,p3.y)
+        line(p3.x,p3.y,p2.x,p2.y)
+
+        --trifill(p2,pc,p3,12) 
+      end
+        
     end
-      
-    print("block x:" .. pc.x .. "   y:" .. pc.y .. "   h:" .. z, 1, 1, 7)
   end
 
   
@@ -577,42 +683,37 @@ function draw_tile(x0,y0)
   line(x-tw/2,y+th/2,x,y)
 end
 
+function make_level_bowl()
+  bsw= make_block(4,0,1,5,false) 
+  b2 = make_block(3,0,1,2,false) 
+  bse= make_block(2,0,1,8,false) 
+  b4 = make_block(3,1,1,4,false) 
+  bne= make_block(2,1,1,7,false) 
+  bnw= make_block(4,1,1,6,false) 
+
+  add(blocks, bse)
+  add(blocks, b2)
+  add(blocks, bsw)
+  add(blocks, bne)
+  add(blocks, b4)
+  add(blocks, bnw)
+end
+
+function make_level_1()
+  b1 = make_block(3,0,1,0,true)
+  b2 = make_block(3,1,1,0,false)
+  b3 = make_block(3,2,1,2,false) 
+
+  add(blocks, b1)
+  add(blocks, b2)
+  add(blocks, b3)
+end
+
 function _init()
   ball = make_ball(3,1,1)
 
-  --b1 = make_block(3,0,1,0)
-  --b2 = make_block(3,1,1,0)
-  --b3 = make_block(3,2,1,2) 
-  --b4 = make_block(4,0,1,1)
-
-  --add(blocks, b1)
-  --add(blocks, b2)
-  --add(blocks, b3)
-  --add(blocks, b4)
-
-  --b1 = make_block(4,0,1,2) 
-  bsw= make_block(4,0,1,5) 
- -- b2 = make_block(4,2,1,4) 
-  bse= make_block(3,0,1,8) 
-
-  bne= make_block(3,1,1,7) 
-
-  bnw= make_block(4,1,1,6) 
- -- b3 = make_block(3,1,1,1) 
-  --bne= make_block(2,2,1,7) 
- -- b4 = make_block(5,1,1,3) 
- -- --bnw= make_block(2,2,1,6) 
-
-  add(blocks, bse)
- -- add(blocks, b1)
- -- add(blocks, b2)
-  add(blocks, bsw)
-  add(blocks, bne)
-  add(blocks, bnw)
-  --add(blocks, b3)
-  --add(blocks, b4)
-  --add(blocks, bnw)
-  --add(blocks, bne)
+  --make_level_bowl()
+  make_level_1()
 end
 
 function get_current_block(x,y)
@@ -676,8 +777,9 @@ function move_direction(dir, force)
   end
 end
 
+ditance_to_hole = 10000
 function _update()
-
+  triangles = 0
   move_ball(ball)
 
   if (btn(0)) then -- south
@@ -691,6 +793,7 @@ function _update()
   end
 
 
+
   if (btnp(4,0)) then raise(ball) end
   if (btnp(5,0)) then lower(ball) end
 
@@ -701,6 +804,10 @@ function _update()
 
   block = get_current_block(ball.current_grid.x, ball.current_grid.y)
 
+  hole = {}
+  hole.x = 0
+  hole.y = 0
+
   local not_on_slope = false -- determina se, em um bloco misto, a bola não estã em um slope no momento
 
   if block == nil then
@@ -708,9 +815,26 @@ function _update()
   else 
     -- bloco reto é simples de calcular a altura
     if(block.i == 0)then
-      ball.floor_height = (block.z0  * tz * 2)
-    else 
+      
+      if(block.has_hole)then
+        hole = {}
+        hole.x = block.x
+        hole.y = block.y 
 
+        ball_copy = {}
+        ball_copy.x = ball.x
+        ball_copy.y = ball.y - ball.z
+
+        distance_to_hole = distance(ball_copy,block)
+        if(distance_to_hole < 4)then
+          ball.floor_height = 0
+        else
+          ball.floor_height = (block.z0  * tz * 2)
+        end
+      else
+        ball.floor_height = (block.z0  * tz * 2)
+      end
+    else 
       local pns
       local pwe
 
@@ -778,6 +902,7 @@ function _update()
 
     end
 
+
     -- slope exists and is in contact with floor
     if(ball.slope != 0 and is_on_floor(ball))then
       if(not_on_slope)then
@@ -787,6 +912,13 @@ function _update()
       end
     end
   end
+end
+
+function distance(p0, p1)
+ local dx = p0.x - p1.x
+ local dy = p0.y - p1.y
+ 
+ return sqrt(dx*dx+dy*dy)
 end
 
 function is_on_floor(ball)
@@ -804,6 +936,8 @@ function _draw()
 
   foreach(blocks, draw_block)
 
+  print("dist hole " .. distance_to_hole, 1, 110, 5)
+
   if block == nil then
     print(ball.current_grid.x .. ", " .. ball.current_grid.y, 1, 120, 5)
   else 
@@ -816,19 +950,19 @@ __gfx__
 000b000000b0000000000000000b0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000b000000b000000bb00000000b000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0b00b0b00000b0b00b00b0000b00b0b0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00b0000bbb0000b00b000bb000b0000bb00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00b0b00b00b0b00b00b0000b00b0b00b000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-b0000b00b000b000000bb000b0000b00b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-0b000b00b0000b00b0000b0b0b000b00b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-0b0000000b0000000b0000000b000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00b0000bbb0000b00b000bb000b0000bb00000000000000000005880000000000000000000000000000000000000000000000000000000000000000000000000
+00b0b00b00b0b00b00b0000b00b0b00b000000000000000000005880000000000000000000000000000000000000000000000000000000000000000000000000
+b0000b00b000b000000bb000b0000b00b00000000000000000005000000000000000000000000000000000000000000000000000000000000000000000000000
+0b000b00b0000b00b0000b0b0b000b00b00000000000000000005000000000000000000000000000000000000000000000000000000000000000000000000000
+0b0000000b0000000b0000000b000000000000000000000000005000000000000000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000eeeeeeee00005000000000000000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000eeeeeeee00005000000000000000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000eeeeeeee00005000000000000000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000eee00eee00000000000000000000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000ee0000ee00000000000000000000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000eee00eee00000000000000000000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000eeeeeeee00000000000000000000000000000000000000000000000000000000000000000000000000000000
+0000000000000000000000000000000000000000eeeeeeee00000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
