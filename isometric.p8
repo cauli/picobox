@@ -6,6 +6,10 @@ th = 25
 tz = 12.5/2
 
 rndcol = flr(rnd()*16)
+rndcol2 = flr(rnd()*16)
+rndcol3 = flr(rnd()*16)
+rndcol4 = flr(rnd()*16)
+rndcol5 = flr(rnd()*16)
 
 -- physics parameters
 gravity = 0.3
@@ -14,6 +18,59 @@ bounce = 0.9
 
 blocks = {}
 
+c1 = 3
+c2 = 9
+c3 = 11
+c4 = 12
+
+c5 = 1
+c6 = 5
+--c1 = rndcol
+--c2 = rndcol2
+--c3 = rndcol3
+--c4 = rndcol4
+--c5 = rndcol5
+
+-- http://gamedev.stackexchange.com/questions/25579/how-to-detect-what-portion-of-a-rectangle-a-point-is-in
+function get_quadrant(x,y)
+
+  -- top view of block
+  --0,0..........1,0
+  -- ..         ..
+  -- .  .  a  .  .       
+  -- .   b . d   .
+  -- .  .  c  .  .  
+  -- ..         ..
+  --0,1...........1,1
+
+  local min = {}
+  local max = {}
+
+  min.x = 0
+  min.y = 0
+  max.x = 1
+  max.y = 1
+
+
+  if (x < min.x or x > max.x or y < min.y or y > max.y)then
+    return nil
+  else
+    local ab = (y - min.y) * (max.x - min.x) > (max.y-min.y) * (x - min.x);
+    local ad = (y - min.y) * (max.x - min.x) > (max.y-min.y) * (max.x - x);
+   
+    if(ab and ad) then
+     return "a"
+    elseif(ab and not ad) then
+     return "b"
+    elseif(not ab and not ad) then 
+      return "c"
+    else
+      return "d"
+    end
+  end
+
+  return nil
+end
 --
 -- triangle fill ported by yellowafterlife
 -- https://gist.github.com/yellowafterlife/34de710baa4422b22c3e
@@ -133,16 +190,17 @@ function move_ball(b)
   b.vz = (b.z - b.oldz) * friction
 
   if(ball.z < ball.floor_height)then
-    ball.z = ball.floor_height
 
-    if(abs(ball.vz) < 0.5)then
-      ball.vz = 0
-    else
-      ball.vz *= -1
-      sfx(0)
-    end
+      ball.z = ball.floor_height
 
-    ball.color = 7
+      if(abs(ball.vz) < 0.5)then
+        ball.vz = 0
+      else
+        ball.vz *= -1
+        sfx(0)
+      end
+
+      ball.color = 9
   else
      ball.color = 7
   end
@@ -187,9 +245,9 @@ function make_block(x0,y0,z0,i)
   -- i == 1 
   --        ..1.\
   --     ...     \..
-  --  4.\         \ ..X
+  --  4.\         \ ..x
   --  .  \..     ..\  .
-  --  .   \ ..X..   \ .
+  --  .   \ ..x..   \ .
   --  8..  \  .     ..6
   --     ...\ .  ...
   --        ..7..
@@ -197,9 +255,9 @@ function make_block(x0,y0,z0,i)
   -- i == 2 
   --        ..1..
   --     ... /   ...
-  --  X..  /        ..2
+  --  x..  /        ..2
   --  .  ./.     .../ .
-  --  . /   ..X..  /  .
+  --  . /   ..x..  /  .
   --  8..     .  /  ..6
   --     ...  . /...
   --        ..7..
@@ -224,24 +282,70 @@ function make_block(x0,y0,z0,i)
   --     ...  .  ...
   --        ..7..
 
+
+  -- i == 5
+  --        ./1..
+  --     ../  |  ...
+  --  4../    |     ..2
+  --  ./      |  ...  .
+  --  --------.3..     .
+  --  8..     .     ..6
+  --     ...  .  ...
+  --        ..7..
+
+
   local block = {}
   block.x0 = x0
   block.y0 = y0
   block.z0 = z0
   block.i =  i
 
+  block.friction = 0.99
+
   if(i == 0)then
     block.slope = 0
-    block.directionUp = nil
-    block.directionDown = nil
+    block.directionup = nil
+    block.directiondown = nil
   elseif(i == 1) then
     block.slope = 0.5
-    block.directionUp = "W"
-    block.directionDown = "E"
+    block.directionup = "w"
+    block.directiondown = "e"
   elseif(i == 2) then
     block.slope = 0.5
-    block.directionUp = "N"
-    block.directionDown = "S"
+    block.directionup = "n"
+    block.directiondown = "s"
+  elseif(i == 3) then
+    block.slope = 0.5
+    block.directionup = "e"
+    block.directiondown = "w"
+  elseif(i == 4) then
+    block.slope = 0.5
+    block.directionup = "s"
+    block.directiondown = "n"
+  elseif(i == 5) then
+    block.slope = 0.5
+    block.directionup = "ne"
+    block.directiondown = "sw"
+    block.slope1 = "a" 
+    block.slope2 = "b"
+  elseif(i == 6) then
+    block.slope = 0.5
+    block.directionup = "se"
+    block.directiondown = "nw"
+    block.slope1 = "b" 
+    block.slope2 = "c"
+  elseif(i == 7) then
+    block.slope = 0.5
+    block.directionup = "sw"
+    block.directiondown = "ne"
+    block.slope1 = "c" 
+    block.slope2 = "d"
+  elseif(i == 8) then
+    block.slope = 0.5
+    block.directionup = "nw"
+    block.directiondown = "se"
+    block.slope1 = "d" 
+    block.slope2 = "a"
   end
 
   return block
@@ -253,23 +357,19 @@ function draw_block(block)
   local z = tz + (block.z0 * tz)
 
   -- top 4
-  local p1 = make_point(x, y-z) -- TTC
-  local p2 = make_point(x+tw/2,y+th/2-z)   -- TCR
-  local p3 = make_point(x,y+th-z) -- TBC
-  local p4 = make_point(x-tw/2,y+th/2-z) -- TCL
+  local p1 = make_point(x, y-z) -- ttc
+  local p2 = make_point(x+tw/2,y+th/2-z)   -- tcr
+  local p3 = make_point(x,y+th-z) -- tbc
+  local p4 = make_point(x-tw/2,y+th/2-z) -- tcl
 
   local pc = make_point(x, y)
 
   -- bottom 4
-  local p5 = make_point(x, y)  -- BTC
-  local p6 = make_point(x+tw/2, y+th/2) -- BCR
-  local p7 = make_point(x, y+th)  -- BBC
-  local p8 = make_point(x-tw/2, y+th/2)  -- BCL
+  local p5 = make_point(x, y)  -- btc
+  local p6 = make_point(x+tw/2, y+th/2) -- bcr
+  local p7 = make_point(x, y+th)  -- bbc
+  local p8 = make_point(x-tw/2, y+th/2)  -- bcl
   
-  c1 = 3
-  c2 = 9
-  c3 = 11
-
   if(block.i == 0)then
     --draw top
     trifill(p3,p2,p1,c1)
@@ -290,14 +390,132 @@ function draw_block(block)
     --draw left
     trifill(p8,p7,p4,c2)
   elseif(block.i == 2)then
+
     -- draw top
     trifill(p1,p8,p7,c1)
     trifill(p7,p2,p1,c1)
 
     --draw right
     trifill(p7,p6,p2,c3)
-  end
 
+
+  elseif(block.i == 3)then
+  -- i == 3
+  --        ..1..
+  --     ...     ...
+  --  4..           ..2
+  --  .  ...     ...  .
+  --  --------.3..     .
+  --  8..     .     ..6
+  --     ...  .  ...
+  --        ..7..
+
+    -- draw top
+    trifill(p7,p6,p2,c3)
+    trifill(p2,p3,p7,c3)
+
+    --draw left
+    trifill(p8,p7,p3,c2)
+
+    --draw top
+    trifill(p8,p3,p2,c1)
+    trifill(p5,p8,p2,c1)
+  elseif(block.i == 4)then
+    -- i == 4
+    --        ..1..
+    --     ...     ...
+    --  4..           ..2
+    --  .  ...     ...  .
+    --  .     ..3--------
+    --  8..     .     ..6
+    --     ...  .  ...
+    --        ..7..
+
+    trifill(p4,p8,p3,c2) 
+    trifill(p8,p7,p3,c2) -- l
+
+    trifill(p7,p6,p3,c3) -- r
+
+    trifill(p3,p6,p5,c1) --t
+    trifill(p5,p4,p3,c1) 
+  elseif(block.i == 5)then
+  -- i == 5
+  --        ./1..
+  --     ../  |  ...
+  --  4../    |     ..2
+  --  ./      |  ...  .
+  --  --------.3..     .
+  --  8..     .     ..6
+  --     ...  .  ...
+  --        ..7..
+
+    trifill(p1,p3,p2,c1) -- t
+
+    trifill(p1,p8,p3,c3) -- sw
+
+    trifill(p3,p8,p7,c2) -- l
+
+    trifill(p2,p3,p7,c3) -- r
+    trifill(p7,p6,p2,c3) 
+  elseif(block.i == 6)then
+  -- i == 6
+  --          1 
+  --     _____5_____
+  --  4_______________2
+  --  .  ...      ...  .
+  --  .     ..3..     .
+  --  8..     .     ..6
+  --     ...  .  ...
+  --        ..7..
+    trifill(p3,p2,p4,c1) -- t
+
+    trifill(p4,p2,p5,c3) -- NW
+
+    trifill(p4,p8,p3,c2) -- l
+    trifill(p8,p7,p3,c2) -- l
+
+    trifill(p7,p6,p3,c3) -- r
+    trifill(p2,p3,p6,c3) -- r
+    
+  elseif(block.i == 7)then
+  -- i == 7
+  --        ..1\
+  --     ...  |  \
+  --  4..     |   \    2
+  --  .  ...  |     \   
+  --  .     ..3__    \  
+  --  8..     .  ---  \6
+  --     ...  .  ...
+  --        ..7..  
+
+    trifill(p4,p3,p1,c1) -- t
+
+    trifill(p3,p6,p1,c3) -- NE
+
+    trifill(p4,p8,p3,c2) -- l
+    trifill(p8,p7,p3,c2) -- l
+
+    trifill(p7,p6,p3,c3) -- r
+  elseif(block.i == 8)then
+  -- i == 8
+  --        ..1..
+  --     ...     ...
+  --  4_______________2
+  --  . \           / .
+  --  .   \        /  .
+  --  8..  \     /  ..6
+  --     ... \ /  ...
+  --        ..7..  
+    trifill(p1,p4,p2,c1) -- t
+
+    trifill(p4,p7,p2,c6) -- SE
+
+    trifill(p8,p7,p4,c2) -- l
+
+    trifill(p6,p2,p7,c3) -- r
+
+  elseif(block.i == 9)then
+  end
 
   if(block.x0 == ball.current_grid.x and block.y0 == ball.current_grid.y)then
     color(7)
@@ -305,8 +523,48 @@ function draw_block(block)
     line(p2.x, p2.y, p3.x, p3.y)
     line(p3.x, p3.y, p4.x, p4.y)
     line(p4.x, p4.y, p1.x, p1.y)
+
+    q = get_quadrant(ball.current_grid_float.x % flr(ball.current_grid_float.x),ball.current_grid_float.y % flr(ball.current_grid_float.y))
+    print(q, 1, 100, 9)
+
+ 
+    color(c4)
+ 
+
+    if(q == "a")then
+ 
+      line(p3.x,p3.y,pc.x,pc.y)
+      line(pc.x,pc.y,p4.x,p4.y)
+      line(p4.x,p4.y,p3.x,p3.y)
+      
+      -- trifill(p3,pc,p4,12) 
+    elseif(q == "b")then
+
+      line(p4.x,p4.y,pc.x,pc.y)
+      line(pc.x,pc.y,p1.x,p1.y)
+      line(p1.x,p1.y,p4.x,p4.y)
+      
+      --trifill(p4,pc,p1,12) 
+    elseif(q == "c")then
+
+      line(p1.x,p1.y,pc.x,pc.y)
+      line(pc.x,pc.y,p2.x,p2.y)
+      line(p2.x,p2.y,p1.x,p1.y)
+
+      --trifill(p1,pc,p2,12) 
+    elseif(q == "d")then
+
+      line(p2.x,p2.y,pc.x,pc.y)
+      line(pc.x,pc.y,p3.x,p3.y)
+      line(p3.x,p3.y,p2.x,p2.y)
+
+      --trifill(p2,pc,p3,12) 
+    end
+      
     print("block x:" .. pc.x .. "   y:" .. pc.y .. "   h:" .. z, 1, 1, 7)
   end
+
+  
 end
 
 function draw_tile(x0,y0)
@@ -332,11 +590,29 @@ function _init()
   --add(blocks, b3)
   --add(blocks, b4)
 
-  b1 = make_block(3,0,1,2) 
-  b2 = make_block(3,2,1,2) 
+  --b1 = make_block(4,0,1,2) 
+  bsw= make_block(4,0,1,5) 
+ -- b2 = make_block(4,2,1,4) 
+  bse= make_block(3,0,1,8) 
 
-  add(blocks, b1)
-  add(blocks, b2)
+  bne= make_block(3,1,1,7) 
+
+  bnw= make_block(4,1,1,6) 
+ -- b3 = make_block(3,1,1,1) 
+  --bne= make_block(2,2,1,7) 
+ -- b4 = make_block(5,1,1,3) 
+ -- --bnw= make_block(2,2,1,6) 
+
+  add(blocks, bse)
+ -- add(blocks, b1)
+ -- add(blocks, b2)
+  add(blocks, bsw)
+  add(blocks, bne)
+  add(blocks, bnw)
+  --add(blocks, b3)
+  --add(blocks, b4)
+  --add(blocks, bnw)
+  --add(blocks, bne)
 end
 
 function get_current_block(x,y)
@@ -358,24 +634,45 @@ end
 
 function move_direction(dir, force)
   
-  if(dir == "S")then
+  if(dir == "s")then
    ball.oldx += 0.2 * force
    ball.oldy -= 0.1 * force
   end
 
-  if(dir == "N")then
+  if(dir == "n")then
    ball.oldx -= 0.2 * force
    ball.oldy += 0.1 * force
   end
 
-  if(dir == "W")then
+  if(dir == "w")then
    ball.oldx += 0.3 * force
    ball.oldy += 0.15 * force
   end
 
-  if(dir == "E")then
+  if(dir == "e")then
    ball.oldx -= 0.3 * force
    ball.oldy -= 0.15 * force
+  end
+
+  -- todo dry this
+  if(dir == "se")then
+   move_direction("s", force * 0.5)
+   move_direction("e", force * 0.5)
+  end
+
+  if(dir == "nw")then
+   move_direction("n", force * 0.5)
+   move_direction("w", force * 0.5)
+  end
+
+  if(dir == "ne")then
+   move_direction("n", force * 0.5)
+   move_direction("e", force * 0.5)
+  end
+
+  if(dir == "sw")then
+   move_direction("s", force * 0.5)
+   move_direction("w", force * 0.5)
   end
 end
 
@@ -383,14 +680,14 @@ function _update()
 
   move_ball(ball)
 
-  if (btn(0)) then -- SOUTH
-    move_direction("S", 1) 
-  elseif (btn(1)) then -- NORTH
-    move_direction("N", 1)
-  elseif (btn(2)) then -- WEST
-    move_direction("W", 1)
-  elseif (btn(3)) then  -- EAST
-    move_direction("E", 1)
+  if (btn(0)) then -- south
+    move_direction("s", .4) 
+  elseif (btn(1)) then -- north
+    move_direction("n", .4)
+  elseif (btn(2)) then -- west
+    move_direction("w", .4)
+  elseif (btn(3)) then  -- east
+    move_direction("e", .4)
   end
 
 
@@ -404,38 +701,106 @@ function _update()
 
   block = get_current_block(ball.current_grid.x, ball.current_grid.y)
 
+  local not_on_slope = false -- determina se, em um bloco misto, a bola não estã em um slope no momento
+
   if block == nil then
     ball.floor_height = 0
   else 
     -- bloco reto é simples de calcular a altura
     if(block.i == 0)then
       ball.floor_height = (block.z0  * tz * 2)
-    else
-      if(block.directionUp == "N" or block.directionUp == "S")then
-        percent = ball.current_grid_float.y % flr(ball.current_grid_float.y)
-      elseif(block.directionUp == "W" or block.directionUp == "E")then
-        percent = ball.current_grid_float.x % flr(ball.current_grid_float.x)
+    else 
+
+      local pns
+      local pwe
+
+      pns = ball.current_grid_float.y % flr(ball.current_grid_float.y)
+      pwe = ball.current_grid_float.x % flr(ball.current_grid_float.x)
+
+
+      if(block.directionup == "n" or block.directionup == "s")then
+        percent = pns
+      elseif(block.directionup == "w" or block.directionup == "e")then
+        percent = pwe
       end
 
-      if(block.directionUp == "W")then
+      -- todo: this shit is confusing. i want it betterz
+      -- height modelling is imprecise my merging two ramps
+      if(block.i == 5 or block.i == 6 or block.i == 7 or block.i == 8)then -- half block
+        quadrant = get_quadrant(ball.current_grid_float.x % flr(ball.current_grid_float.x), ball.current_grid_float.y % flr(ball.current_grid_float.y))
+    
+        if(quadrant == nil)then
+          -- do nothing
+          not_on_slope = true
+        elseif(quadrant == "b" and (block.slope1 == "b" or block.slope2 == "b"))then
+          if(block.i == 6)then 
+            percent = pns
+          else
+            percent = abs(pns - 1)
+          end
+          ball.floor_height = (block.z0  * tz * 2) * percent
+        elseif(quadrant == "a" and (block.slope1 == "a" or block.slope2 == "a"))then
+          if(block.i == 8)then -- 4 is UP
+            percent = abs(pwe - 1)
+          else
+            percent = pwe  -- 4 is DOWN
+          end
+          ball.floor_height = (block.z0  * tz * 2) * percent
+        elseif(quadrant == "c" and (block.slope1 == "c" or block.slope2 == "c"))then
+          if(block.i == 7)then -- 4 is UP
+            percent = abs(pwe-1)
+          else
+            percent = pwe
+          end
+          ball.floor_height = (block.z0  * tz * 2) * percent
+        elseif(quadrant == "d" and (block.slope1 == "d" or block.slope2 == "d"))then
+          if(block.i == 7)then -- 4 is UP
+            percent = pns
+          else
+            percent = abs(pns - 1) 
+          end
+         
+          ball.floor_height = (block.z0  * tz * 2) * percent
+        else
+          not_on_slope = true
+          ball.floor_height = (block.z0  * tz * 2)
+        end
+      end
+
+      if(block.directionup == "w" or block.directionup == "n")then
         percent = abs(percent - 1)
+        ball.floor_height = (block.z0  * tz * 2) * percent
       end
 
-      if(block.directionUp == "N")then
-        percent = abs(percent - 1)
+      if(block.directionup == "e" or block.directionup == "s")then
+         ball.floor_height = (block.z0  * tz * 2) * percent
       end
 
-      ball.floor_height = (block.z0  * tz * 2) * percent
     end
 
-    if(ball.slope != 0)then
-      move_direction(block.directionDown, block.slope) 
+    -- slope exists and is in contact with floor
+    if(ball.slope != 0 and is_on_floor(ball))then
+      if(not_on_slope)then
+        -- dont move
+      else
+        move_direction(block.directiondown, block.slope * block.friction)
+      end
     end
   end
 end
 
+function is_on_floor(ball)
+  if(ball.z <= ball.floor_height)then
+    return true
+  elseif(abs(ball.floor_height - ball.floor_height - ball.z) < 0.1)then
+    return true
+  else
+    return false
+  end
+end
+
 function _draw()
-	rectfill(0,0,128,128,1)
+	rectfill(0,0,128,128,c5)
 
   foreach(blocks, draw_block)
 
@@ -448,14 +813,14 @@ function _draw()
   draw_ball(ball)
 end
 __gfx__
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000b000000b0000000000000000b0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0000b000000b000000bb00000000b000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0b00b0b00000b0b00b00b0000b00b0b0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00b0000bbb0000b00b000bb000b0000bb00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00b0b00b00b0b00b00b0000b00b0b00b000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+b0000b00b000b000000bb000b0000b00b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0b000b00b0000b00b0000b0b0b000b00b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0b0000000b0000000b0000000b000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
