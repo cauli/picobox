@@ -610,6 +610,7 @@ function draw_block(block)
     trifill2(p6,p2,p7,c3) -- r
 
   elseif(block.i == 9)then
+
   end
 
  
@@ -684,22 +685,22 @@ function draw_tile(x0,y0)
 end
 
 function make_level_bowl()
+  blocks = {}
+
   bsw= make_block(4,0,1,5,false) 
-  b2 = make_block(3,0,1,2,false) 
   bse= make_block(2,0,1,8,false) 
-  b4 = make_block(3,1,1,4,false) 
   bne= make_block(2,1,1,7,false) 
   bnw= make_block(4,1,1,6,false) 
 
   add(blocks, bse)
-  add(blocks, b2)
   add(blocks, bsw)
   add(blocks, bne)
-  add(blocks, b4)
   add(blocks, bnw)
 end
 
 function make_level_1()
+  blocks = {}
+
   b1 = make_block(3,0,1,0,true)
   b2 = make_block(3,1,1,0,false)
   b3 = make_block(3,2,1,2,false) 
@@ -794,8 +795,8 @@ function _update()
 
 
 
-  if (btnp(4,0)) then raise(ball) end
-  if (btnp(5,0)) then lower(ball) end
+  if (btnp(4,0)) then make_level_bowl() end
+  if (btnp(5,0)) then make_level_1() end
 
   -- no need to call this if move_ball is one
   ball.current_grid =       px_to_grid(ball.x, ball.y)
