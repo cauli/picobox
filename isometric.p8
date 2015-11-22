@@ -657,7 +657,7 @@ function draw_block(block)
 
 
     --draw top
-    trifill2(p3,p4,p2,c1)
+    trifill2(p4,p3,p2,c1) --t
 
     trifill2(p8,p7,p3,c2) -- l
     trifill2(p4,p8,p3,c2) -- l
@@ -677,7 +677,7 @@ function draw_block(block)
 
 
     --draw top
-    trifill2(p1,p3,p4,c1)
+    trifill2(p4,p3,p1,c1)
 
     trifill2(p8,p7,p3,c2) -- l
     trifill2(p4,p8,p3,c2) -- l
@@ -694,7 +694,7 @@ function draw_block(block)
   --        ..7..  
 
     --draw top
-    trifill2(p1,p2,p4,c1)
+    trifill2(p4,p2,p1,c1)
 
     --draw 'front' (se)
     trifill2(p8,p6,p2,c3)
@@ -1018,15 +1018,15 @@ end
 function make_level_sides()
   blocks = {}
 
-  b1= make_block(4,1,1,100,false) 
-  b2= make_block(4,2,1,101,false) 
-  b3= make_block(3,2,1,102,false) 
-  b4= make_block(3,1,1,103,false) 
+  b1= make_block(5,1,1,101,false) 
+  b2= make_block(5,3,1,102,false) 
+  b3= make_block(3,3,1,103,false) 
+  b4= make_block(3,1,1,100,false) 
 
-  add(blocks, b2)
   add(blocks, b1)
-  add(blocks, b3)
+  add(blocks, b2)
   add(blocks, b4)
+  add(blocks, b3)
 end
 
 function _init()
@@ -1058,14 +1058,14 @@ level = 0
 function next_level()
   if(level == 0)then
     make_level_bowl()
-    level += 1
+    level = 1 + level
   elseif(level == 1)then
     make_level_1()
-    level += 1
+    level = 1 + level
   elseif(level == 2)then
     make_level_rampy()
-    level += 1
-  else if(level >= 3)then
+    level = 1 + level
+  elseif(level >= 3)then
     make_level_sides()
     level = 0
   end
@@ -1136,10 +1136,10 @@ function _update()
 --  if (btnp(5,0)) then make_level_1() end
 
   if (btnp(4,0)) then raise(ball) end
-  if (btnp(5,0)) then lower(ball) end
+ -- if (btnp(5,0)) then lower(ball) end
 
 
-  if (btnp(6,0)) then next_level() end
+  if (btnp(5,0)) then next_level() end
 
   -- no need to call this if move_ball is one
   ball.current_grid =       px_to_grid(ball.x, ball.y)
