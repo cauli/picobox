@@ -312,6 +312,47 @@ end
 
 
 function make_block(x0,y0,z0,i,has_hole)
+  -- i == 100
+  --        ..1..
+  --     ...     ...
+  --  4_______________2
+  --  |  ---     ---  |
+  --  |     --3--     |
+  --  8--     |     --6
+  --     ---  |  ---
+  --        --7--
+
+  -- i == 101
+  --        __1..
+  --     ___  |  ...
+  --  4__     |     ..2
+  --  |  ___  |  ...  .
+  --  |     __3..     .
+  --  8__     |     ..6
+  --     ___  |  ...
+  --        __7..
+
+  -- i ==102
+  --        __1__
+  --    ___       ___
+  --  4_______________2
+  --  |  ...     ...  |
+  --  |     ..3..     |
+  --  8_______________6
+  --     ...  .  ...
+  --        ..7..  
+
+  -- i == 103
+  --        ..2__
+  --     ...  |  ___
+  --  4..     |     __2
+  --  .  ...  |  ___  |
+  --  .     ..3__     |
+  --  8..     |     __6
+  --     ...  |  ___
+  --        ..7__  
+
+
   -- i == 0
   --        ..1..
   --     ...     ...
@@ -373,6 +414,83 @@ function make_block(x0,y0,z0,i,has_hole)
   --     ...  .  ...
   --        ..7..
 
+  -- i == 9
+  --        ..1..
+  --     ...     ...
+  --  4..     5-------2
+  --  .       |      /|
+  --  .       |    /  |
+  --  8..     |  /  __6
+  --     ...  |/ ___
+  --        ..7__
+
+  -- i == 10
+  --        ..1..
+  --     ...     ...
+  --  4..           ..2
+  --  .     / 3 \     .  
+  --  .   /   |   \   . 
+  --  8 /     |     \ 6
+  --     ___  |   ___
+  --        __7__
+  -- i == 11
+  --        ..1..
+  --     ...     ...
+  --  4-------5      ..2
+  --  |  \    |   ..   .  
+  --  |   \   |..      . 
+  --  8    \  |       6
+  --    ___  \|  ...
+  --        __7..
+  -- i == 12
+  --        ..1..
+  --     ... / \ ...
+  --  4..  /     \  ..2
+  --  .  /         \  .  
+  --  ./             \. 
+  --  8---------------6
+  --     ...  .  ...
+  --        ..7..
+
+  -- i == 100
+  --        ..1..
+  --     ...     ...
+  --  4_______________2
+  --  |  ---     ---  |
+  --  |     --3--     |
+  --  8--     |     --6
+  --     ---  |  ---
+  --        --7--
+
+  -- i == 101
+  --        __1..
+  --     ___  |  ...
+  --  4__     |     ..2
+  --  |  ___  |  ...  .
+  --  |     __3..     .
+  --  8__     |     ..6
+  --     ___  |  ...
+  --        __7..
+
+  -- i ==102
+  --        __1__
+  --    ___       ___
+  --  4_______________2
+  --  |  ...     ...  |
+  --  |     ..3..     |
+  --  8_______________6
+  --     ...  .  ...
+  --        ..7..  
+
+  -- i == 103
+  --        ..2__
+  --     ...  |  ___
+  --  4..     |     __2
+  --  .  ...  |  ___  |
+  --  .     ..3__     |
+  --  8..     |     __6
+  --     ...  |  ___
+  --        ..7__  
 
   local block = {}
   block.x0 = x0
@@ -430,6 +548,54 @@ function make_block(x0,y0,z0,i,has_hole)
     block.directiondown = "se"
     block.slope1 = "d" 
     block.slope2 = "a"
+  elseif(i == 9) then
+    block.slope = 0.5
+    block.directionup = "ne"
+    block.directiondown = "sw"
+    block.slope1 = "c" 
+    block.slope2 = "d"
+  elseif(i == 10) then
+    block.slope = 0.5
+    block.directionup = "se"
+    block.directiondown = "nw"
+    block.slope1 = "a" 
+    block.slope2 = "d"
+  elseif(i == 11) then
+    block.slope = 0.5
+    block.directionup = "sw"
+    block.directiondown = "ne"
+    block.slope1 = "a" 
+    block.slope2 = "b"
+  elseif(i == 12) then
+    block.slope = 0.5
+    block.directionup = "nw"
+    block.directiondown = "se"
+    block.slope1 = "b" 
+    block.slope2 = "c"
+  elseif(i == 100)then
+    block.slope = 0
+    block.directionup = nil
+    block.directiondown = nil
+    block.top1 = "a"
+    block.top2 = "d"  
+  elseif(i == 101)then
+    block.slope = 0
+    block.directionup = nil
+    block.directiondown = nil
+    block.top1 = "a"
+    block.top2 = "b"
+  elseif(i == 102)then
+    block.slope = 0
+    block.directionup = nil
+    block.directiondown = nil
+    block.top1 = "b"
+    block.top2 = "c"
+  elseif(i == 103)then
+    block.slope = 0
+    block.directionup = nil
+    block.directiondown = nil
+    block.top1 = "c"
+    block.top2 = "d"
   end
 
   return block
@@ -477,6 +643,78 @@ function draw_block(block)
       spr(22,pc.x-4,pc.y-4)
       spr(6,pc.x-4,pc.y-4-8)
     end
+  elseif(block.i == 100)then
+
+      -- i == 100
+      --        ..1..
+      --     ...     ...
+      --  4_______________2
+      --  |  ---     ---  |
+      --  |     --3--     |
+      --  8--     |     --6
+      --     ---  |  ---
+      --        --7--
+
+
+    --draw top
+    trifill2(p3,p4,p2,c1)
+
+    trifill2(p8,p7,p3,c2) -- l
+    trifill2(p4,p8,p3,c2) -- l
+
+    trifill2(p2,p3,p7,c3) -- r
+    trifill2(p7,p6,p2,c3) 
+  elseif(block.i == 101)then
+    -- i == 101
+    --        __1..
+    --     ___  |  ...
+    --  4__     |     ..2
+    --  |  ___  |  ...  .
+    --  |     __3..     .
+    --  8__     |     ..6
+    --     ___  |  ...
+    --        __7..
+
+
+    --draw top
+    trifill2(p1,p3,p4,c1)
+
+    trifill2(p8,p7,p3,c2) -- l
+    trifill2(p4,p8,p3,c2) -- l
+
+  elseif(block.i == 102)then
+  -- i ==102
+  --        __1__
+  --    ___       ___
+  --  4_______________2
+  --  |  ...     ...  |
+  --  |     ..3..     |
+  --  8_______________6
+  --     ...  .  ...
+  --        ..7..  
+
+    --draw top
+    trifill2(p1,p2,p4,c1)
+
+    --draw 'front' (se)
+    trifill2(p8,p6,p2,c3)
+    trifill2(p2,p4,p8,c3)
+
+  elseif(block.i == 103)then
+  -- i == 103
+  --        ..1__
+  --     ...  |  ___
+  --  4..     |     __2
+  --  .  ...  |  ___  |
+  --  .     ..3__     |
+  --  8..     |     __6
+  --     ...  |  ___
+  --        ..7__  
+    --draw top
+    trifill2(p1,p3,p2,c1)
+
+    trifill2(p2,p3,p7,c3) -- r
+    trifill2(p7,p6,p2,c3) 
   elseif(block.i == 1)then
     --draw top
     trifill2(p1,p4,p7,c1)
@@ -604,13 +842,66 @@ function draw_block(block)
     trifill2(p1,p4,p2,c1) -- t
 
     trifill2(p4,p7,p2,c3) -- SE
-
     trifill2(p8,p7,p4,c2) -- l
 
     trifill2(p6,p2,p7,c3) -- r
 
   elseif(block.i == 9)then
+  -- i == 9
+  --        ..1..
+  --     ...     ...
+  --  4..     5-------2
+  --  .       |      /|
+  --  .       |    /  |
+  --  8..     |  /  __6
+  --     ...  |/ ___
+  --        ..7__
 
+
+    trifill2(p2,p5,p7,lg) -- sw
+
+    trifill2(p2,p7,p6,c3) -- r
+ 
+  elseif(block.i == 10)then
+  -- i == 10
+  --        ..1..
+  --     ...     ...
+  --  4..           ..2
+  --  .     / 3 \     .  
+  --  .   /   |   \   . 
+  --  8 /     |     \ 6
+  --     ___  |   ___
+  --        __7__
+
+    trifill2(p8,p7,p3,c2) -- l
+
+    trifill2(p3,p7,p6,c3) -- r
+  elseif(block.i == 11)then
+  -- i == 11
+  --        ..1..
+  --     ...     ...
+  --  4-------5      ..2
+  --  |  \    |   ..   .  
+  --  |   \   |..      . 
+  --  8    \  |       6
+  --    ___  \|  ...
+  --        __7..
+
+    trifill2(p4,p8,p7,c2) -- l
+
+    trifill2(p5,p4,p7,lg) -- NE
+  elseif(block.i == 12)then
+  -- i == 12
+  --        ..1..
+  --     ... / \ ...
+  --  4..  /     \  ..2
+  --  .  /         \  .  
+  --  ./             \. 
+  --  8---------------6
+  --     ...  .  ...
+  --        ..7..
+
+    trifill2(p1,p8,p6,c3) -- SE
   end
 
  
@@ -710,11 +1001,40 @@ function make_level_1()
   add(blocks, b3)
 end
 
+function make_level_rampy()
+  blocks = {}
+
+  b1= make_block(4,1,1,9,false) 
+  b2= make_block(4,2,1,10,false) 
+  b3= make_block(3,2,1,11,false) 
+  b4= make_block(3,1,1,12,false) 
+
+  add(blocks, b2)
+  add(blocks, b1)
+  add(blocks, b3)
+  add(blocks, b4)
+end
+
+function make_level_sides()
+  blocks = {}
+
+  b1= make_block(4,1,1,100,false) 
+  b2= make_block(4,2,1,101,false) 
+  b3= make_block(3,2,1,102,false) 
+  b4= make_block(3,1,1,103,false) 
+
+  add(blocks, b2)
+  add(blocks, b1)
+  add(blocks, b3)
+  add(blocks, b4)
+end
+
 function _init()
   ball = make_ball(3,1,1)
 
   --make_level_bowl()
-  make_level_1()
+  --make_level_1()
+  make_level_rampy()
 end
 
 function get_current_block(x,y)
@@ -732,6 +1052,23 @@ function raise(thing)
 end
 function lower(thing)
   thing.z -= tz
+end
+
+level = 0
+function next_level()
+  if(level == 0)then
+    make_level_bowl()
+    level += 1
+  elseif(level == 1)then
+    make_level_1()
+    level += 1
+  elseif(level == 2)then
+    make_level_rampy()
+    level += 1
+  else if(level >= 3)then
+    make_level_sides()
+    level = 0
+  end
 end
 
 function move_direction(dir, force)
@@ -795,8 +1132,14 @@ function _update()
 
 
 
-  if (btnp(4,0)) then make_level_bowl() end
-  if (btnp(5,0)) then make_level_1() end
+--  if (btnp(4,0)) then make_level_bowl() end
+--  if (btnp(5,0)) then make_level_1() end
+
+  if (btnp(4,0)) then raise(ball) end
+  if (btnp(5,0)) then lower(ball) end
+
+
+  if (btnp(6,0)) then next_level() end
 
   -- no need to call this if move_ball is one
   ball.current_grid =       px_to_grid(ball.x, ball.y)
@@ -834,6 +1177,50 @@ function _update()
         end
       else
         ball.floor_height = (block.z0  * tz * 2)
+      end  
+    --  
+    elseif(block.i == 100 or block.i == 101 or block.i == 102 or block.i == 103)then
+      quadrant = get_quadrant(ball.current_grid_float.x % flr(ball.current_grid_float.x), ball.current_grid_float.y % flr(ball.current_grid_float.y))
+    
+      if(quadrant == block.top1 or quadrant == block.top2)then
+        ball.floor_height = (block.z0  * tz * 2)
+      else
+        ball.floor_height = 0
+      end
+
+    --   z=(1-x/a-y/b)*c
+    elseif(block.i == 9 or block.i == 10 or block.i == 11 or block.i == 12)then
+      local pns
+      local pwe
+
+      pns = ball.current_grid_float.y % flr(ball.current_grid_float.y)
+      pwe = ball.current_grid_float.x % flr(ball.current_grid_float.x)
+    
+      quadrant = get_quadrant(ball.current_grid_float.x % flr(ball.current_grid_float.x), ball.current_grid_float.y % flr(ball.current_grid_float.y))
+    
+
+      -- z=(1-x/a-y/b)*c
+      -- HEIGHT equals ( 1 - currentX / "fullX" - currentY / "fullY" ) * fullHeight
+      
+      if(quadrant == nil)then
+          -- do nothing
+          not_on_slope = true
+
+          ball.floor_height = block.z0
+      elseif(quadrant == block.slope1 or quadrant == block.slope2)then
+        if(block.i == 12)then
+          ball.floor_height = (1- (pns*16)/16 - (pwe*16)/16)  * (block.z0  * tz * 2)
+        elseif(block.i == 9)then
+          ball.floor_height = (1- (pns *16)/16 - (abs(1-pwe) *16)/16)  * (block.z0  * tz*2)
+        elseif(block.i == 11)then
+          ball.floor_height = (1- (abs(1-pns)  *16)/16 - (pwe*16)/16)  * (block.z0  * tz*2)
+        elseif(block.i == 10)then
+          ball.floor_height = (1- ( abs(1-pns) *16)/16 - ( abs(1-pwe) *16)/16)  * (block.z0  * tz * 2)
+        end
+      else 
+          -- do nothing
+          not_on_slope = true
+          ball.floor_height = block.z0 -1 
       end
     else 
       local pns
@@ -849,8 +1236,8 @@ function _update()
         percent = pwe
       end
 
-      -- todo: this shit is confusing. i want it betterz
-      -- height modelling is imprecise my merging two ramps
+      -- TODO this shit is confusing. i want it betterz
+      -- TODO height modelling is imprecise my merging two ramps
       if(block.i == 5 or block.i == 6 or block.i == 7 or block.i == 8)then -- half block
         quadrant = get_quadrant(ball.current_grid_float.x % flr(ball.current_grid_float.x), ball.current_grid_float.y % flr(ball.current_grid_float.y))
     
