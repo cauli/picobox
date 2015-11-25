@@ -11,6 +11,10 @@ rndcol3 = flr(rnd()*16)
 rndcol4 = flr(rnd()*16)
 rndcol5 = flr(rnd()*16)
 
+
+-- height climbable
+height_climbable = 5
+
 -- physics parameters
 gravity = 0.3
 friction = 0.98
@@ -22,7 +26,6 @@ c1 = 3
 c2 = 9
 c3 = 11
 c4 = 12
-
 c5 = 1
 c6 = 5
 
@@ -105,8 +108,99 @@ function orient2d(a, b, c)
     return (b.x-a.x)*(c.y-a.y) - (b.y-a.y)*(c.x-a.x);
 end
 
+function clip(v)
+  return max(-1,min(128,v))
+end
+
+function lerp(a,b,alpha)
+  return a*(1.0-alpha)+b*alpha
+end
+
+-- written by nusan
+-- taken from Pico8 3d Renderer http://www.lexaloffle.com/bbs/?tid=2731&autoplay=1#pp
+-- by orange451
+function trifill2( p1, p2, p3, c )
+  triangles += 1
+
+  local v1 = p1
+  local v2 = p2
+  local v3 = p3
+  local x1 = flr(p1.x)
+  local y1 = flr(p1.y)
+  local x2 = flr(p2.x)
+  local y2 = flr(p2.y)
+  local x3 = flr(p3.x)
+  local y3 = flr(p3.y)
+
+  -- order triangle points so that y1 is on top
+  if(y2<y1) then
+    if(y3<y2) then
+      local tmp = y1
+      y1 = y3
+      y3 = tmp
+      tmp = x1
+      x1 = x3
+      x3 = tmp
+    else
+      local tmp = y1
+      y1 = y2
+      y2 = tmp
+      tmp = x1
+      x1 = x2
+      x2 = tmp
+    end
+  else
+    if(y3<y1) then
+      local tmp = y1
+      y1 = y3
+      y3 = tmp
+      tmp = x1
+      x1 = x3
+      x3 = tmp
+    end
+  end
+
+  y1 += 0.001 -- offset to avoid divide per 0
+
+  local miny = min(y2,y3)
+  local maxy = max(y2,y3)
+
+  local fx = x2
+  if(y2<y3) then
+    fx = x3
+  end
+
+  local d12 = (y2-y1)
+  if(d12 != 0) d12 = 1.0/d12
+  local d13 = (y3-y1)
+  if(d13 != 0) d13 = 1.0/d13
+
+  local cl_y1 = clip(y1)
+  local cl_miny = clip(miny)
+  local cl_maxy = clip(maxy)
+
+  for y=cl_y1,cl_miny do
+    local sx = lerp(x1,x3, (y-y1) * d13 )
+    local ex = lerp(x1,x2, (y-y1) * d12 )
+    rectfill(sx,y,ex,y,c)
+  end
+  local sx = lerp(x1,x3, (miny-y1) * d13 )
+  local ex = lerp(x1,x2, (miny-y1) * d12 )
+
+  local df = (maxy-miny)
+  if(df != 0) df = 1.0/df
+
+  for y=cl_miny,cl_maxy do
+    local sx2 = lerp(sx,fx, (y-miny) * df )
+    local ex2 = lerp(ex,fx, (y-miny) * df )
+    rectfill(sx2,y,ex2,y,c)
+  end
+end
+
+
 -- https://fgiesen.wordpress.com/2013/02/08/triangle-rasterization-in-practice/
-function trifill1(v0, v1, v2, col)
+function trifill(v0, v1, v2, col)
+    triangles += 1
     color(col)
     -- Compute triangle bounding box
     minX = min3(v0.x, v1.x, v2.x);
@@ -153,7 +247,7 @@ end
 -- https://gist.github.com/yellowafterlife/34de710baa4422b22c3e
 -- from http://forum.devmaster.net/t/advanced-rasterization/6145
 --
-function trifill2(p1, p2, p3, col)
+function trifill(p1, p2, p3, col)
   triangles += 1
   color(col)
 
@@ -250,6 +344,11 @@ function make_ball(x0,y0,z0)
   b.oldy = y
   b.oldz = z
 
+
+  b.latest_safe_x = x
+  b.latest_safe_y = y
+  b.latest_safe_z = z
+
   b.vx = vx
   b.vy = vy
   b.vz = vz
@@ -257,8 +356,61 @@ function make_ball(x0,y0,z0)
   b.color = 7
 
   b.floor_height = 0
+  b.last_floor_height = b.floor_height
 
+  b.may_be_stuck = false
+  b.stuck_frame_count = 0
   return b
+end
+
+--        ..1..
+--     ...     ...
+--  4..           ..2
+--  .  ...     ......
+--  .     ..3...THIS.
+--  8..     ..WALL..6
+--     .    ......
+--        ..7..  
+
+function hit_x_wall(b)
+  local tempy = b.vy
+  b.vy = b.vx
+  b.vx = tempy
+
+  b.vx = -b.vx
+  b.vy = -b.vy
+
+  ball.color = 11
+
+  -- We always set May Be Stuck to true when hitting a wall.
+  -- Then we count the may_be_stuck frames and, if > than Threshold,
+  -- We set the ball to the latest safe position
+  ball.may_be_stuck = true
+end
+
+--        ..1..
+--     ...     ...
+--  4..           ..2
+--  ......     ...  .
+--  ..THIS..3..     .
+--  8...WALL.     ..6
+--     ......  ...
+--        ..7..  
+
+function hit_y_wall(b)
+  local tempy = -b.vy
+  b.vy = -b.vx
+  b.vx = tempy
+
+  b.vx = -b.vx
+  b.vy = -b.vy
+
+  ball.color = 10
+
+  -- We always set May Be Stuck to true when hitting a wall.
+  -- Then we count the may_be_stuck frames and, if > than Threshold,
+  -- We set the ball to the latest safe position
+  ball.may_be_stuck = true
 end
 
 function move_ball(b)
@@ -267,22 +419,52 @@ function move_ball(b)
   b.vy = (b.y - b.oldy) * friction
   b.vz = (b.z - b.oldz) * friction
 
+  -- if ball is below floor
   if(ball.z < ball.floor_height)then
+      -- if difference between height of floor and ball is not that big
+      -- (climbable)
+      if(ball.floor_height - ball.z < height_climbable)then
 
-      ball.z = ball.floor_height
+        ball.may_be_stuck = false
+        ball.z = ball.floor_height
 
-      if(abs(ball.vz) < 0.5)then
-        ball.vz = 0
+        if(abs(ball.vz) < 0.5)then
+          ball.vz = 0
+        else
+          ball.vz *= -1
+          sfx(0)
+        end
+
+        if(debug_quadrants)then
+          ball.color = 9
+        end
+      -- (unclimbable)
       else
-        ball.vz *= -1
-        sfx(0)
-      end
+        b.x = b.oldx
+        b.y = b.oldy
+        b.z = b.oldz
 
-      if(debug_quadrants)then
-        ball.color = 9
+        if(ball.quadrant == "b" or ball.quadrant == "d")then
+          hit_x_wall(b)
+        elseif(ball.quadrant == "a" or ball.quadrant == "c")then
+          hit_y_wall(b)
+        end
+
+        if(abs(ball.vz) < 0.5)then
+          ball.vz = 0
+        else
+          ball.vz *= -1
+          sfx(0)
+        end
+
       end
   else
+     ball.may_be_stuck = false
      ball.color = 7
+  end
+
+  if(ball.z < 0)then
+    ball.z = 0.5
   end
 
   b.oldx = b.x
@@ -295,19 +477,16 @@ function move_ball(b)
 
   b.z -= gravity
 
+  ball.last_floor_height = ball.floor_height
+  
   b.current_grid =       px_to_grid(b.x, b.y)
   b.current_grid_float = px_to_grid_float(ball.x, ball.y + ball.z)
 
 end
 
 function draw_ball(b)
-  print("b x:" .. b.x .. " y:" .. b.y .. " z:" .. b.z, 1, 7, 6)
-  print("ballg x:" .. b.current_grid.x .. "   y:" .. b.current_grid.y , 1, 14, 6)
-  print("ballf x:" .. b.current_grid_float.x .. "   y:" .. b.current_grid_float.y , 1, 21, 6)
-  print("floor z:" .. b.floor_height , 1, 28, 6)
-
   pset(b.x, b.y - b.floor_height, 0) -- shadow
-  pset(b.x, b.y - b.z , ball.color)
+  pset(b.x, b.y - b.z, ball.color)
 end
 
 
@@ -436,9 +615,9 @@ function make_block(x0,y0,z0,i,has_hole)
   -- i == 11
   --        ..1..
   --     ...     ...
-  --  4-------5      ..2
-  --  |  \    |   ..   .  
-  --  |   \   |..      . 
+  --  4_______5      ..2
+  --  |\      |   ..   .  
+  --  |  \    |..      . 
   --  8    \  |       6
   --    ___  \|  ...
   --        __7..
@@ -697,8 +876,8 @@ function draw_block(block)
     trifill2(p4,p2,p1,c1)
 
     --draw 'front' (se)
-    trifill2(p8,p6,p2,c3)
-    trifill2(p2,p4,p8,c3)
+    color(c3)
+    rectfill(p4.x,p4.y,p6.x,p6.y)
 
   elseif(block.i == 103)then
   -- i == 103
@@ -815,9 +994,9 @@ function draw_block(block)
   --        ..1\
   --     ...  |  \
   --  4..     |   \    2
-  --  .  ...  |     \   
-  --  .     ..3__    \  
-  --  8..     .  ---  \6
+  --  .  ...  |    \   
+  --  .     ..3__   \  
+  --  8..     .  --- \ 6
   --     ...  .  ...
   --        ..7..  
 
@@ -923,14 +1102,11 @@ function draw_block(block)
       line(p4.x, p4.y, p1.x, p1.y)
 
       q = get_quadrant(ball.current_grid_float.x % flr(ball.current_grid_float.x),ball.current_grid_float.y % flr(ball.current_grid_float.y))
-      print(q, 1, 100, 9)
+      print(q, ball.x, ball.y - ball.z + 30, 9)
 
-   
       color(c4)
    
-
       if(q == "a")then
-   
         line(p3.x,p3.y,pc.x,pc.y)
         line(pc.x,pc.y,p4.x,p4.y)
         line(p4.x,p4.y,p3.x,p3.y)
@@ -1032,9 +1208,8 @@ end
 function _init()
   ball = make_ball(3,1,1)
 
-  --make_level_bowl()
-  --make_level_1()
-  make_level_rampy()
+
+  make_level_sides()
 end
 
 function get_current_block(x,y)
@@ -1048,10 +1223,10 @@ function get_current_block(x,y)
 end
 
 function raise(thing)
-  thing.z += tz
+  thing.z += tz/2
 end
 function lower(thing)
-  thing.z -= tz
+  thing.z -= tz/2
 end
 
 level = 0
@@ -1070,6 +1245,7 @@ function next_level()
     level = 0
   end
 end
+
 
 function move_direction(dir, force)
   
@@ -1117,6 +1293,7 @@ end
 
 ditance_to_hole = 10000
 function _update()
+
   triangles = 0
   move_ball(ball)
 
@@ -1131,14 +1308,22 @@ function _update()
   end
 
 
+  if(ball.may_be_stuck)then
+    ball.stuck_frame_count += 1
+  else
+    ball.stuck_frame_count = 0
+  end
 
---  if (btnp(4,0)) then make_level_bowl() end
---  if (btnp(5,0)) then make_level_1() end
+  if(ball.stuck_frame_count > 5)then
+    -- TODO
+    -- OPTION 1 set this to the latest safe position, with a correct speed
+    -- OPTION 2 set this to the calculated safe position, near the stucking block on the same quadrant
+    -- OPTION 3 fix the math with rounding so that this 
+    ball.z = 50
+    ball.oldz = 50
+  end
 
   if (btnp(4,0)) then raise(ball) end
- -- if (btnp(5,0)) then lower(ball) end
-
-
   if (btnp(5,0)) then next_level() end
 
   -- no need to call this if move_ball is one
@@ -1156,7 +1341,11 @@ function _update()
 
   if block == nil then
     ball.floor_height = 0
+  -- plain block
   else 
+    quadrant = get_quadrant(ball.current_grid_float.x % flr(ball.current_grid_float.x), ball.current_grid_float.y % flr(ball.current_grid_float.y))
+    ball.quadrant = quadrant
+
     -- bloco reto é simples de calcular a altura
     if(block.i == 0)then
       
@@ -1178,36 +1367,32 @@ function _update()
       else
         ball.floor_height = (block.z0  * tz * 2)
       end  
-    --  
+    -- 45 degrees angles blocks
     elseif(block.i == 100 or block.i == 101 or block.i == 102 or block.i == 103)then
-      quadrant = get_quadrant(ball.current_grid_float.x % flr(ball.current_grid_float.x), ball.current_grid_float.y % flr(ball.current_grid_float.y))
-    
-      if(quadrant == block.top1 or quadrant == block.top2)then
+   
+      if(ball.quadrant == block.top1 or ball.quadrant == block.top2)then
         ball.floor_height = (block.z0  * tz * 2)
       else
         ball.floor_height = 0
       end
 
-    --   z=(1-x/a-y/b)*c
+    -- diagonal ramp blocks   z=(1-x/a-y/b)*c  
     elseif(block.i == 9 or block.i == 10 or block.i == 11 or block.i == 12)then
       local pns
       local pwe
 
       pns = ball.current_grid_float.y % flr(ball.current_grid_float.y)
       pwe = ball.current_grid_float.x % flr(ball.current_grid_float.x)
-    
-      quadrant = get_quadrant(ball.current_grid_float.x % flr(ball.current_grid_float.x), ball.current_grid_float.y % flr(ball.current_grid_float.y))
-    
 
       -- z=(1-x/a-y/b)*c
       -- HEIGHT equals ( 1 - currentX / "fullX" - currentY / "fullY" ) * fullHeight
       
-      if(quadrant == nil)then
+      if(ball.quadrant == nil)then
           -- do nothing
           not_on_slope = true
 
           ball.floor_height = block.z0
-      elseif(quadrant == block.slope1 or quadrant == block.slope2)then
+      elseif(ball.quadrant == block.slope1 or ball.quadrant == block.slope2)then
         if(block.i == 12)then
           ball.floor_height = (1- (pns*16)/16 - (pwe*16)/16)  * (block.z0  * tz * 2)
         elseif(block.i == 9)then
@@ -1222,6 +1407,7 @@ function _update()
           not_on_slope = true
           ball.floor_height = block.z0 -1 
       end
+    -- diagonal ramp blocks with plain top
     else 
       local pns
       local pwe
@@ -1239,33 +1425,32 @@ function _update()
       -- TODO this shit is confusing. i want it betterz
       -- TODO height modelling is imprecise my merging two ramps
       if(block.i == 5 or block.i == 6 or block.i == 7 or block.i == 8)then -- half block
-        quadrant = get_quadrant(ball.current_grid_float.x % flr(ball.current_grid_float.x), ball.current_grid_float.y % flr(ball.current_grid_float.y))
     
-        if(quadrant == nil)then
+        if(ball.quadrant == nil)then
           -- do nothing
           not_on_slope = true
-        elseif(quadrant == "b" and (block.slope1 == "b" or block.slope2 == "b"))then
+        elseif(ball.quadrant == "b" and (block.slope1 == "b" or block.slope2 == "b"))then
           if(block.i == 6)then 
             percent = pns
           else
             percent = abs(pns - 1)
           end
           ball.floor_height = (block.z0  * tz * 2) * percent
-        elseif(quadrant == "a" and (block.slope1 == "a" or block.slope2 == "a"))then
+        elseif(ball.quadrant == "a" and (block.slope1 == "a" or block.slope2 == "a"))then
           if(block.i == 8)then -- 4 is UP
             percent = abs(pwe - 1)
           else
             percent = pwe  -- 4 is DOWN
           end
           ball.floor_height = (block.z0  * tz * 2) * percent
-        elseif(quadrant == "c" and (block.slope1 == "c" or block.slope2 == "c"))then
+        elseif(ball.quadrant == "c" and (block.slope1 == "c" or block.slope2 == "c"))then
           if(block.i == 7)then -- 4 is UP
             percent = abs(pwe-1)
           else
             percent = pwe
           end
           ball.floor_height = (block.z0  * tz * 2) * percent
-        elseif(quadrant == "d" and (block.slope1 == "d" or block.slope2 == "d"))then
+        elseif(ball.quadrant == "d" and (block.slope1 == "d" or block.slope2 == "d"))then
           if(block.i == 7)then -- 4 is UP
             percent = pns
           else
@@ -1320,9 +1505,17 @@ function is_on_floor(ball)
 end
 
 function _draw()
-	rectfill(0,0,128,128,c5)
-
+	
+  camera(-64+ball.x, -64+ ball.y)
+  clip(-64+ball.x, -64+ ball.y)
+  rectfill(-64+ball.x, -64+ ball.y, ball.x + 64, 64+ ball.y, c5)
   foreach(blocks, draw_block)
+
+
+  draw_ball(ball)
+
+  camera()
+  clip()
 
   print("dist hole " .. distance_to_hole, 1, 110, 5)
 
@@ -1332,7 +1525,13 @@ function _draw()
     print(block.x0 .. ", " .. block.y0, 1, 120, 9)
   end
 
-  draw_ball(ball)
+  print("b x:" .. ball.x .. " y:" .. ball.y .. " z:" .. ball.z, 1, 7, 6)
+  print("ballg x:" .. ball.current_grid.x .. "   y:" .. ball.current_grid.y , 1, 14, 6)
+  print("ballf x:" .. ball.current_grid_float.x .. "   y:" .. ball.current_grid_float.y , 1, 21, 6)
+  print("floor z:" .. ball.floor_height , 1, 28, 6)
+  print("cpu:" .. stat(1)*100 .. "%" , 1, 35, 2)
+  print("triangles:" .. triangles , 1, 42, 2)
+
 end
 __gfx__
 000b000000b0000000000000000b0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
