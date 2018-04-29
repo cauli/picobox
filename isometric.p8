@@ -2,6 +2,8 @@ pico-8 cartridge // http://www.pico-8.com
 version 5
 __lua__
 
+block_height_regular = 1
+block_height_small = 1
 block_types = {
   -- a plateau
   --        ..1..
@@ -39,8 +41,8 @@ block_types = {
   --  8..  \  .     ..6
   --     ...\ .  ...
   --        ..7..
-  ramp_north_east=1,
-  ramp_north_west=2,
+  ramp_north_west=1,
+  ramp_north_east=2,
   ramp_south_west=3,
   ramp_south_east=4,
   
@@ -78,27 +80,65 @@ block_types = {
 
 spacing = 2
 levels = {
+  -- multiple floors
   {
-    {3,0,1,block_types.regular,true},
-    {3,1,1,block_types.regular,false},
-    {3,2,1,block_types.ramp_north_west,false},
+    {
+      {3,-2,1,block_types.regular,false},
+      {3,-1,1,block_types.regular,false},
+      {3,0,1,block_types.ramp_north_east,false},
+
+      {4,-1,1,block_types.ramp_south_east,false},
+
+      {5,-4,1,block_types.ramp_south_east,false},
+      {5,-3,1,block_types.regular,false},
+      {5,-2,1,block_types.regular,false},
+      
+    },
+    {
+      {5,-3,1,block_types.ramp_south_east,false},
+      {3,-2,1,block_types.half_south,false},
+      {4,-2,1,block_types.regular,true},
+      {5,-2,1,block_types.regular,false},
+      {3,-1,1,block_types.ramp_north_east,false},
+      
+      
+    },
   },
+  -- ramps with multiple heights
   {
+    {
+      {1,-2,0.2,block_types.ramp_south_east,false},
+      {3,-2,1.0,block_types.ramp_south_east,false},
+      {5,-2,3.0,block_types.ramp_south_east,false},
 
-    {1,1,1,block_types.ramp_east,false},
-    {1,2,1,block_types.ramp_south,false},
-    {0,2,1,block_types.ramp_west,false},
-    {0,1,1,block_types.ramp_north,false},
+      {1,0,0.2,block_types.ramp_north_east,false},
+      {3,0,1.0,block_types.ramp_north_east,false},
+      {5,0,3.0,block_types.ramp_north_east,false},
 
-    {4,1,1,block_types.ramp_half_east,false},
-    {3,1,1,block_types.ramp_half_north,false},
-    {3,2,1,block_types.ramp_half_west,false},
-    {4,2,1,block_types.ramp_half_south,false},
+      {1,2,0.2,block_types.ramp_south_west,false},
+      {3,2,1.0,block_types.ramp_south_west,false},
+      {5,2,3.0,block_types.ramp_south_west,false},
+    },
+  },
+  
+  -- diagonal ramps
+  {
+    { 
+      {1,1,1,block_types.ramp_east,false},
+      {1,2,1,block_types.ramp_south,false},
+      {0,2,1,block_types.ramp_west,false},
+      {0,1,1,block_types.ramp_north,false},
 
-    {8,1,1,block_types.half_west,false},
-    {8,3,1,block_types.half_north,false},
-    {6,3,1,block_types.half_east,false},
-    {6,1,1,block_types.half_south,false},
+      {4,1,1,block_types.ramp_half_east,false},
+      {3,1,1,block_types.ramp_half_north,false},
+      {3,2,1,block_types.ramp_half_west,false},
+      {4,2,1,block_types.ramp_half_south,false},
+
+      {8,1,1,block_types.half_west,false},
+      {8,3,1,block_types.half_north,false},
+      {6,3,1,block_types.half_east,false},
+      {6,1,1,block_types.half_south,false},
+    },
   }
 }
 
@@ -155,7 +195,7 @@ height_climbable = 5
 
 -- physics parameters
 gravity = 0.3
-friction = 0.98
+friction = 0.97
 bounce = 1
 
 blocks = {}
@@ -347,10 +387,10 @@ end
 -- returns a point object
 -- p.x 
 -- p.y
-function make_point(x,y)
+function make_point(x,y,f)
   local p = {}
   p.x = x
-  p.y = y
+  p.y = y - f
   return p
 end
 
@@ -515,7 +555,7 @@ function draw_ball(b)
 end
 
 
-function make_block(x0,y0,z0,i,has_hole)
+function make_block(x0,y0,z0,floor,i,has_hole)
   -- REGULAR
   --        ..1..
   --     ...     ...
@@ -663,6 +703,7 @@ function make_block(x0,y0,z0,i,has_hole)
   block.x0 = x0
   block.y0 = y0
   block.z0 = z0
+  block.floor = floor
   block.i =  i
   block.has_hole = has_hole
   block.friction = 0.99
@@ -672,93 +713,93 @@ function make_block(x0,y0,z0,i,has_hole)
   block.z = tz + (block.z0 * tz)
 
   if(i == block_types.regular)then
-    block.slope = 0
+    block.slope = 0 * block.z0
     block.directionup = nil
     block.directiondown = nil
-  elseif(i == block_types.ramp_north_east) then
-    block.slope = 0.25
+  elseif(i == block_types.ramp_north_west) then
+    block.slope = 0.25 * block.z0
     block.directionup = "w"
     block.directiondown = "e"
-  elseif(i == block_types.ramp_north_west) then
-    block.slope = 0.25
+  elseif(i == block_types.ramp_north_east) then
+    block.slope = 0.25 * block.z0
     block.directionup = "n"
     block.directiondown = "s"
   elseif(i == block_types.ramp_south_west) then
-    block.slope = 0.25
+    block.slope = 0.25 * block.z0
     block.directionup = "e"
     block.directiondown = "w"
   elseif(i == block_types.ramp_south_east) then
-    block.slope = 0.25
+    block.slope = 0.25 * block.z0
     block.directionup = "s"
     block.directiondown = "n"
   elseif(i == block_types.ramp_half_east) then
-    block.slope = 0.5
+    block.slope = 0.5 * block.z0
     block.directionup = "ne"
     block.directiondown = "sw"
     block.slope1 = "a" 
     block.slope2 = "b"
   elseif(i == block_types.ramp_half_south) then
-    block.slope = 0.5
+    block.slope = 0.5 * block.z0
     block.directionup = "se"
     block.directiondown = "nw"
     block.slope1 = "b" 
     block.slope2 = "c"
   elseif(i == block_types.ramp_half_west) then
-    block.slope = 0.5
+    block.slope = 0.5 * block.z0
     block.directionup = "sw"
     block.directiondown = "ne"
     block.slope1 = "c" 
     block.slope2 = "d"
   elseif(i == block_types.ramp_half_north) then
-    block.slope = 0.5
+    block.slope = 0.5 * block.z0
     block.directionup = "nw"
     block.directiondown = "se"
     block.slope1 = "d" 
     block.slope2 = "a"
   elseif(i == block_types.ramp_east) then
-    block.slope = 0.5
+    block.slope = 0.5 * block.z0
     block.directionup = "ne"
     block.directiondown = "sw"
     block.slope1 = "c" 
     block.slope2 = "d"
   elseif(i == block_types.ramp_south) then
-    block.slope = 0.5
+    block.slope = 0.5 * block.z0
     block.directionup = "se"
     block.directiondown = "nw"
     block.slope1 = "a" 
     block.slope2 = "d"
   elseif(i ==block_types.ramp_west) then
-    block.slope = 0.5
+    block.slope = 0.5 * block.z0
     block.directionup = "sw"
     block.directiondown = "ne"
     block.slope1 = "a" 
     block.slope2 = "b"
   elseif(i == block_types.ramp_north) then
-    block.slope = 0.5
+    block.slope = 0.5 * block.z0
     block.directionup = "nw"
     block.directiondown = "se"
     block.slope1 = "b" 
     block.slope2 = "c"
   elseif(i == block_types.half_south)then
-    block.slope = 0
+    block.slope = 0 * block.z0
     block.directionup = nil
     block.directiondown = nil
     block.top1 = "a"
     block.top2 = "d"  
   elseif(i == block_types.half_west)then
-    block.slope = 0
+    block.slope = 0 * block.z0
     block.directionup = nil
     block.directiondown = nil
     block.top1 = "a"
     block.top2 = "b"
   elseif(i == block_types.half_north)then
-    block.slope = 0
+    block.slope = 0 * block.z0
     block.directionup = nil
     block.directiondown = nil
     block.top1 = "b"
     block.top2 = "c"
   elseif(i == block_types.half_east)then
-    block.slope = 0
+    block.slope = 0 * block.z0
     block.directionup = nil
     block.directiondown = nil
     block.top1 = "c"
@@ -773,20 +814,21 @@ function draw_block(block)
   local x = block.x
   local y = block.y
   local z = block.z
+  local f = ((block.floor-1) * (th/2))
 
   -- top 4
-  local p1 = make_point(x, y-z) -- ttc
-  local p2 = make_point(x+tw/2,y+th/2-z)   -- tcr
-  local p3 = make_point(x,y+th-z) -- tbc
-  local p4 = make_point(x-tw/2,y+th/2-z) -- tcl
+  local p1 = make_point(x, y-z, f) -- ttc
+  local p2 = make_point(x+tw/2,y+th/2-z, f)   -- tcr
+  local p3 = make_point(x,y+th-z, f) -- tbc
+  local p4 = make_point(x-tw/2,y+th/2-z, f) -- tcl
 
-  local pc = make_point(x, y)
+  local pc = make_point(x, y, f)
 
   -- bottom 4
-  local p5 = make_point(x, y)  -- btc
-  local p6 = make_point(x+tw/2, y+th/2) -- bcr
-  local p7 = make_point(x, y+th)  -- bbc
-  local p8 = make_point(x-tw/2, y+th/2)  -- bcl
+  local p5 = make_point(x, y, f)  -- btc
+  local p6 = make_point(x+tw/2, y+th/2, f) -- bcr
+  local p7 = make_point(x, y+th, f)  -- bbc
+  local p8 = make_point(x-tw/2, y+th/2, f)  -- bcl
   
   if(block.i == block_types.regular)then
     --draw top
@@ -883,14 +925,14 @@ function draw_block(block)
 
     trifill(p2,p3,p7,c3) -- r
     trifill(p7,p6,p2,c3) 
-  elseif(block.i == block_types.ramp_north_east)then
+  elseif(block.i == block_types.ramp_north_west)then
     --draw top
     trifill(p1,p4,p7,c1)
     trifill(p7,p6,p1,c1)
 
     --draw left
     trifill(p8,p7,p4,c2)
-  elseif(block.i == block_types.ramp_north_west)then
+  elseif(block.i == block_types.ramp_north_east)then
 
     -- draw top
     trifill(p1,p8,p7,c1)
@@ -1143,18 +1185,25 @@ function draw_tile(x0,y0)
 end
 
 
+current_level_floor = 0
 function reset_map() 
   blocks = {}
+  current_level_floor = 0
 end
 
 function create_block(b) 
-  local block_to_add = make_block(b[1], b[2], b[3], b[4], b[5])
+  local block_to_add = make_block(b[1], b[2], b[3], current_level_floor, b[4], b[5])
   add(blocks, block_to_add)
 end
 
+
 function load_level(level)
   reset_map()
-  foreach(level, create_block)
+
+  for level_floor in all(level) do
+    current_level_floor = current_level_floor + 1
+    foreach(level_floor, create_block)
+  end 
 end
 
 function _init()
@@ -1162,14 +1211,38 @@ function _init()
   next_level()
 end
 
-function get_current_block(x,y)
+function get_current_block(x,y,z)
+  local possible_blocks = {}
+  
+  if z < 0 then 
+    z = 0
+  end 
   for block in all(blocks) do
-    if(block.x0 == x and block.y0 == y)then
-      return block
+    if(block.x0 == x and block.y0 == y and (block.floor-1)*(tz*2) <= z+2)then
+      add(possible_blocks, block)
     end
   end
 
-  return nil
+  printh(#possible_blocks..": possible blocks")
+  if #possible_blocks == 0 then 
+    return nil
+  end 
+
+  if #possible_blocks == 1 then
+    return possible_blocks[1]
+  end 
+
+  selected_block = possible_blocks[0]
+  for b in all(possible_blocks) do 
+    if selected_block == nil then 
+      selected_block = b
+    else 
+      if b.floor > selected_block.floor then
+        selected_block = b
+      end 
+    end 
+  end
+  return selected_block
 end
 
 function raise(thing)
@@ -1240,7 +1313,11 @@ function move_direction(dir, force)
   end
 end
 
-ditance_to_hole = 10000
+function get_ball_vertical_speed_multiplier()
+  local dz = ball.oldz - ball.z
+  return min(max(dz*6,1),17)
+ end
+
 function _update()
 
   debug_count_triangles = 0
@@ -1279,19 +1356,19 @@ function _update()
   ball.current_grid =       px_to_grid(ball.x, ball.y)
   ball.current_grid_float = px_to_grid_float(ball.x, ball.y)
 
-
-  block = get_current_block(ball.current_grid.x, ball.current_grid.y)
+  block = get_current_block(ball.current_grid.x, ball.current_grid.y, ball.z)
 
   hole = {}
   hole.x = 0
   hole.y = 0
-
+  
   local not_on_slope = false -- determina se, em um bloco misto, a bola não estã em um slope no momento
 
   if block == nil then
     ball.floor_height = 0
   -- plain block
   else 
+    block_floor_offset = ((block.floor-1) * tz * 2)
     quadrant = get_quadrant(ball.current_grid_float.x % flr(ball.current_grid_float.x), ball.current_grid_float.y % flr(ball.current_grid_float.y))
     ball.quadrant = quadrant
 
@@ -1301,28 +1378,30 @@ function _update()
       if(block.has_hole)then
         hole = {}
         hole.x = block.x
-        hole.y = block.y 
+        hole.y = block.y - block_floor_offset
 
         ball_copy = {}
         ball_copy.x = ball.x
         ball_copy.y = ball.y - ball.z
 
         current_distance_to_hole = distance(ball_copy,block)
-        if(current_distance_to_hole < 4)then
-          ball.floor_height = 0
+        printh(current_distance_to_hole)
+        if(current_distance_to_hole < (tz*2))then
+          ball.floor_height = 0 + block_floor_offset
+          
         else
-          ball.floor_height = (block.z0  * tz * 2)
+          ball.floor_height = (block.z0  * tz * 2) + block_floor_offset
         end
       else
-        ball.floor_height = (block.z0  * tz * 2)
+        ball.floor_height = (block.z0  * tz * 2) + block_floor_offset
       end  
     -- 45 degrees angles blocks
     elseif(block.i == block_types.half_south or block.i == block_types.half_west or block.i == block_types.half_north or block.i == block_types.half_east)then
    
       if(ball.quadrant == block.top1 or ball.quadrant == block.top2)then
-        ball.floor_height = (block.z0  * tz * 2)
+        ball.floor_height = (block.z0  * tz * 2) + block_floor_offset
       else
-        ball.floor_height = 0
+        ball.floor_height = 0 + block_floor_offset
       end
 
     -- diagonal ramp blocks z=(1-x/a-y/b)*c
@@ -1340,16 +1419,16 @@ function _update()
           -- do nothing
           not_on_slope = true
 
-          ball.floor_height = block.z0
+          ball.floor_height = block.z0 + block_floor_offset
       elseif(ball.quadrant == block.slope1 or ball.quadrant == block.slope2)then
         if(block.i == block_types.ramp_north)then
-          ball.floor_height = (1- (pns*16)/16 - (pwe*16)/16)  * (block.z0  * tz * 2)
+          ball.floor_height = (1- (pns*16)/16 - (pwe*16)/16)  * (block.z0  * tz * 2) + block_floor_offset
         elseif(block.i == block_types.ramp_east)then
-          ball.floor_height = (1- (pns *16)/16 - (abs(1-pwe) *16)/16)  * (block.z0  * tz*2)
+          ball.floor_height = (1- (pns *16)/16 - (abs(1-pwe) *16)/16)  * (block.z0  * tz*2)+ block_floor_offset
         elseif(block.i ==block_types.ramp_west)then
-          ball.floor_height = (1- (abs(1-pns)  *16)/16 - (pwe*16)/16)  * (block.z0  * tz*2)
+          ball.floor_height = (1- (abs(1-pns)  *16)/16 - (pwe*16)/16)  * (block.z0  * tz*2)+ block_floor_offset
         elseif(block.i == block_types.ramp_south)then
-          ball.floor_height = (1- ( abs(1-pns) *16)/16 - ( abs(1-pwe) *16)/16)  * (block.z0  * tz * 2)
+          ball.floor_height = (1- ( abs(1-pns) *16)/16 - ( abs(1-pwe) *16)/16)  * (block.z0  * tz * 2)+ block_floor_offset
         end
       else 
           -- do nothing
@@ -1384,21 +1463,21 @@ function _update()
           else
             percent = abs(pns - 1)
           end
-          ball.floor_height = (block.z0  * tz * 2) * percent
+          ball.floor_height = ((block.z0  * tz * 2) * percent) + block_floor_offset
         elseif(ball.quadrant == "a" and (block.slope1 == "a" or block.slope2 == "a"))then
           if(block.i == block_types.ramp_half_north)then -- 4 is UP
             percent = abs(pwe - 1)
           else
             percent = pwe  -- 4 is DOWN
           end
-          ball.floor_height = (block.z0  * tz * 2) * percent
+          ball.floor_height = ((block.z0  * tz * 2) * percent) + block_floor_offset
         elseif(ball.quadrant == "c" and (block.slope1 == "c" or block.slope2 == "c"))then
           if(block.i == block_types.ramp_half_west)then -- 4 is UP
             percent = abs(pwe-1)
           else
             percent = pwe
           end
-          ball.floor_height = (block.z0  * tz * 2) * percent
+          ball.floor_height = ((block.z0  * tz * 2) * percent) + block_floor_offset
         elseif(ball.quadrant == "d" and (block.slope1 == "d" or block.slope2 == "d"))then
           if(block.i == block_types.ramp_half_west)then -- 4 is UP
             percent = pns
@@ -1406,20 +1485,20 @@ function _update()
             percent = abs(pns - 1) 
           end
          
-          ball.floor_height = (block.z0  * tz * 2) * percent
+          ball.floor_height = ((block.z0  * tz * 2) * percent) + block_floor_offset
         else
           not_on_slope = true
-          ball.floor_height = (block.z0  * tz * 2)
+          ball.floor_height = ((block.z0  * tz * 2)) + block_floor_offset
         end
       end
 
       if(block.directionup == "w" or block.directionup == "n")then
         percent = abs(percent - 1)
-        ball.floor_height = (block.z0  * tz * 2) * percent
+        ball.floor_height = ((block.z0  * tz * 2) * percent) + block_floor_offset
       end
 
       if(block.directionup == "e" or block.directionup == "s")then
-         ball.floor_height = (block.z0  * tz * 2) * percent
+         ball.floor_height = ((block.z0  * tz * 2) * percent) + block_floor_offset
       end
 
     end
@@ -1430,7 +1509,7 @@ function _update()
       if(not_on_slope)then
         -- dont move
       else
-        move_direction(block.directiondown, block.slope * block.friction)
+        move_direction(block.directiondown, block.slope * block.friction * get_ball_vertical_speed_multiplier())
       end
     end
   end
@@ -1463,6 +1542,7 @@ function _draw()
 
   draw_ball(ball)
 
+  -- this will bring debug stuff to fixed position
   camera()
   clip()
 
