@@ -4,16 +4,41 @@ __lua__
 
 block_types = {
   -- a plateau
+  --        ..1..
+  --     ...     ...
+  --  4..           ..2
+  --  .  ...     ...  .
+  --  .     ..3..     .
+  --  8..     .     ..6
+  --     ...  .  ...
+  --        ..7..
   regular=0,
 
   -- nothing on one side
   -- a plateou on the specified direction
+  --        ..2__
+  --     ...  |  ___
+  --  4..     |     __2
+  --  .  ...  |  ___  |
+  --  .     ..3__     |
+  --  8..     |     __6
+  --     ...  |  ___
+  --        ..7__  
   half_south=100,
   half_west=101,
   half_north=102,
   half_east=103,
 
   -- a long ramp that raises to the specified direction
+  -- RAMP NORTH WEST
+  --        ..1.\
+  --     ...     \..
+  --  4.\         \ ..x
+  --  .  \..     ..\  .
+  --  .   \ ..x..   \ .
+  --  8..  \  .     ..6
+  --     ...\ .  ...
+  --        ..7..
   ramp_north_east=1,
   ramp_north_west=2,
   ramp_south_west=3,
@@ -21,17 +46,37 @@ block_types = {
   
   -- ramps half of the block and the other half is 
   -- a plateau on the specified direction
+  --        ./1..
+  --     ../  |  ...
+  --  4../    |     ..2
+  --  ./      |  ...  .
+  --  --------.3..     .
+  --  8..     .     ..6
+  --     ...  .  ...
+  --        ..7..
   ramp_half_east=5,
   ramp_half_south=6,
   ramp_half_west=7,
   ramp_half_north=8,
   
+  -- a small diagonal ramp that raises to the specified direction
+  -- RAMP NORTH
+  --        ..1..
+  --     ... / \ ...
+  --  4..  /     \  ..2
+  --  .  /         \  .  
+  --  ./             \. 
+  --  8---------------6
+  --     ...  .  ...
+  --        ..7..
+
   ramp_east=9,
   ramp_south=10,
   ramp_east=11,
   ramp_north=12,
 }
 
+spacing = 2
 levels = {
   {
     {3,0,1,block_types.regular,true},
@@ -39,22 +84,21 @@ levels = {
     {3,2,1,block_types.ramp_north_west,false},
   },
   {
-    {4,0,1,block_types.ramp_half_east,false},
-    {2,0,1,block_types.ramp_half_north,false},
-    {2,1,1,block_types.ramp_half_west,false},
-    {4,1,1,block_types.ramp_half_south,false},
-  },
-  {
-    {4,1,1,block_types.ramp_east,false},
-    {4,2,1,block_types.ramp_south,false},
-    {3,2,1,block_types.ramp_west,false},
-    {3,1,1,block_types.ramp_north,false},
-  },
-  {
-    {5,1,1,block_types.half_west,false},
-    {5,3,1,block_types.half_north,false},
-    {3,3,1,block_types.half_east,false},
-    {3,1,1,block_types.half_south,false},
+
+    {1,1,1,block_types.ramp_east,false},
+    {1,2,1,block_types.ramp_south,false},
+    {0,2,1,block_types.ramp_west,false},
+    {0,1,1,block_types.ramp_north,false},
+
+    {4,1,1,block_types.ramp_half_east,false},
+    {3,1,1,block_types.ramp_half_north,false},
+    {3,2,1,block_types.ramp_half_west,false},
+    {4,2,1,block_types.ramp_half_south,false},
+
+    {8,1,1,block_types.half_west,false},
+    {8,3,1,block_types.half_north,false},
+    {6,3,1,block_types.half_east,false},
+    {6,1,1,block_types.half_south,false},
   }
 }
 
@@ -135,11 +179,6 @@ debug_quadrants = true
 debug_count_triangles = 0
 
 current_distance_to_hole = nil
-
-
-
-
-
 
 sqrt0 = sqrt
 function sqrt(n)
@@ -477,7 +516,7 @@ end
 
 
 function make_block(x0,y0,z0,i,has_hole)
-   -- REGULAR
+  -- REGULAR
   --        ..1..
   --     ...     ...
   --  4..           ..2
@@ -485,7 +524,7 @@ function make_block(x0,y0,z0,i,has_hole)
   --  .     ..3..     .
   --  8..     .     ..6
   --     ...  .  ...
-  --        ..7..  
+  --        ..7..
 
   --  HALF SOUTH
   --        ..1..
@@ -1142,7 +1181,7 @@ end
 
 current_level = 0
 function next_level()
-  local total_levels = 4
+  local total_levels = #levels
   
   if current_level == total_levels then
     current_level = 1
