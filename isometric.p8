@@ -32,6 +32,33 @@ block_types = {
   ramp_north=12,
 }
 
+levels = {
+  {
+    {3,0,1,block_types.regular,true},
+    {3,1,1,block_types.regular,false},
+    {3,2,1,block_types.ramp_north_west,false},
+  },
+  {
+    {4,0,1,block_types.ramp_half_east,false},
+    {2,0,1,block_types.ramp_half_north,false},
+    {2,1,1,block_types.ramp_half_west,false},
+    {4,1,1,block_types.ramp_half_south,false},
+  },
+  {
+    {4,1,1,block_types.ramp_east,false},
+    {4,2,1,block_types.ramp_south,false},
+    {3,2,1,block_types.ramp_west,false},
+    {3,1,1,block_types.ramp_north,false},
+  },
+  {
+    {5,1,1,block_types.half_west,false},
+    {5,3,1,block_types.half_north,false},
+    {3,3,1,block_types.half_east,false},
+    {3,1,1,block_types.half_south,false},
+  }
+}
+
+
 tw = 50
 th = 25
 tz = 12.5/2
@@ -111,12 +138,7 @@ current_distance_to_hole = nil
 
 
 
-levels = {
-  bowl={{4,0,1,5,false},
-        {2,0,1,8,false},
-        {2,1,1,7,false},
-        {4,1,1,6,false}},
-}
+
 
 
 sqrt0 = sqrt
@@ -1091,67 +1113,14 @@ function create_block(b)
   add(blocks, block_to_add)
 end
 
-function make_level_bowl()
+function load_level(level)
   reset_map()
-  local m = levels.bowl
-
-  printh("-----")
-  foreach(m, create_block)
-
-  -- for b_info in levels["bowl"] do
-  --   print(b_info)
-  --   local b = make_block(b_info[0][0],b_info[0][1],b_info[0][2],b_info[0][3],b_info[0][4]) 
-  --   add(blocks, b)
-  -- end
-end
-
-
-
-function make_level_1()
-  blocks = {}
-
-  b1 = make_block(3,0,1,0,true)
-  b2 = make_block(3,1,1,0,false)
-  b3 = make_block(3,2,1,2,false) 
-
-  add(blocks, b1)
-  add(blocks, b2)
-  add(blocks, b3)
-end
-
-function make_level_rampy()
-  blocks = {}
-
-  b1= make_block(4,1,1,9,false) 
-  b2= make_block(4,2,1,10,false) 
-  b3= make_block(3,2,1,11,false) 
-  b4= make_block(3,1,1,12,false) 
-
-  add(blocks, b2)
-  add(blocks, b1)
-  add(blocks, b3)
-  add(blocks, b4)
-end
-
-function make_level_sides()
-  blocks = {}
-
-  b1= make_block(5,1,1,101,false) 
-  b2= make_block(5,3,1,102,false) 
-  b3= make_block(3,3,1,103,false) 
-  b4= make_block(3,1,1,100,false) 
-
-  add(blocks, b1)
-  add(blocks, b2)
-  add(blocks, b4)
-  add(blocks, b3)
+  foreach(level, create_block)
 end
 
 function _init()
   ball = make_ball(3,1,1)
-
-
-  make_level_sides()
+  next_level()
 end
 
 function get_current_block(x,y)
@@ -1171,21 +1140,20 @@ function lower(thing)
   thing.z -= tz/2
 end
 
-level = 0
+current_level = 0
 function next_level()
-  if(level == 0)then
-    make_level_bowl()
-    level = 1 + level
-  elseif(level == 1)then
-    make_level_1()
-    level = 1 + level
-  elseif(level == ramp_north_west)then
-    make_level_rampy()
-    level = 1 + level
-  elseif(level >= 3)then
-    make_level_sides()
-    level = 0
+  local total_levels = 4
+  
+  if current_level == total_levels then
+    current_level = 1
+  else 
+    current_level = current_level + 1
   end
+  
+  printh("\nLoading level...")
+  printh("total_levels: "..total_levels)
+  printh("current_level: "..current_level)
+  load_level(levels[current_level])
 end
 
 
