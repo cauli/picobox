@@ -1,6 +1,37 @@
 pico-8 cartridge // http://www.pico-8.com
 version 5
 __lua__
+
+block_types = {
+  -- a plateau
+  regular=0,
+
+  -- nothing on one side
+  -- a plateou on the specified direction
+  half_south=100,
+  half_west=101,
+  half_north=102,
+  half_east=103,
+
+  -- a long ramp that raises to the specified direction
+  ramp_north_east=1,
+  ramp_north_west=2,
+  ramp_south_west=3,
+  ramp_south_east=4,
+  
+  -- ramps half of the block and the other half is 
+  -- a plateau on the specified direction
+  ramp_half_east=5,
+  ramp_half_south=6,
+  ramp_half_west=7,
+  ramp_half_north=8,
+  
+  ramp_east=9,
+  ramp_south=10,
+  ramp_east=11,
+  ramp_north=12,
+}
+
 tw = 50
 th = 25
 tz = 12.5/2
@@ -11,6 +42,42 @@ rndcol3 = flr(rnd()*16)
 rndcol4 = flr(rnd()*16)
 rndcol5 = flr(rnd()*16)
 
+-- https://github.com/sulai/Lib-Pico8/blob/master/lang.lua
+function enum(names, offset)
+	offset=offset or 1
+	local objects = {}
+	local size=0
+	for idr,name in pairs(names) do
+		local id = idr + offset - 1
+		local obj = {
+			id=id,       -- id
+			idr=idr,     -- 1-based relative id, without offset being added
+			name=name    -- name of the object
+		}
+		objects[name] = obj
+		objects[id] = obj
+		size=size+1
+	end
+	objects.idstart = offset        -- start of the id range being used
+	objects.idend = offset+size-1   -- end of the id range being used
+	objects.size=size
+	objects.all = function()
+		local list = {}
+		for _,name in pairs(names) do
+			add(list,objects[name])
+		end
+		local i=0
+		return function() i=i+1 if i<=#list then return list[i] end end
+	end
+	return objects
+end
+
+
+-- define global enums
+-- colors = enum( {"black",  "dark_blue",     "purple",  "dark_green", 
+--                 "brown",  "dark_grey",     "grey",    "white",
+--                 "red",    "orange",        "yellow",  "green",
+--                 "blue" ,  "light_purple",  "pink",    "washed_red"}, 0 )
 
 -- height climbable
 height_climbable = 5
@@ -18,35 +85,41 @@ height_climbable = 5
 -- physics parameters
 gravity = 0.3
 friction = 0.98
-bounce = 0.9
+bounce = 1
 
 blocks = {}
 
-c1 = 3
-c2 = 9
-c3 = 11
-c4 = 12
-c5 = 1
-c6 = 5
+-- c1 = 3
+-- c2 = 9
+-- c3 = 11
+-- c4 = 12
+-- c5 = 1
+-- c6 = 5
 
-
---c1 = 5
---c2 = 0
---c3 = 14
---c4 = rndcol4
---c5 = 13
---c6 = flr(rnd()*16)
-lg = 5
+c1 = 5 --   dark_grey
+c2 = 0 --   black
+c3 = 14 --  pink
+c4 = 3 --   dark_green
+c5 = 13 --  light_purple
+c6 = 6  --  grey- 
+lg = 2 --   purple
 
 debug_quadrants = true
+debug_count_triangles = 0
 
-triangles = 0
+current_distance_to_hole = nil
+
+
+
+levels = {
+  bowl={{4,0,1,5,false},
+        {2,0,1,8,false},
+        {2,1,1,7,false},
+        {4,1,1,6,false}},
+}
+
 
 sqrt0 = sqrt
-
-
-distance_to_hole = 9999
-
 function sqrt(n)
   if (n <= 0) return 0
   if (n >= 32761) return 181.0
@@ -59,9 +132,9 @@ function get_quadrant(x,y)
   -- top view of block
   --0,0..........1,0
   -- ..         ..
-  -- .  .  a  .  .       
+  -- .  .  a  .  .
   -- .   b . d   .
-  -- .  .  c  .  .  
+  -- .  .  c  .  .
   -- ..         ..
   --0,1...........1,1
 
@@ -72,7 +145,6 @@ function get_quadrant(x,y)
   min.y = 0
   max.x = 1
   max.y = 1
-
 
   if (x < min.x or x > max.x or y < min.y or y > max.y)then
     return nil
@@ -119,8 +191,8 @@ end
 -- written by nusan
 -- taken from Pico8 3d Renderer http://www.lexaloffle.com/bbs/?tid=2731&autoplay=1#pp
 -- by orange451
-function trifill2( p1, p2, p3, c )
-  triangles += 1
+function trifill( p1, p2, p3, c )
+  debug_count_triangles += 1
 
   local v1 = p1
   local v2 = p2
@@ -197,118 +269,12 @@ function trifill2( p1, p2, p3, c )
   end
 end
 
-
--- https://fgiesen.wordpress.com/2013/02/08/triangle-rasterization-in-practice/
-function trifill(v0, v1, v2, col)
-    triangles += 1
-    color(col)
-    -- Compute triangle bounding box
-    minX = min3(v0.x, v1.x, v2.x);
-    minY = min3(v0.y, v1.y, v2.y);
-    maxX = max3(v0.x, v1.x, v2.x);
-    maxY = max3(v0.y, v1.y, v2.y);
-
-    -- Clip against screen bounds
-    minX = max(minX, 0);
-    minY = max(minY, 0);
-    maxX = min(maxX, 128 - 1);
-    maxY = min(maxY, 128 - 1);
-
-    local ix = 0
-    local iy = 0
-    local ix1 = 0
-    local iy1 = 0
-    -- Rasterize
-    local p = {};
-    for iy = minY, maxY do
-      iy1 += 1
-      p.y = iy1
-
-      for ix = minX, maxX do
-          --ix += 1
-          p.x = ix1
-          
-          w0 = orient2d(v1, v2, p);
-          w1 = orient2d(v2, v0, p);
-          w2 = orient2d(v0, v1, p);
-
-          -- If p is on or inside all edges, render pixel.
-          if (w0 >= 0 and w1 >= 0 and w2 >= 0) then
-              --renderPixel(p, w0, w1, w2);
-              pset(p.x, p.y)
-          end     
-      end
-    end
-
-end
-
---
--- triangle fill ported by yellowafterlife
--- https://gist.github.com/yellowafterlife/34de710baa4422b22c3e
--- from http://forum.devmaster.net/t/advanced-rasterization/6145
---
-function trifill(p1, p2, p3, col)
-  triangles += 1
-  color(col)
-
-  local x1 = p1.x
-  local y1 = p1.y
-  local x2 = p2.x
-  local y2 = p2.y
-  local x3 = p3.x
-  local y3 = p3.y
-  
-  local dx12 = x1 - x2
-  local dx23 = x2 - x3
-  local dx31 = x3 - x1
-  local dy12 = y1 - y2
-  local dy23 = y2 - y3
-  local dy31 = y3 - y1
-  local minx = min(x1, min(x2, x3))
-  local maxx = max(x1, max(x2, x3))
-  local miny = min(y1, min(y2, y3))
-  local maxy = max(y1, max(y2, y3))
-  local c1 = dy12 * x1 - dx12 * y1
-  local c2 = dy23 * x2 - dx23 * y2
-  local c3 = dy31 * x3 - dx31 * y3
-  if dy12 < 0 or dy12 == 0 and dx12 > 0 then
-    c1 += 1
-  end
-  if dy23 < 0 or dy23 == 0 and dx23 > 0 then
-    c2 += 1
-  end
-  if dy31 < 0 or dy31 == 0 and dx31 > 0 then
-    c3 += 1
-  end
-  local cy1 = c1 + dx12 * miny - dy12 * minx
-  local cy2 = c2 + dx23 * miny - dy23 * minx
-  local cy3 = c3 + dx31 * miny - dy31 * minx
-  for y = flr(miny), flr(maxy)  do
-    local cx1 = cy1
-    local cx2 = cy2
-    local cx3 = cy3
-    for x = flr(minx), flr(maxx) do
-      if cx1 > -1 and cx2 > -1 and cx3 > -1 then
-        pset(x, y)
-      end
-      cx1 -= dy12
-      cx2 -= dy23
-      cx3 -= dy31
-    end
-    cy1 += dx12
-    cy2 += dx23
-    cy3 += dx31
-  end
-end
-
-
 function px_to_grid(x,y)
   local current_grid = {}
   current_grid.x = flr((x / (tw/2) + y / (th/2)) /2);
   current_grid.y = flr((y / (th/2) -(x/ (tw/2))) /2);
   return current_grid
 end
-
 
 function px_to_grid_float(x,y)
   local current_grid = {}
@@ -344,7 +310,6 @@ function make_ball(x0,y0,z0)
   b.oldy = y
   b.oldz = z
 
-
   b.latest_safe_x = x
   b.latest_safe_y = y
   b.latest_safe_z = z
@@ -366,13 +331,13 @@ end
 --        ..1..
 --     ...     ...
 --  4..           ..2
---  .  ...     ......
---  .     ..3...THIS.
---  8..     ..WALL..6
---     .    ......
---        ..7..  
+--  .  ...     xxxxxx
+--  .     ..3xxxxxxxx
+--  8..     xxxxxxxx6
+--     .    xxxxxxx
+--        ..7xx  
 
-function hit_x_wall(b)
+function hit_right_wall(b)
   local tempy = b.vy
   b.vy = b.vx
   b.vx = tempy
@@ -390,14 +355,13 @@ end
 
 --        ..1..
 --     ...     ...
---  4..           ..2
---  ......     ...  .
---  ..THIS..3..     .
---  8...WALL.     ..6
---     ......  ...
---        ..7..  
-
-function hit_y_wall(b)
+--  4xx           ..2
+--  xxxxxx     ...  .
+--  xxxxxxxx3..     .
+--  8xxxxxxxx     ..6
+--     xxxxxx  ...
+--        xx7..  zx
+function hit_left_wall(b)
   local tempy = -b.vy
   b.vy = -b.vx
   b.vx = tempy
@@ -445,9 +409,9 @@ function move_ball(b)
         b.z = b.oldz
 
         if(ball.quadrant == "b" or ball.quadrant == "d")then
-          hit_x_wall(b)
+          hit_right_wall(b)
         elseif(ball.quadrant == "a" or ball.quadrant == "c")then
-          hit_y_wall(b)
+          hit_left_wall(b)
         end
 
         if(abs(ball.vz) < 0.5)then
@@ -491,48 +455,7 @@ end
 
 
 function make_block(x0,y0,z0,i,has_hole)
-  -- i == 100
-  --        ..1..
-  --     ...     ...
-  --  4_______________2
-  --  |  ---     ---  |
-  --  |     --3--     |
-  --  8--     |     --6
-  --     ---  |  ---
-  --        --7--
-
-  -- i == 101
-  --        __1..
-  --     ___  |  ...
-  --  4__     |     ..2
-  --  |  ___  |  ...  .
-  --  |     __3..     .
-  --  8__     |     ..6
-  --     ___  |  ...
-  --        __7..
-
-  -- i ==102
-  --        __1__
-  --    ___       ___
-  --  4_______________2
-  --  |  ...     ...  |
-  --  |     ..3..     |
-  --  8_______________6
-  --     ...  .  ...
-  --        ..7..  
-
-  -- i == 103
-  --        ..2__
-  --     ...  |  ___
-  --  4..     |     __2
-  --  .  ...  |  ___  |
-  --  .     ..3__     |
-  --  8..     |     __6
-  --     ...  |  ___
-  --        ..7__  
-
-
-  -- i == 0
+   -- REGULAR
   --        ..1..
   --     ...     ...
   --  4..           ..2
@@ -542,7 +465,47 @@ function make_block(x0,y0,z0,i,has_hole)
   --     ...  .  ...
   --        ..7..  
 
-  -- i == 1 
+  --  HALF SOUTH
+  --        ..1..
+  --     ...     ...
+  --  4_______________2
+  --  |  ---     ---  |
+  --  |     --3--     |
+  --  8--     |     --6
+  --     ---  |  ---
+  --        --7--
+
+  -- HALF WEST
+  --        __1..
+  --     ___  |  ...
+  --  4__     |     ..2
+  --  |  ___  |  ...  .
+  --  |     __3..     .
+  --  8__     |     ..6
+  --     ___  |  ...
+  --        __7..
+
+  -- HALF NORTH
+  --        __1__
+  --    ___       ___
+  --  4_______________2
+  --  |  ...     ...  |
+  --  |     ..3..     |
+  --  8_______________6
+  --     ...  .  ...
+  --        ..7..  
+
+  -- HALF WEST
+  --        ..2__
+  --     ...  |  ___
+  --  4..     |     __2
+  --  .  ...  |  ___  |
+  --  .     ..3__     |
+  --  8..     |     __6
+  --     ...  |  ___
+  --        ..7__  
+
+  -- RAMP NORTH WEST
   --        ..1.\
   --     ...     \..
   --  4.\         \ ..x
@@ -552,7 +515,7 @@ function make_block(x0,y0,z0,i,has_hole)
   --     ...\ .  ...
   --        ..7..
 
-  -- i == 2 
+  -- RAMP NORTH EAST
   --        ..1..
   --     ... /   ...
   --  x..  /        ..2
@@ -562,7 +525,7 @@ function make_block(x0,y0,z0,i,has_hole)
   --     ...  . /...
   --        ..7..
 
-  -- i == 3
+  -- RAMP SOUTH EAST
   --        ..1..
   --     ...     ...
   --  4..           ..2
@@ -572,7 +535,7 @@ function make_block(x0,y0,z0,i,has_hole)
   --     ...  .  ...
   --        ..7..
 
-  -- i == 4
+  -- RAMP SOUTH WEST
   --        ..1..
   --     ...     ...
   --  4..           ..2
@@ -583,7 +546,7 @@ function make_block(x0,y0,z0,i,has_hole)
   --        ..7..
 
 
-  -- i == 5
+  -- RAMP HALF WEST i == block_types.ramp_half_east
   --        ./1..
   --     ../  |  ...
   --  4../    |     ..2
@@ -593,7 +556,7 @@ function make_block(x0,y0,z0,i,has_hole)
   --     ...  .  ...
   --        ..7..
 
-  -- i == 9
+  -- RAMP WEST
   --        ..1..
   --     ...     ...
   --  4..     5-------2
@@ -603,7 +566,7 @@ function make_block(x0,y0,z0,i,has_hole)
   --     ...  |/ ___
   --        ..7__
 
-  -- i == 10
+  -- RAMP SOUTH
   --        ..1..
   --     ...     ...
   --  4..           ..2
@@ -612,7 +575,8 @@ function make_block(x0,y0,z0,i,has_hole)
   --  8 /     |     \ 6
   --     ___  |   ___
   --        __7__
-  -- i == 11
+
+  -- RAMP WEST
   --        ..1..
   --     ...     ...
   --  4_______5      ..2
@@ -621,7 +585,8 @@ function make_block(x0,y0,z0,i,has_hole)
   --  8    \  |       6
   --    ___  \|  ...
   --        __7..
-  -- i == 12
+
+  -- RAMP NORTH
   --        ..1..
   --     ... / \ ...
   --  4..  /     \  ..2
@@ -631,45 +596,7 @@ function make_block(x0,y0,z0,i,has_hole)
   --     ...  .  ...
   --        ..7..
 
-  -- i == 100
-  --        ..1..
-  --     ...     ...
-  --  4_______________2
-  --  |  ---     ---  |
-  --  |     --3--     |
-  --  8--     |     --6
-  --     ---  |  ---
-  --        --7--
 
-  -- i == 101
-  --        __1..
-  --     ___  |  ...
-  --  4__     |     ..2
-  --  |  ___  |  ...  .
-  --  |     __3..     .
-  --  8__     |     ..6
-  --     ___  |  ...
-  --        __7..
-
-  -- i ==102
-  --        __1__
-  --    ___       ___
-  --  4_______________2
-  --  |  ...     ...  |
-  --  |     ..3..     |
-  --  8_______________6
-  --     ...  .  ...
-  --        ..7..  
-
-  -- i == 103
-  --        ..2__
-  --     ...  |  ___
-  --  4..     |     __2
-  --  .  ...  |  ___  |
-  --  .     ..3__     |
-  --  8..     |     __6
-  --     ...  |  ___
-  --        ..7__  
 
   local block = {}
   block.x0 = x0
@@ -683,93 +610,93 @@ function make_block(x0,y0,z0,i,has_hole)
   block.y = (block.x0+block.y0) * th/2
   block.z = tz + (block.z0 * tz)
 
-  if(i == 0)then
+  if(i == block_types.regular)then
     block.slope = 0
     block.directionup = nil
     block.directiondown = nil
-  elseif(i == 1) then
+  elseif(i == block_types.ramp_north_east) then
     block.slope = 0.25
     block.directionup = "w"
     block.directiondown = "e"
-  elseif(i == 2) then
+  elseif(i == block_types.ramp_north_west) then
     block.slope = 0.25
     block.directionup = "n"
     block.directiondown = "s"
-  elseif(i == 3) then
+  elseif(i == block_types.ramp_south_west) then
     block.slope = 0.25
     block.directionup = "e"
     block.directiondown = "w"
-  elseif(i == 4) then
+  elseif(i == block_types.ramp_south_east) then
     block.slope = 0.25
     block.directionup = "s"
     block.directiondown = "n"
-  elseif(i == 5) then
+  elseif(i == block_types.ramp_half_east) then
     block.slope = 0.5
     block.directionup = "ne"
     block.directiondown = "sw"
     block.slope1 = "a" 
     block.slope2 = "b"
-  elseif(i == 6) then
+  elseif(i == block_types.ramp_half_south) then
     block.slope = 0.5
     block.directionup = "se"
     block.directiondown = "nw"
     block.slope1 = "b" 
     block.slope2 = "c"
-  elseif(i == 7) then
+  elseif(i == block_types.ramp_half_west) then
     block.slope = 0.5
     block.directionup = "sw"
     block.directiondown = "ne"
     block.slope1 = "c" 
     block.slope2 = "d"
-  elseif(i == 8) then
+  elseif(i == block_types.ramp_half_north) then
     block.slope = 0.5
     block.directionup = "nw"
     block.directiondown = "se"
     block.slope1 = "d" 
     block.slope2 = "a"
-  elseif(i == 9) then
+  elseif(i == block_types.ramp_east) then
     block.slope = 0.5
     block.directionup = "ne"
     block.directiondown = "sw"
     block.slope1 = "c" 
     block.slope2 = "d"
-  elseif(i == 10) then
+  elseif(i == block_types.ramp_south) then
     block.slope = 0.5
     block.directionup = "se"
     block.directiondown = "nw"
     block.slope1 = "a" 
     block.slope2 = "d"
-  elseif(i == 11) then
+  elseif(i ==block_types.ramp_west) then
     block.slope = 0.5
     block.directionup = "sw"
     block.directiondown = "ne"
     block.slope1 = "a" 
     block.slope2 = "b"
-  elseif(i == 12) then
+  elseif(i == block_types.ramp_north) then
     block.slope = 0.5
     block.directionup = "nw"
     block.directiondown = "se"
     block.slope1 = "b" 
     block.slope2 = "c"
-  elseif(i == 100)then
+  elseif(i == block_types.half_south)then
     block.slope = 0
     block.directionup = nil
     block.directiondown = nil
     block.top1 = "a"
     block.top2 = "d"  
-  elseif(i == 101)then
+  elseif(i == block_types.half_west)then
     block.slope = 0
     block.directionup = nil
     block.directiondown = nil
     block.top1 = "a"
     block.top2 = "b"
-  elseif(i == 102)then
+  elseif(i == block_types.half_north)then
     block.slope = 0
     block.directionup = nil
     block.directiondown = nil
     block.top1 = "b"
     block.top2 = "c"
-  elseif(i == 103)then
+  elseif(i == block_types.half_east)then
     block.slope = 0
     block.directionup = nil
     block.directiondown = nil
@@ -779,6 +706,7 @@ function make_block(x0,y0,z0,i,has_hole)
 
   return block
 end
+
 
 function draw_block(block)
   local x = block.x
@@ -799,18 +727,18 @@ function draw_block(block)
   local p7 = make_point(x, y+th)  -- bbc
   local p8 = make_point(x-tw/2, y+th/2)  -- bcl
   
-  if(block.i == 0)then
+  if(block.i == block_types.regular)then
     --draw top
-    trifill2(p3,p2,p1,c1)
-    trifill2(p1,p4,p3,c1)
+    trifill(p3,p2,p1,c1)
+    trifill(p1,p4,p3,c1)
 
     --draw left
-    trifill2(p8,p7,p3,c2)
-    trifill2(p3,p4,p8,c2)
+    trifill(p8,p7,p3,c2)
+    trifill(p3,p4,p8,c2)
    
     --draw right
-    trifill2(p7,p6,p2,c3)
-    trifill2(p2,p3,p7,c3)
+    trifill(p7,p6,p2,c3)
+    trifill(p2,p3,p7,c3)
 
     if(block.has_hole)then
       palt(14, true)
@@ -822,9 +750,9 @@ function draw_block(block)
       spr(22,pc.x-4,pc.y-4)
       spr(6,pc.x-4,pc.y-4-8)
     end
-  elseif(block.i == 100)then
+  elseif(block.i == block_types.half_south)then
 
-      -- i == 100
+      -- i == block_types.half_south
       --        ..1..
       --     ...     ...
       --  4_______________2
@@ -836,15 +764,15 @@ function draw_block(block)
 
 
     --draw top
-    trifill2(p4,p3,p2,c1) --t
+    trifill(p4,p3,p2,c1) --t
 
-    trifill2(p8,p7,p3,c2) -- l
-    trifill2(p4,p8,p3,c2) -- l
+    trifill(p8,p7,p3,c2) -- l
+    trifill(p4,p8,p3,c2) -- l
 
-    trifill2(p2,p3,p7,c3) -- r
-    trifill2(p7,p6,p2,c3) 
-  elseif(block.i == 101)then
-    -- i == 101
+    trifill(p2,p3,p7,c3) -- r
+    trifill(p7,p6,p2,c3) 
+  elseif(block.i == block_types.half_west)then
+    -- i == block_types.half_west
     --        __1..
     --     ___  |  ...
     --  4__     |     ..2
@@ -856,12 +784,12 @@ function draw_block(block)
 
 
     --draw top
-    trifill2(p4,p3,p1,c1)
+    trifill(p4,p3,p1,c1)
 
-    trifill2(p8,p7,p3,c2) -- l
-    trifill2(p4,p8,p3,c2) -- l
+    trifill(p8,p7,p3,c2) -- l
+    trifill(p4,p8,p3,c2) -- l
 
-  elseif(block.i == 102)then
+  elseif(block.i == block_types.half_north)then
   -- i ==102
   --        __1__
   --    ___       ___
@@ -873,14 +801,14 @@ function draw_block(block)
   --        ..7..  
 
     --draw top
-    trifill2(p4,p2,p1,c1)
+    trifill(p4,p2,p1,c1)
 
     --draw 'front' (se)
     color(c3)
     rectfill(p4.x,p4.y,p6.x,p6.y)
 
-  elseif(block.i == 103)then
-  -- i == 103
+  elseif(block.i == block_types.half_east)then
+  -- i == block_types.half_east
   --        ..1__
   --     ...  |  ___
   --  4..     |     __2
@@ -890,28 +818,28 @@ function draw_block(block)
   --     ...  |  ___
   --        ..7__  
     --draw top
-    trifill2(p1,p3,p2,c1)
+    trifill(p1,p3,p2,c1)
 
-    trifill2(p2,p3,p7,c3) -- r
-    trifill2(p7,p6,p2,c3) 
-  elseif(block.i == 1)then
+    trifill(p2,p3,p7,c3) -- r
+    trifill(p7,p6,p2,c3) 
+  elseif(block.i == block_types.ramp_north_east)then
     --draw top
-    trifill2(p1,p4,p7,c1)
-    trifill2(p7,p6,p1,c1)
+    trifill(p1,p4,p7,c1)
+    trifill(p7,p6,p1,c1)
 
     --draw left
-    trifill2(p8,p7,p4,c2)
-  elseif(block.i == 2)then
+    trifill(p8,p7,p4,c2)
+  elseif(block.i == block_types.ramp_north_west)then
 
     -- draw top
-    trifill2(p1,p8,p7,c1)
-    trifill2(p7,p2,p1,c1)
+    trifill(p1,p8,p7,c1)
+    trifill(p7,p2,p1,c1)
 
     --draw right
-    trifill2(p7,p6,p2,c3)
+    trifill(p7,p6,p2,c3)
 
 
-  elseif(block.i == 3)then
+  elseif(block.i == block_types.ramp_south_west)then
   -- i == 3
   --        ..1..
   --     ...     ...
@@ -923,17 +851,17 @@ function draw_block(block)
   --        ..7..
 
     -- draw top
-    trifill2(p7,p6,p2,c3)
-    trifill2(p2,p3,p7,c3)
+    trifill(p7,p6,p2,c3)
+    trifill(p2,p3,p7,c3)
 
     --draw left
-    trifill2(p8,p7,p3,c2)
+    trifill(p8,p7,p3,c2)
 
     --draw top
-    trifill2(p8,p3,p2,c1)
-    trifill2(p5,p8,p2,c1)
-  elseif(block.i == 4)then
-    -- i == 4
+    trifill(p8,p3,p2,c1)
+    trifill(p5,p8,p2,c1)
+  elseif(block.i == block_types.ramp_south_east)then
+    -- i == block_types.ramp_south_east
     --        ..1..
     --     ...     ...
     --  4..           ..2
@@ -943,15 +871,15 @@ function draw_block(block)
     --     ...  .  ...
     --        ..7..
 
-    trifill2(p4,p8,p3,c2) 
-    trifill2(p8,p7,p3,c2) -- l
+    trifill(p4,p8,p3,c2) 
+    trifill(p8,p7,p3,c2) -- l
 
-    trifill2(p7,p6,p3,c3) -- r
+    trifill(p7,p6,p3,c3) -- r
 
-    trifill2(p3,p6,p5,lg) --t
-    trifill2(p5,p4,p3,lg) 
-  elseif(block.i == 5)then
-  -- i == 5
+    trifill(p3,p6,p5,lg) --t
+    trifill(p5,p4,p3,lg) 
+  elseif(block.i == block_types.ramp_half_east)then
+  -- i == block_types.ramp_half_east
   --        ./1..
   --     ../  |  ...
   --  4../    |     ..2
@@ -961,16 +889,17 @@ function draw_block(block)
   --     ...  .  ...
   --        ..7..
 
-    trifill2(p1,p3,p2,c1) -- t
+    trifill(p1,p3,p2,c1) -- t
 
-    trifill2(p1,p8,p3,lg) -- sw
+    trifill(p1,p8,p3,lg) -- sw
 
-    trifill2(p3,p8,p7,c2) -- l
+    trifill(p3,p8,p7,c2) -- l
 
-    trifill2(p2,p3,p7,c3) -- r
-    trifill2(p7,p6,p2,c3) 
-  elseif(block.i == 6)then
-  -- i == 6
+    trifill(p2,p3,p7,c3) -- r
+    trifill(p7,p6,p2,c3) 
+  elseif(block.i == block_types.ramp_half_south)then
+  -- i == block_types.ramp_half_south
+  -- i == block_types.ramp_half_south
   --          1 
   --     _____5_____
   --  4_______________2
@@ -979,18 +908,20 @@ function draw_block(block)
   --  8..     .     ..6
   --     ...  .  ...
   --        ..7..
-    trifill2(p3,p2,p4,c1) -- t
+    trifill(p3,p2,p4,c1) -- t
 
-    trifill2(p4,p2,p5,lg) -- NW
+    trifill(p4,p2,p5,lg) -- NW
 
-    trifill2(p4,p8,p3,c2) -- l
-    trifill2(p8,p7,p3,c2) -- l
+    trifill(p4,p8,p3,c2) -- l
+    trifill(p8,p7,p3,c2) -- l
 
-    trifill2(p7,p6,p3,c3) -- r
-    trifill2(p2,p3,p6,c3) -- r
+    trifill(p7,p6,p3,c3) -- r
+    trifill(p2,p3,p6,c3) -- r
+  
     
-  elseif(block.i == 7)then
-  -- i == 7
+  elseif(block.i == block_types.ramp_half_west)then
+  -- i == block_types.ramp_half_west
+  -- i == block_types.ramp_half_west
   --        ..1\
   --     ...  |  \
   --  4..     |   \    2
@@ -1000,16 +931,16 @@ function draw_block(block)
   --     ...  .  ...
   --        ..7..  
 
-    trifill2(p4,p3,p1,c1) -- t
+    trifill(p4,p3,p1,c1) -- t
 
-    trifill2(p3,p6,p1,lg) -- NE
+    trifill(p3,p6,p1,lg) -- NE
 
-    trifill2(p4,p8,p3,c2) -- l
-    trifill2(p8,p7,p3,c2) -- l
+    trifill(p4,p8,p3,c2) -- l
+    trifill(p8,p7,p3,c2) -- l
 
-    trifill2(p7,p6,p3,c3) -- r
-  elseif(block.i == 8)then
-  -- i == 8
+    trifill(p7,p6,p3,c3) -- r
+  elseif(block.i == block_types.ramp_half_north)then
+  -- i == block_types.ramp_half_north
   --        ..1..
   --     ...     ...
   --  4_______________2
@@ -1018,14 +949,14 @@ function draw_block(block)
   --  8..  \     /  ..6
   --     ... \ /  ...
   --        ..7..  
-    trifill2(p1,p4,p2,c1) -- t
+    trifill(p1,p4,p2,c1) -- t
 
-    trifill2(p4,p7,p2,c3) -- SE
-    trifill2(p8,p7,p4,c2) -- l
+    trifill(p4,p7,p2,c3) -- SE
+    trifill(p8,p7,p4,c2) -- l
 
-    trifill2(p6,p2,p7,c3) -- r
+    trifill(p6,p2,p7,c3) -- r
 
-  elseif(block.i == 9)then
+  elseif(block.i == block_types.ramp_east)then
   -- i == 9
   --        ..1..
   --     ...     ...
@@ -1037,11 +968,11 @@ function draw_block(block)
   --        ..7__
 
 
-    trifill2(p2,p5,p7,lg) -- sw
+    trifill(p2,p5,p7,lg) -- sw
 
-    trifill2(p2,p7,p6,c3) -- r
+    trifill(p2,p7,p6,c3) -- r
  
-  elseif(block.i == 10)then
+  elseif(block.i == block_types.ramp_south)then
   -- i == 10
   --        ..1..
   --     ...     ...
@@ -1052,11 +983,10 @@ function draw_block(block)
   --     ___  |   ___
   --        __7__
 
-    trifill2(p8,p7,p3,c2) -- l
+    trifill(p8,p7,p3,c2) -- l
 
-    trifill2(p3,p7,p6,c3) -- r
-  elseif(block.i == 11)then
-  -- i == 11
+    trifill(p3,p7,p6,c3) -- r
+  elseif(block.i == block_types.ramp_west)then
   --        ..1..
   --     ...     ...
   --  4-------5      ..2
@@ -1066,11 +996,11 @@ function draw_block(block)
   --    ___  \|  ...
   --        __7..
 
-    trifill2(p4,p8,p7,c2) -- l
+    trifill(p4,p8,p7,c2) -- l
 
-    trifill2(p5,p4,p7,lg) -- NE
-  elseif(block.i == 12)then
-  -- i == 12
+    trifill(p5,p4,p7,lg) -- NE
+  elseif(block.i == block_types.ramp_north)then
+  -- i == block_types.ramp_north
   --        ..1..
   --     ... / \ ...
   --  4..  /     \  ..2
@@ -1080,7 +1010,7 @@ function draw_block(block)
   --     ...  .  ...
   --        ..7..
 
-    trifill2(p1,p8,p6,c3) -- SE
+    trifill(p1,p8,p6,c3) -- SE
   end
 
  
@@ -1151,19 +1081,31 @@ function draw_tile(x0,y0)
   line(x-tw/2,y+th/2,x,y)
 end
 
-function make_level_bowl()
+
+function reset_map() 
   blocks = {}
-
-  bsw= make_block(4,0,1,5,false) 
-  bse= make_block(2,0,1,8,false) 
-  bne= make_block(2,1,1,7,false) 
-  bnw= make_block(4,1,1,6,false) 
-
-  add(blocks, bse)
-  add(blocks, bsw)
-  add(blocks, bne)
-  add(blocks, bnw)
 end
+
+function create_block(b) 
+  local block_to_add = make_block(b[1], b[2], b[3], b[4], b[5])
+  add(blocks, block_to_add)
+end
+
+function make_level_bowl()
+  reset_map()
+  local m = levels.bowl
+
+  printh("-----")
+  foreach(m, create_block)
+
+  -- for b_info in levels["bowl"] do
+  --   print(b_info)
+  --   local b = make_block(b_info[0][0],b_info[0][1],b_info[0][2],b_info[0][3],b_info[0][4]) 
+  --   add(blocks, b)
+  -- end
+end
+
+
 
 function make_level_1()
   blocks = {}
@@ -1237,7 +1179,7 @@ function next_level()
   elseif(level == 1)then
     make_level_1()
     level = 1 + level
-  elseif(level == 2)then
+  elseif(level == ramp_north_west)then
     make_level_rampy()
     level = 1 + level
   elseif(level >= 3)then
@@ -1294,7 +1236,7 @@ end
 ditance_to_hole = 10000
 function _update()
 
-  triangles = 0
+  debug_count_triangles = 0
   move_ball(ball)
 
   if (btn(0)) then -- south
@@ -1358,8 +1300,8 @@ function _update()
         ball_copy.x = ball.x
         ball_copy.y = ball.y - ball.z
 
-        distance_to_hole = distance(ball_copy,block)
-        if(distance_to_hole < 4)then
+        current_distance_to_hole = distance(ball_copy,block)
+        if(current_distance_to_hole < 4)then
           ball.floor_height = 0
         else
           ball.floor_height = (block.z0  * tz * 2)
@@ -1368,7 +1310,7 @@ function _update()
         ball.floor_height = (block.z0  * tz * 2)
       end  
     -- 45 degrees angles blocks
-    elseif(block.i == 100 or block.i == 101 or block.i == 102 or block.i == 103)then
+    elseif(block.i == block_types.half_south or block.i == block_types.half_west or block.i == block_types.half_north or block.i == block_types.half_east)then
    
       if(ball.quadrant == block.top1 or ball.quadrant == block.top2)then
         ball.floor_height = (block.z0  * tz * 2)
@@ -1376,8 +1318,8 @@ function _update()
         ball.floor_height = 0
       end
 
-    -- diagonal ramp blocks   z=(1-x/a-y/b)*c  
-    elseif(block.i == 9 or block.i == 10 or block.i == 11 or block.i == 12)then
+    -- diagonal ramp blocks z=(1-x/a-y/b)*c
+    elseif(block.i == block_types.ramp_east or block.i == block_types.ramp_south or block.i ==block_types.ramp_west or block.i == block_types.ramp_north)then
       local pns
       local pwe
 
@@ -1393,13 +1335,13 @@ function _update()
 
           ball.floor_height = block.z0
       elseif(ball.quadrant == block.slope1 or ball.quadrant == block.slope2)then
-        if(block.i == 12)then
+        if(block.i == block_types.ramp_north)then
           ball.floor_height = (1- (pns*16)/16 - (pwe*16)/16)  * (block.z0  * tz * 2)
-        elseif(block.i == 9)then
+        elseif(block.i == block_types.ramp_east)then
           ball.floor_height = (1- (pns *16)/16 - (abs(1-pwe) *16)/16)  * (block.z0  * tz*2)
-        elseif(block.i == 11)then
+        elseif(block.i ==block_types.ramp_west)then
           ball.floor_height = (1- (abs(1-pns)  *16)/16 - (pwe*16)/16)  * (block.z0  * tz*2)
-        elseif(block.i == 10)then
+        elseif(block.i == block_types.ramp_south)then
           ball.floor_height = (1- ( abs(1-pns) *16)/16 - ( abs(1-pwe) *16)/16)  * (block.z0  * tz * 2)
         end
       else 
@@ -1424,34 +1366,34 @@ function _update()
 
       -- TODO this shit is confusing. i want it betterz
       -- TODO height modelling is imprecise my merging two ramps
-      if(block.i == 5 or block.i == 6 or block.i == 7 or block.i == 8)then -- half block
+      if(block.i == block_types.ramp_half_east or block.i == block_types.ramp_half_south or block.i == block_types.ramp_half_west or block.i == block_types.ramp_half_north)then -- half block
     
         if(ball.quadrant == nil)then
           -- do nothing
           not_on_slope = true
         elseif(ball.quadrant == "b" and (block.slope1 == "b" or block.slope2 == "b"))then
-          if(block.i == 6)then 
+          if(block.i == block_types.ramp_half_south)then 
             percent = pns
           else
             percent = abs(pns - 1)
           end
           ball.floor_height = (block.z0  * tz * 2) * percent
         elseif(ball.quadrant == "a" and (block.slope1 == "a" or block.slope2 == "a"))then
-          if(block.i == 8)then -- 4 is UP
+          if(block.i == block_types.ramp_half_north)then -- 4 is UP
             percent = abs(pwe - 1)
           else
             percent = pwe  -- 4 is DOWN
           end
           ball.floor_height = (block.z0  * tz * 2) * percent
         elseif(ball.quadrant == "c" and (block.slope1 == "c" or block.slope2 == "c"))then
-          if(block.i == 7)then -- 4 is UP
+          if(block.i == block_types.ramp_half_west)then -- 4 is UP
             percent = abs(pwe-1)
           else
             percent = pwe
           end
           ball.floor_height = (block.z0  * tz * 2) * percent
         elseif(ball.quadrant == "d" and (block.slope1 == "d" or block.slope2 == "d"))then
-          if(block.i == 7)then -- 4 is UP
+          if(block.i == block_types.ramp_half_west)then -- 4 is UP
             percent = pns
           else
             percent = abs(pns - 1) 
@@ -1517,7 +1459,9 @@ function _draw()
   camera()
   clip()
 
-  print("dist hole " .. distance_to_hole, 1, 110, 5)
+  if current_distance_to_hole != nil then 
+    print("dist hole " .. current_distance_to_hole, 1, 110, 5)
+  end
 
   if block == nil then
     print(ball.current_grid.x .. ", " .. ball.current_grid.y, 1, 120, 5)
@@ -1530,7 +1474,7 @@ function _draw()
   print("ballf x:" .. ball.current_grid_float.x .. "   y:" .. ball.current_grid_float.y , 1, 21, 6)
   print("floor z:" .. ball.floor_height , 1, 28, 6)
   print("cpu:" .. stat(1)*100 .. "%" , 1, 35, 2)
-  print("triangles:" .. triangles , 1, 42, 2)
+  print("triangles:" .. debug_count_triangles , 1, 42, 2)
 
 end
 __gfx__
