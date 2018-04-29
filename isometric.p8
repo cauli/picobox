@@ -2,6 +2,14 @@ pico-8 cartridge // http://www.pico-8.com
 version 5
 __lua__
 
+global_state = {
+  change_level = {
+    will_change_level = false,
+    counter = 0,
+    max_counter = 10
+  }
+}
+
 block_height_regular = 1
 block_height_small = 1
 block_types = {
@@ -79,66 +87,127 @@ block_types = {
 }
 
 spacing = 2
+
+theme = {
+  rosey = {
+    c1 = 5, --   dark_grey
+    c2 = 0, --   black
+    c3 = 14, --  pink
+    c4 = 3, --   dark_green
+    c5 = 13, --  light_purple
+    c6 = 2,
+  },
+  greeney = {
+    c1 = 3,
+    c2 = 9,
+    c3 = 11,
+    c4 = 12,
+    c5 = 1,
+    c6 = 2,
+  },
+  lean = {
+    c1 = 6,
+    c2 = 7,
+    c3 = 5,
+    c4 = 9,
+    c5 = 15,
+    c6 = 0,
+  },
+  squash = {
+    c1 = 12,
+    c2 = 1,
+    c3 = 6,
+    c4 = 5,
+    c5 = 9,
+    c6 = 13,
+  },
+  random = {
+    c1 = flr(rnd()*16),
+    c2 = flr(rnd()*16),
+    c3 = flr(rnd()*16),
+    c4 = flr(rnd()*16),
+    c5 = flr(rnd()*16),
+    c6 = flr(rnd()*16),
+  }
+}
+
 levels = {
   -- multiple floors
   {
-    {
-      {3,-2,1,block_types.regular,false},
-      {3,-1,1,block_types.regular,false},
-      {3,0,1,block_types.ramp_north_east,false},
-
-      {4,-1,1,block_types.ramp_south_east,false},
-
-      {5,-4,1,block_types.ramp_south_east,false},
-      {5,-3,1,block_types.regular,false},
-      {5,-2,1,block_types.regular,false},
-      
+    metadata = {
+      name = "multiple floors",
+      theme = theme.lean
     },
-    {
-      {5,-3,1,block_types.ramp_south_east,false},
-      {3,-2,1,block_types.half_south,false},
-      {4,-2,1,block_types.regular,true},
-      {5,-2,1,block_types.regular,false},
-      {3,-1,1,block_types.ramp_north_east,false},
-      
-      
-    },
+    level = {
+      {
+        {3,-2,1,block_types.regular,false},
+        {3,-1,1,block_types.regular,false},
+        {3,0,1,block_types.ramp_north_east,false},
+
+        --{4,-1,1,block_types.ramp_south_east,false},
+
+        {5,-4,1,block_types.ramp_south_east,false},
+        {5,-3,1,block_types.regular,false},
+        {5,-2,1,block_types.regular,false},
+        
+      },
+      {
+        {5,-3,1,block_types.ramp_south_east,false},
+        {3,-2,1,block_types.half_south,false},
+        {4,-2,1,block_types.regular,falsexz},
+        {5,-2,1,block_types.regular,false},
+        {3,-1,1,block_types.ramp_north_east,false},
+        
+        
+      },
+    }
   },
-  -- ramps with multiple heights
   {
-    {
-      {1,-2,0.2,block_types.ramp_south_east,false},
-      {3,-2,1.0,block_types.ramp_south_east,false},
-      {5,-2,3.0,block_types.ramp_south_east,false},
-
-      {1,0,0.2,block_types.ramp_north_east,false},
-      {3,0,1.0,block_types.ramp_north_east,false},
-      {5,0,3.0,block_types.ramp_north_east,false},
-
-      {1,2,0.2,block_types.ramp_south_west,false},
-      {3,2,1.0,block_types.ramp_south_west,false},
-      {5,2,3.0,block_types.ramp_south_west,false},
+    metadata = {
+      name = "ramps with multiple heights",
+      theme = theme.squash
     },
+    level = {
+      {
+        {1,-2,0.2,block_types.ramp_south_east,false},
+        {3,-2,1.0,block_types.ramp_south_east,false},
+        {5,-2,3.0,block_types.ramp_south_east,false},
+
+        {1,0,0.2,block_types.ramp_north_east,false},
+        {3,0,1.0,block_types.ramp_north_east,false},
+        {5,0,3.0,block_types.ramp_north_east,false},
+
+        {1,2,0.2,block_types.ramp_south_west,false},
+        {3,2,1.0,block_types.ramp_south_west,false},
+        {5,2,3.0,block_types.ramp_south_west,false},
+      },
+    }
   },
   
   -- diagonal ramps
   {
-    { 
-      {1,1,1,block_types.ramp_east,false},
-      {1,2,1,block_types.ramp_south,false},
-      {0,2,1,block_types.ramp_west,false},
-      {0,1,1,block_types.ramp_north,false},
-
-      {4,1,1,block_types.ramp_half_east,false},
-      {3,1,1,block_types.ramp_half_north,false},
-      {3,2,1,block_types.ramp_half_west,false},
-      {4,2,1,block_types.ramp_half_south,false},
-
-      {8,1,1,block_types.half_west,false},
-      {8,3,1,block_types.half_north,false},
-      {6,3,1,block_types.half_east,false},
-      {6,1,1,block_types.half_south,false},
+    metadata = {
+      name = "diagonals",
+      theme = theme.rosey
     },
+    level = {
+      { 
+        {1,1,1,block_types.ramp_east,false},
+        {1,2,1,block_types.ramp_south,false},
+        {0,2,1,block_types.ramp_west,false},
+        {0,1,1,block_types.ramp_north,false},
+
+        {4,1,1,block_types.ramp_half_east,false},
+        {3,1,1,block_types.ramp_half_north,false},
+        {3,2,1,block_types.ramp_half_west,false},
+        {4,2,1,block_types.ramp_half_south,false},
+
+        {8,1,1,block_types.half_west,false},
+        {8,3,1,block_types.half_north,false},
+        {6,3,1,block_types.half_east,false},
+        {6,1,1,block_types.half_south,false},
+      },
+    }
   }
 }
 
@@ -147,11 +216,6 @@ tw = 50
 th = 25
 tz = 12.5/2
 
-rndcol = flr(rnd()*16)
-rndcol2 = flr(rnd()*16)
-rndcol3 = flr(rnd()*16)
-rndcol4 = flr(rnd()*16)
-rndcol5 = flr(rnd()*16)
 
 -- https://github.com/sulai/Lib-Pico8/blob/master/lang.lua
 function enum(names, offset)
@@ -199,21 +263,6 @@ friction = 0.97
 bounce = 1
 
 blocks = {}
-
--- c1 = 3
--- c2 = 9
--- c3 = 11
--- c4 = 12
--- c5 = 1
--- c6 = 5
-
-c1 = 5 --   dark_grey
-c2 = 0 --   black
-c3 = 14 --  pink
-c4 = 3 --   dark_green
-c5 = 13 --  light_purple
-c6 = 6  --  grey- 
-lg = 2 --   purple
 
 debug_quadrants = true
 debug_count_triangles = 0
@@ -979,8 +1028,8 @@ function draw_block(block)
 
     trifill(p7,p6,p3,c3) -- r
 
-    trifill(p3,p6,p5,lg) --t
-    trifill(p5,p4,p3,lg) 
+    trifill(p3,p6,p5,c6) --t
+    trifill(p5,p4,p3,c6) 
   elseif(block.i == block_types.ramp_half_east)then
   -- i == block_types.ramp_half_east
   --        ./1..
@@ -994,7 +1043,7 @@ function draw_block(block)
 
     trifill(p1,p3,p2,c1) -- t
 
-    trifill(p1,p8,p3,lg) -- sw
+    trifill(p1,p8,p3,c6) -- sw
 
     trifill(p3,p8,p7,c2) -- l
 
@@ -1013,7 +1062,7 @@ function draw_block(block)
   --        ..7..
     trifill(p3,p2,p4,c1) -- t
 
-    trifill(p4,p2,p5,lg) -- NW
+    trifill(p4,p2,p5,c6) -- NW
 
     trifill(p4,p8,p3,c2) -- l
     trifill(p8,p7,p3,c2) -- l
@@ -1036,7 +1085,7 @@ function draw_block(block)
 
     trifill(p4,p3,p1,c1) -- t
 
-    trifill(p3,p6,p1,lg) -- NE
+    trifill(p3,p6,p1,c6) -- NE
 
     trifill(p4,p8,p3,c2) -- l
     trifill(p8,p7,p3,c2) -- l
@@ -1071,7 +1120,7 @@ function draw_block(block)
   --        ..7__
 
 
-    trifill(p2,p5,p7,lg) -- sw
+    trifill(p2,p5,p7,c6) -- sw
 
     trifill(p2,p7,p6,c3) -- r
  
@@ -1101,7 +1150,7 @@ function draw_block(block)
 
     trifill(p4,p8,p7,c2) -- l
 
-    trifill(p5,p4,p7,lg) -- NE
+    trifill(p5,p4,p7,c6) -- NE
   elseif(block.i == block_types.ramp_north)then
   -- i == block_types.ramp_north
   --        ..1..
@@ -1189,6 +1238,8 @@ current_level_floor = 0
 function reset_map() 
   blocks = {}
   current_level_floor = 0
+  global_state.change_level.will_change_level = false
+  global_state.change_level.counter = 0
 end
 
 function create_block(b) 
@@ -1197,10 +1248,17 @@ function create_block(b)
 end
 
 
-function load_level(level)
+function load_level(level_to_load)
   reset_map()
+  
+  c1 = level_to_load.metadata.theme.c1
+  c2 = level_to_load.metadata.theme.c2
+  c3 = level_to_load.metadata.theme.c3
+  c4 = level_to_load.metadata.theme.c4
+  c5 = level_to_load.metadata.theme.c5
+  c6 = level_to_load.metadata.theme.c6
 
-  for level_floor in all(level) do
+  for level_floor in all(level_to_load.level) do
     current_level_floor = current_level_floor + 1
     foreach(level_floor, create_block)
   end 
@@ -1223,7 +1281,7 @@ function get_current_block(x,y,z)
     end
   end
 
-  printh(#possible_blocks..": possible blocks")
+  --printh(#possible_blocks..": possible blocks")
   if #possible_blocks == 0 then 
     return nil
   end 
@@ -1265,6 +1323,7 @@ function next_level()
   printh("\nLoading level...")
   printh("total_levels: "..total_levels)
   printh("current_level: "..current_level)
+  printh("current_level_name: "..levels[current_level].metadata.name)
   load_level(levels[current_level])
 end
 
@@ -1319,6 +1378,16 @@ function get_ball_vertical_speed_multiplier()
  end
 
 function _update()
+
+  if (global_state.change_level.will_change_level) then
+    global_state.change_level.counter = global_state.change_level.counter + 1
+
+    -- printh(global_state.change_level.max_counter)
+    -- printh(global_state.change_level.max_counter)
+    if (global_state.change_level.counter > global_state.change_level.max_counter) then 
+      next_level()
+    end 
+  end 
 
   debug_count_triangles = 0
   move_ball(ball)
@@ -1388,7 +1457,8 @@ function _update()
         printh(current_distance_to_hole)
         if(current_distance_to_hole < (tz*2))then
           ball.floor_height = 0 + block_floor_offset
-          
+
+          global_state.change_level.will_change_level = true
         else
           ball.floor_height = (block.z0  * tz * 2) + block_floor_offset
         end
