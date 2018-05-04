@@ -140,7 +140,7 @@ levels = {
     },
     level = {
       {
-        {3,-2,1,block_types.regular,false},
+        {3,-2,1,block_types.half_south,false},
         {3,-1,1,block_types.regular,false},
         {3,0,1,block_types.ramp_north_east,false},
 
@@ -154,8 +154,8 @@ levels = {
       {
         {5,-3,1,block_types.ramp_south_east,false},
         {3,-2,1,block_types.half_south,false},
-        {4,-2,1,block_types.regular,falsexz},
-        {5,-2,1,block_types.regular,false},
+        {4,-2,1,block_types.regular,false},
+        {5,-2,1,block_types.half_north,false},
         {3,-1,1,block_types.ramp_north_east,false},
         
         
@@ -197,10 +197,21 @@ levels = {
         {0,2,1,block_types.ramp_west,false},
         {0,1,1,block_types.ramp_north,false},
 
-        {4,1,1,block_types.ramp_half_east,false},
+        {0,4,1,block_types.ramp_south,false},
+        {1,4,1,block_types.ramp_west,false},
+        {1,5,1,block_types.ramp_north,false},
+        {0,5,1,block_types.ramp_east,false},
+
+
         {3,1,1,block_types.ramp_half_north,false},
+        {4,1,1,block_types.ramp_half_east,false},
         {3,2,1,block_types.ramp_half_west,false},
         {4,2,1,block_types.ramp_half_south,false},
+
+        {3,4,1,block_types.ramp_half_south,false},
+        {4,4,1,block_types.ramp_half_west,false},
+        {3,5,1,block_types.ramp_half_east,false},
+        {4,5,1,block_types.ramp_half_north,false},
 
         {8,1,1,block_types.half_west,false},
         {8,3,1,block_types.half_north,false},
@@ -439,6 +450,7 @@ end
 function make_point(x,y,f)
   local p = {}
   p.x = x
+  -- printh(f)
   p.y = y - f
   return p
 end
@@ -863,7 +875,7 @@ function draw_block(block)
   local x = block.x
   local y = block.y
   local z = block.z
-  local f = ((block.floor-1) * (th/2))
+  local f = ((block.floor-1) * (block.z))
 
   -- top 4
   local p1 = make_point(x, y-z, f) -- ttc
@@ -1269,7 +1281,7 @@ function _init()
   next_level()
 end
 
-function get_current_block(x,y,z)
+function get_current_blocks(x,y,z)
   local possible_blocks = {}
   
   if z < 0 then 
@@ -1287,20 +1299,29 @@ function get_current_block(x,y,z)
   end 
 
   if #possible_blocks == 1 then
-    return possible_blocks[1]
+    return possible_blocks
   end 
 
-  selected_block = possible_blocks[0]
-  for b in all(possible_blocks) do 
-    if selected_block == nil then 
-      selected_block = b
-    else 
-      if b.floor > selected_block.floor then
-        selected_block = b
-      end 
-    end 
+  for i=1,#possible_blocks do
+      local j = i
+      while j > 1 and possible_blocks[j-1].floor > possible_blocks[j].floor do
+          possible_blocks[j].floor,possible_blocks[j-1].floor = possible_blocks[j-1].floor,possible_blocks[j].floor
+          j = j - 1
+      end
   end
-  return selected_block
+
+  return possible_blocks
+  -- selected_block = possible_blocks[0]
+  -- for b in all(possible_blocks) do 
+  --   if selected_block == nil then 
+  --     selected_block = b
+  --   else 
+  --     if b.floor > selected_block.floor then
+  --       selected_block = b
+  --     end 
+  --   end 
+  -- end
+  
 end
 
 function raise(thing)
@@ -1377,6 +1398,151 @@ function get_ball_vertical_speed_multiplier()
   return min(max(dz*6,1),17)
  end
 
+function check_floor_height(stack_blocks, index) 
+  local block = stack_blocks[index]
+  printh(index)
+  block_floor_offset = ((block.floor-1) * tz * 2)
+  quadrant = get_quadrant(ball.current_grid_float.x % flr(ball.current_grid_float.x), ball.current_grid_float.y % flr(ball.current_grid_float.y))
+  ball.quadrant = quadrant
+
+  -- bloco reto é simples de calcular a altura
+  if(block.i == 0)then
+    
+    if(block.has_hole)then
+      hole = {}
+      hole.x = block.x
+      hole.y = block.y - block_floor_offset
+
+      ball_copy = {}
+      ball_copy.x = ball.x
+      ball_copy.y = ball.y - ball.z
+
+      current_distance_to_hole = distance(ball_copy,block)
+      -- printh(current_distance_to_hole)
+      if(current_distance_to_hole < (tz*2))then
+        ball.floor_height = 0 + block_floor_offset
+
+        global_state.change_level.will_change_level = true
+      else
+        ball.floor_height = (block.z0  * tz * 2) + block_floor_offset
+      end
+    else
+      ball.floor_height = (block.z0  * tz * 2) + block_floor_offset
+    end  
+  -- 45 degrees angles blocks
+  elseif(block.i == block_types.half_south or block.i == block_types.half_west or block.i == block_types.half_north or block.i == block_types.half_east)then
+  
+    if(ball.quadrant == block.top1 or ball.quadrant == block.top2)then
+      ball.floor_height = (block.z0  * tz * 2) + block_floor_offset
+    else
+      local cur_block_floor_check  = index-1
+      if cur_block_floor_check > 1 then
+        check_floor_height(stack_blocks, index-1)
+      else 
+        ball.floor_height = 0 -- TODO actually we do now know
+      end 
+    end
+
+  -- diagonal ramp blocks z=(1-x/a-y/b)*c
+  elseif(block.i == block_types.ramp_east or block.i == block_types.ramp_south or block.i ==block_types.ramp_west or block.i == block_types.ramp_north)then
+    local pns
+    local pwe
+
+    pns = ball.current_grid_float.y % flr(ball.current_grid_float.y)
+    pwe = ball.current_grid_float.x % flr(ball.current_grid_float.x)
+
+    -- z=(1-x/a-y/b)*c
+    -- HEIGHT equals ( 1 - currentX / "fullX" - currentY / "fullY" ) * fullHeight
+    
+    if(ball.quadrant == nil)then
+        -- do nothing
+        not_on_slope = true
+
+        ball.floor_height = block.z0 + block_floor_offset
+    elseif(ball.quadrant == block.slope1 or ball.quadrant == block.slope2)then
+      if(block.i == block_types.ramp_north)then
+        ball.floor_height = (1- (pns*16)/16 - (pwe*16)/16)  * (block.z0  * tz * 2) + block_floor_offset
+      elseif(block.i == block_types.ramp_east)then
+        ball.floor_height = (1- (pns *16)/16 - (abs(1-pwe) *16)/16)  * (block.z0  * tz*2)+ block_floor_offset
+      elseif(block.i ==block_types.ramp_west)then
+        ball.floor_height = (1- (abs(1-pns)  *16)/16 - (pwe*16)/16)  * (block.z0  * tz*2)+ block_floor_offset
+      elseif(block.i == block_types.ramp_south)then
+        ball.floor_height = (1- ( abs(1-pns) *16)/16 - ( abs(1-pwe) *16)/16)  * (block.z0  * tz * 2)+ block_floor_offset
+      end
+    else 
+        -- do nothing
+        not_on_slope = true
+        ball.floor_height = block.z0 -1 
+    end
+  -- diagonal ramp blocks with plain top
+  else 
+    local pns
+    local pwe
+
+    pns = ball.current_grid_float.y % flr(ball.current_grid_float.y)
+    pwe = ball.current_grid_float.x % flr(ball.current_grid_float.x)
+
+
+    if(block.directionup == "n" or block.directionup == "s")then
+      percent = pns
+    elseif(block.directionup == "w" or block.directionup == "e")then
+      percent = pwe
+    end
+
+    -- TODO this shit is confusing. i want it betterz
+    -- TODO height modelling is imprecise my merging two ramps
+    if(block.i == block_types.ramp_half_east or block.i == block_types.ramp_half_south or block.i == block_types.ramp_half_west or block.i == block_types.ramp_half_north)then -- half block
+  
+      if(ball.quadrant == nil)then
+        -- do nothing
+        not_on_slope = true
+      elseif(ball.quadrant == "b" and (block.slope1 == "b" or block.slope2 == "b"))then
+        if(block.i == block_types.ramp_half_south)then 
+          percent = pns
+        else
+          percent = abs(pns - 1)
+        end
+        ball.floor_height = ((block.z0  * tz * 2) * percent) + block_floor_offset
+      elseif(ball.quadrant == "a" and (block.slope1 == "a" or block.slope2 == "a"))then
+        if(block.i == block_types.ramp_half_north)then -- 4 is UP
+          percent = abs(pwe - 1)
+        else
+          percent = pwe  -- 4 is DOWN
+        end
+        ball.floor_height = ((block.z0  * tz * 2) * percent) + block_floor_offset
+      elseif(ball.quadrant == "c" and (block.slope1 == "c" or block.slope2 == "c"))then
+        if(block.i == block_types.ramp_half_west)then -- 4 is UP
+          percent = abs(pwe-1)
+        else
+          percent = pwe
+        end
+        ball.floor_height = ((block.z0  * tz * 2) * percent) + block_floor_offset
+      elseif(ball.quadrant == "d" and (block.slope1 == "d" or block.slope2 == "d"))then
+        if(block.i == block_types.ramp_half_west)then -- 4 is UP
+          percent = pns
+        else
+          percent = abs(pns - 1) 
+        end
+        
+        ball.floor_height = ((block.z0  * tz * 2) * percent) + block_floor_offset
+      else
+        not_on_slope = true
+        ball.floor_height = ((block.z0  * tz * 2)) + block_floor_offset
+      end
+    end
+
+    if(block.directionup == "w" or block.directionup == "n")then
+      percent = abs(percent - 1)
+      ball.floor_height = ((block.z0  * tz * 2) * percent) + block_floor_offset
+    end
+
+    if(block.directionup == "e" or block.directionup == "s")then
+        ball.floor_height = ((block.z0  * tz * 2) * percent) + block_floor_offset
+    end
+
+  end
+end 
+
 function _update()
 
   if (global_state.change_level.will_change_level) then
@@ -1425,153 +1591,21 @@ function _update()
   ball.current_grid =       px_to_grid(ball.x, ball.y)
   ball.current_grid_float = px_to_grid_float(ball.x, ball.y)
 
-  block = get_current_block(ball.current_grid.x, ball.current_grid.y, ball.z)
-
+  local stack_blocks = get_current_blocks(ball.current_grid.x, ball.current_grid.y, ball.z)
+  printh("eita")
+  printh(stack_zzbzlocks)
   hole = {}
   hole.x = 0
   hole.y = 0
   
   local not_on_slope = false -- determina se, em um bloco misto, a bola não estã em um slope no momento
 
-  if block == nil then
+  if stack_blocks == nil or #stack_blocks == 0 then
     ball.floor_height = 0
   -- plain block
   else 
-    block_floor_offset = ((block.floor-1) * tz * 2)
-    quadrant = get_quadrant(ball.current_grid_float.x % flr(ball.current_grid_float.x), ball.current_grid_float.y % flr(ball.current_grid_float.y))
-    ball.quadrant = quadrant
-
-    -- bloco reto é simples de calcular a altura
-    if(block.i == 0)then
-      
-      if(block.has_hole)then
-        hole = {}
-        hole.x = block.x
-        hole.y = block.y - block_floor_offset
-
-        ball_copy = {}
-        ball_copy.x = ball.x
-        ball_copy.y = ball.y - ball.z
-
-        current_distance_to_hole = distance(ball_copy,block)
-        printh(current_distance_to_hole)
-        if(current_distance_to_hole < (tz*2))then
-          ball.floor_height = 0 + block_floor_offset
-
-          global_state.change_level.will_change_level = true
-        else
-          ball.floor_height = (block.z0  * tz * 2) + block_floor_offset
-        end
-      else
-        ball.floor_height = (block.z0  * tz * 2) + block_floor_offset
-      end  
-    -- 45 degrees angles blocks
-    elseif(block.i == block_types.half_south or block.i == block_types.half_west or block.i == block_types.half_north or block.i == block_types.half_east)then
-   
-      if(ball.quadrant == block.top1 or ball.quadrant == block.top2)then
-        ball.floor_height = (block.z0  * tz * 2) + block_floor_offset
-      else
-        ball.floor_height = 0 + block_floor_offset
-      end
-
-    -- diagonal ramp blocks z=(1-x/a-y/b)*c
-    elseif(block.i == block_types.ramp_east or block.i == block_types.ramp_south or block.i ==block_types.ramp_west or block.i == block_types.ramp_north)then
-      local pns
-      local pwe
-
-      pns = ball.current_grid_float.y % flr(ball.current_grid_float.y)
-      pwe = ball.current_grid_float.x % flr(ball.current_grid_float.x)
-
-      -- z=(1-x/a-y/b)*c
-      -- HEIGHT equals ( 1 - currentX / "fullX" - currentY / "fullY" ) * fullHeight
-      
-      if(ball.quadrant == nil)then
-          -- do nothing
-          not_on_slope = true
-
-          ball.floor_height = block.z0 + block_floor_offset
-      elseif(ball.quadrant == block.slope1 or ball.quadrant == block.slope2)then
-        if(block.i == block_types.ramp_north)then
-          ball.floor_height = (1- (pns*16)/16 - (pwe*16)/16)  * (block.z0  * tz * 2) + block_floor_offset
-        elseif(block.i == block_types.ramp_east)then
-          ball.floor_height = (1- (pns *16)/16 - (abs(1-pwe) *16)/16)  * (block.z0  * tz*2)+ block_floor_offset
-        elseif(block.i ==block_types.ramp_west)then
-          ball.floor_height = (1- (abs(1-pns)  *16)/16 - (pwe*16)/16)  * (block.z0  * tz*2)+ block_floor_offset
-        elseif(block.i == block_types.ramp_south)then
-          ball.floor_height = (1- ( abs(1-pns) *16)/16 - ( abs(1-pwe) *16)/16)  * (block.z0  * tz * 2)+ block_floor_offset
-        end
-      else 
-          -- do nothing
-          not_on_slope = true
-          ball.floor_height = block.z0 -1 
-      end
-    -- diagonal ramp blocks with plain top
-    else 
-      local pns
-      local pwe
-
-      pns = ball.current_grid_float.y % flr(ball.current_grid_float.y)
-      pwe = ball.current_grid_float.x % flr(ball.current_grid_float.x)
-
-
-      if(block.directionup == "n" or block.directionup == "s")then
-        percent = pns
-      elseif(block.directionup == "w" or block.directionup == "e")then
-        percent = pwe
-      end
-
-      -- TODO this shit is confusing. i want it betterz
-      -- TODO height modelling is imprecise my merging two ramps
-      if(block.i == block_types.ramp_half_east or block.i == block_types.ramp_half_south or block.i == block_types.ramp_half_west or block.i == block_types.ramp_half_north)then -- half block
-    
-        if(ball.quadrant == nil)then
-          -- do nothing
-          not_on_slope = true
-        elseif(ball.quadrant == "b" and (block.slope1 == "b" or block.slope2 == "b"))then
-          if(block.i == block_types.ramp_half_south)then 
-            percent = pns
-          else
-            percent = abs(pns - 1)
-          end
-          ball.floor_height = ((block.z0  * tz * 2) * percent) + block_floor_offset
-        elseif(ball.quadrant == "a" and (block.slope1 == "a" or block.slope2 == "a"))then
-          if(block.i == block_types.ramp_half_north)then -- 4 is UP
-            percent = abs(pwe - 1)
-          else
-            percent = pwe  -- 4 is DOWN
-          end
-          ball.floor_height = ((block.z0  * tz * 2) * percent) + block_floor_offset
-        elseif(ball.quadrant == "c" and (block.slope1 == "c" or block.slope2 == "c"))then
-          if(block.i == block_types.ramp_half_west)then -- 4 is UP
-            percent = abs(pwe-1)
-          else
-            percent = pwe
-          end
-          ball.floor_height = ((block.z0  * tz * 2) * percent) + block_floor_offset
-        elseif(ball.quadrant == "d" and (block.slope1 == "d" or block.slope2 == "d"))then
-          if(block.i == block_types.ramp_half_west)then -- 4 is UP
-            percent = pns
-          else
-            percent = abs(pns - 1) 
-          end
-         
-          ball.floor_height = ((block.z0  * tz * 2) * percent) + block_floor_offset
-        else
-          not_on_slope = true
-          ball.floor_height = ((block.z0  * tz * 2)) + block_floor_offset
-        end
-      end
-
-      if(block.directionup == "w" or block.directionup == "n")then
-        percent = abs(percent - 1)
-        ball.floor_height = ((block.z0  * tz * 2) * percent) + block_floor_offset
-      end
-
-      if(block.directionup == "e" or block.directionup == "s")then
-         ball.floor_height = ((block.z0  * tz * 2) * percent) + block_floor_offset
-      end
-
-    end
+    local block = stack_blocks[#stack_blocks]
+    check_floor_height(stack_blocks, #stack_blocks)
 
 
     -- slope exists and is in contact with floor
@@ -1626,12 +1660,12 @@ function _draw()
     print(block.x0 .. ", " .. block.y0, 1, 120, 9)
   end
 
-  print("b x:" .. ball.x .. " y:" .. ball.y .. " z:" .. ball.z, 1, 7, 6)
-  print("ballg x:" .. ball.current_grid.x .. "   y:" .. ball.current_grid.y , 1, 14, 6)
-  print("ballf x:" .. ball.current_grid_float.x .. "   y:" .. ball.current_grid_float.y , 1, 21, 6)
-  print("floor z:" .. ball.floor_height , 1, 28, 6)
-  print("cpu:" .. stat(1)*100 .. "%" , 1, 35, 2)
-  print("triangles:" .. debug_count_triangles , 1, 42, 2)
+  print("b x:" .. ball.x .. " y:" .. ball.y .. " z:" .. ball.z, 1, 7, 9)
+  print("ballg x:" .. ball.current_grid.x .. "   y:" .. ball.current_grid.y , 1, 14, 9)
+  print("ballf x:" .. ball.current_grid_float.x .. "   y:" .. ball.current_grid_float.y , 1, 21, 9)
+  print("floor z:" .. ball.floor_height , 1, 28, 9)
+  -- print("cpu:" .. stat(1)*100 .. "%" , 1, 35, 2)
+  -- print("triangles:" .. debug_count_triangles , 1, 42, 2)
 
 end
 __gfx__
