@@ -159,7 +159,8 @@ levels = {
   {
     metadata = {
       name = "multiple floors",
-      theme = theme.lean
+      theme = theme.lean,
+      translate = {2,2}
     },
     level = {
       {
@@ -188,7 +189,8 @@ levels = {
   {
     metadata = {
       name = "ramps with multiple heights",
-      theme = theme.squash
+      theme = theme.squash,
+      translate = {-1,-1}
     },
     level = {
       {
@@ -211,7 +213,8 @@ levels = {
   {
     metadata = {
       name = "diagonals",
-      theme = theme.rosey
+      theme = theme.rosey,
+      translate = {-1,-1}
     },
     level = {
       { 
@@ -383,7 +386,7 @@ end
 -- by orange451
 function trifill( p1, p2, p3, c )
   debug_count_triangles += 1
-
+  flip()
   local v1 = p1
   local v2 = p2
   local v3 = p3
@@ -1289,7 +1292,7 @@ function create_block(b)
 end
 
 
-function load_level(level_to_load, rotation)
+function load_level(level_to_load, rotation, translate)
   reset_map()
   
   c1 = level_to_load.metadata.theme.c1
@@ -1300,6 +1303,12 @@ function load_level(level_to_load, rotation)
   c6 = level_to_load.metadata.theme.c6
 
   for level_floor in all(level_to_load.level) do
+    -- translate
+    for i=1,#level_floor do
+      level_floor[i][1] = level_floor[i][1] + translate[1]
+      level_floor[i][2] = level_floor[i][2] + translate[2]
+    end
+
     local level_rotation = rotation
     current_level_floor = current_level_floor + 1
     
@@ -1323,7 +1332,7 @@ function load_level(level_to_load, rotation)
 end
 
 function _init()
-  ball = make_ball(3,1,1)
+  ball = make_ball(4,-2,1)
   next_level()
 end
 
@@ -1391,7 +1400,7 @@ function next_level()
   printh("total_levels: "..total_levels)
   printh("current_level: "..current_level)
   printh("current_level_name: "..levels[current_level].metadata.name)
-  load_level(levels[current_level],0)
+  load_level(levels[current_level],0,levels[current_level].metadata.translate)
 end
 
 
@@ -1715,6 +1724,7 @@ function _draw()
   -- print("cpu:" .. stat(1)*100 .. "%" , 1, 35, 2)
   -- print("triangles:" .. debug_count_triangles , 1, 42, 2)
 
+  next_level()
 end
 __gfx__
 000b000000b0000000000000000b0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
