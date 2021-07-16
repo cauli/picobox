@@ -92,7 +92,7 @@ function update_movement_ball(b)
         if(abs(ball.vz) < 0.5)then
           ball.vz = 0
         else
-          ball.vz *= -1
+          ball.vz = -1 * ball.vz
           sfx(0)
         end
 
@@ -114,7 +114,7 @@ function update_movement_ball(b)
         if(abs(ball.vz) < 0.5)then
           ball.vz = 0
         else
-          ball.vz *= -1
+          ball.vz = -1 * ball.vz
           sfx(0)
         end
 
@@ -188,25 +188,9 @@ end
 function raise(thing)
   thing.z += tz/2
 end
+
 function lower(thing)
   thing.z -= tz/2
-end
-
-current_level = 0
-function next_level()
-  local total_levels = #levels
-  
-  if current_level == total_levels then
-    current_level = 1
-  else 
-    current_level = current_level + 1
-  end
-  
-  printh("\n𝘭oading level...")
-  printh("total_levels: "..total_levels)
-  printh("current_level: "..current_level)
-  printh("current_level_name: "..levels[current_level].metadata.name)
-  load_level(levels[current_level])
 end
 
 function add_force(obj, dir, force)

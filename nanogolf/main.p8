@@ -3,6 +3,8 @@ version 16
 __lua__
 
 #include math_helpers.lua
+#include render_helpers.lua
+
 #include generators.lua
 
 #include theme.lua

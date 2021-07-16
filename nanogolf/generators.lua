@@ -1,8 +1,15 @@
+--[[
+  generators.lua
+
+  Contains "generate_{{type}}" functions, used
+  to instantiate objects of a certain {{type}}
+  ]]
+
 -- returns a point object
 -- p.x
 -- p.y
 function generate_point(x,y,f)
-    local p = {}
+  local p = {}
   p.x = x
   p.y = y - f
   return p

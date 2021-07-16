@@ -3,7 +3,7 @@ levels = {
     {
         metadata = {
         name = "multiple floors",
-        theme = THEMES.lean
+        theme = THEMES.LEAN
         },
         level = {
             {
@@ -29,7 +29,7 @@ levels = {
     {
         metadata = {
         name = "ramps with multiple heights",
-        theme = THEMES.squash
+        theme = THEMES.SQUASH
         },
         level = {
             {
@@ -52,7 +52,7 @@ levels = {
     {
         metadata = {
         name = "diagonals",
-        theme = THEMES.rosey
+        theme = THEMES.ROSEY
         },
         level = {
             { 
