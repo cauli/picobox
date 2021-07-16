@@ -2,7 +2,16 @@ pico-8 cartridge // http://www.pico-8.com
 version 16
 __lua__
 
+#include math_helpers.lua
+#include generators.lua
+
+#include theme.lua
+#include blocks.lua
+#include levels.lua
+
 #include nanogolf.lua
+
+#include draw.lua
 
 __gfx__
 000b000000b0000000000000000b0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
