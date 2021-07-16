@@ -3,14 +3,22 @@ function draw_ball(b)
     pset(b.x, b.y - b.z, ball.color)
 end
 
-function draw_tile(x0,y0)
-    local x = (x0-y0) * tw/2
-    local y = (x0+y0) * th/2
+function draw_tile(x0,y0, c)
+  color(c)
 
-    line(x,y,x+tw/2,y+th/2)
-    line(x+tw/2,y+th/2,x,y+th)
-    line(x,y+th,x-tw/2,y+th/2)
-    line(x-tw/2,y+th/2,x,y)
+  local x = (x0-y0) * tw/2
+  local y = (x0+y0) * th/2
+
+  line(x,y,x+tw/2,y+th/2)
+  line(x+tw/2,y+th/2,x,y+th)
+  line(x,y+th,x-tw/2,y+th/2)
+  line(x-tw/2,y+th/2,x,y)
+
+  if (x0 + y0) % 2 == 0 then
+    line(x-6,y +16,x+6,y + 16, COLORS.LIGHT_GREY)
+  end
+  
+  print(x0 .. "," .. y0, x - 5, y  +10, COLORS.LIGHT_GREY)
 end
 
 function draw_block(block)
@@ -33,7 +41,7 @@ function draw_block(block)
     local p7 = generators.point(x, y+th, f)  -- bbc
     local p8 = generators.point(x-tw/2, y+th/2, f)  -- bcl
 
-    if(block.i == BLOCKS.regular)then
+    if(block.i == BLOCKS.REGULAR)then
       --draw top
       trifill(p3,p2,p1,c1)
       trifill(p1,p4,p3,c1)
@@ -373,17 +381,42 @@ function draw_block(block)
     end
 end
 
+function render_scene(blocks, ball)
+  -- NOTE a ball moving it's Z coordinate currently isn't
+  -- followed by the camera. This might need to be tweaked
+  -- if that's the case in the future
+  local renderable_min_x = ball.current_grid.x - 2
+  local renderable_max_x = ball.current_grid.x + 2
+  local renderable_min_y = ball.current_grid.y - 2
+  local renderable_max_y = ball.current_grid.y + 2
+
+  
+  for i = renderable_min_x,renderable_max_x do
+    for j = renderable_min_y,renderable_max_y do
+      draw_tile(i, j, COLORS.DARK_GREY)
+    end    
+  end
+  
+  --draw blocks
+  foreach(blocks, draw_block)
+
+  -- draw ball
+  draw_ball(ball)
+end
+
 function _draw()
     -- camera and bg
     camera(-64+ball.x, -64+ ball.y)
     clip(-64+ball.x, -64+ ball.y)
     rectfill(-64+ball.x, -64+ ball.y, ball.x + 64, 64+ ball.y, c5)
+    
+    render_scene(blocks, ball)
 
     -- draw blocks
-    foreach(blocks, draw_block)
+    --foreach(blocks, draw_block)
 
     -- draw ball
-    draw_ball(ball)
+    --draw_ball(ball)
 
     -- this will bring debug stuff to fixed position
     camera()
@@ -399,11 +432,11 @@ function _draw()
         print(block.x0 .. ", " .. block.y0, 1, 120, 9)
     end
 
-    print("b x:" .. ball.x .. " y:" .. ball.y .. " z:" .. ball.z, 1, 7, 6)
-    print("ballg x:" .. ball.current_grid.x .. "   y:" .. ball.current_grid.y , 1, 14, 6)
-    print("ballf x:" .. ball.current_grid_float.x .. "   y:" .. ball.current_grid_float.y , 1, 21, 6)
-    print("floor z:" .. ball.floor_height , 1, 28, 6)
-    print("cpu:" .. stat(1)*100 .. "%" , 1, 35, 2)
-    print("triangles:" .. debug_count_triangles , 1, 42, 2)
+    print("b x:" .. ball.x .. " y:" .. ball.y .. " z:" .. ball.z, 1, 7, COLORS.BLACK)
+    -- print("ballg x:" .. ball.current_grid.x .. "   y:" .. ball.current_grid.y , 1, 14, COLORS.BLACK)
+    -- print("ballf x:" .. ball.current_grid_float.x .. "   y:" .. ball.current_grid_float.y , 1, 21, COLORS.BLACK)
+    print("floor z:" .. ball.floor_height , 1, 28, COLORS.BLACK)
+    print("cpu:" .. stat(1)*100 .. "%" , 1, 35, COLORS.DARK_PURPLE)
+    print("triangles:" .. debug_count_triangles , 1, 42, COLORS.DARK_PURPLE)
 end
   

@@ -8,10 +8,10 @@ BLOCKS = {
     --  8..     .     ..6
     --     ...  .  ...
     --        ..7..
-    regular=0,
+    REGULAR = 0,
 
     -- nothing on one side
-    -- a plateou on the specified direction
+    -- a plateau on the specified direction
     --        ..2__
     --     ...  |  ___
     --  4..     |     __2

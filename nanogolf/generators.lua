@@ -204,7 +204,7 @@ function generate_block(x0,y0,z0,floor,i,has_hole)
   block.y = (block.x0+block.y0) * th/2
   block.z = tz + (block.z0 * tz)
 
-  if(i == BLOCKS.regular)then
+  if(i == BLOCKS.REGULAR)then
     block.slope = 0 * block.z0
     block.directionup = nil
     block.directiondown = nil

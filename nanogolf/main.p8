@@ -10,6 +10,7 @@ __lua__
 #include theme.lua
 #include blocks.lua
 #include levels.lua
+#include wave_function_collapser.lua
 
 #include nanogolf.lua
 

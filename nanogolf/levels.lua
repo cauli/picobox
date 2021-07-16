@@ -7,21 +7,21 @@ levels = {
         },
         level = {
             {
-                {3,-2,1,BLOCKS.regular,false},
-                {3,-1,1,BLOCKS.regular,false},
+                {3,-2,1,BLOCKS.REGULAR,false},
+                {3,-1,1,BLOCKS.REGULAR,false},
                 {3,0,1,BLOCKS.ramp_north_east,false},
 
                 --{4,-1,1,BLOCKS.ramp_south_east,false},
 
                 {5,-4,1,BLOCKS.ramp_south_east,false},
-                {5,-3,1,BLOCKS.regular,false},
-                {5,-2,1,BLOCKS.regular,false},
+                {5,-3,1,BLOCKS.REGULAR,false},
+                {5,-2,1,BLOCKS.REGULAR,false},
             },
             {
                 {5,-3,1,BLOCKS.ramp_south_east,false},
                 {3,-2,1,BLOCKS.half_south,false},
-                {4,-2,1,BLOCKS.regular,false},
-                {5,-2,1,BLOCKS.regular,false},
+                {4,-2,1,BLOCKS.REGULAR,false},
+                {5,-2,1,BLOCKS.REGULAR,false},
                 {3,-1,1,BLOCKS.ramp_north_east,false},
             },
         }
