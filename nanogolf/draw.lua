@@ -1,6 +1,6 @@
 function draw_ball(b)
-    pset(b.x, b.y - b.floor_height, 0) -- shadow
-    pset(b.x, b.y - b.z, ball.color)
+    pset(64, 64 - b.floor_height, 0) -- shadow
+    pset(64, 64 - b.z, ball.color)
 end
 
 function draw_tile(x0,y0, c)
@@ -8,7 +8,9 @@ function draw_tile(x0,y0, c)
 
   local x = (x0-y0) * tw/2
   local y = (x0+y0) * th/2
-
+  
+  x += (64 - ball.x)
+  y += (64 - ball.y)
   line(x,y,x+tw/2,y+th/2)
   line(x+tw/2,y+th/2,x,y+th)
   line(x,y+th,x-tw/2,y+th/2)
@@ -22,11 +24,12 @@ function draw_tile(x0,y0, c)
 end
 
 function draw_block(block)
-    local x = block.x
-    local y = block.y
+    local x = block.x + (64 - ball.x)
+    local y = block.y + (64 - ball.y)
     local z = block.z
     local f = ((block.floor-1) * (th/2))
-  
+    
+    
     -- top 4
     local p1 = generators.point(x, y-z, f) -- ttc
     local p2 = generators.point(x+tw/2,y+th/2-z, f)   -- tcr
@@ -43,16 +46,16 @@ function draw_block(block)
 
     if(block.i == BLOCKS.REGULAR)then
       --draw top
-      trifill(p3,p2,p1,c1)
-      trifill(p1,p4,p3,c1)
+      solid_trifill_v3(p3,p2,p1,c1)
+      solid_trifill_v3(p1,p4,p3,c1)
   
       --draw left
-      trifill(p8,p7,p3,c2)
-      trifill(p3,p4,p8,c2)
+      solid_trifill_v3(p8,p7,p3,c2)
+      solid_trifill_v3(p3,p4,p8,c2)
      
       --draw right
-      trifill(p7,p6,p2,c3)
-      trifill(p2,p3,p7,c3)
+      solid_trifill_v3(p7,p6,p2,c3)
+      solid_trifill_v3(p2,p3,p7,c3)
   
       if(block.has_hole)then
         palt(14, true)
@@ -78,13 +81,13 @@ function draw_block(block)
   
   
       --draw top
-      trifill(p4,p3,p2,c1) --t
+      solid_trifill_v3(p4,p3,p2,c1) --t
   
-      trifill(p8,p7,p3,c2) -- l
-      trifill(p4,p8,p3,c2) -- l
+      solid_trifill_v3(p8,p7,p3,c2) -- l
+      solid_trifill_v3(p4,p8,p3,c2) -- l
   
-      trifill(p2,p3,p7,c3) -- r
-      trifill(p7,p6,p2,c3) 
+      solid_trifill_v3(p2,p3,p7,c3) -- r
+      solid_trifill_v3(p7,p6,p2,c3) 
     elseif(block.i == BLOCKS.half_west)then
       -- i == BLOCKS.half_west
       --        __1..
@@ -98,10 +101,10 @@ function draw_block(block)
   
   
       --draw top
-      trifill(p4,p3,p1,c1)
+      solid_trifill_v3(p4,p3,p1,c1)
   
-      trifill(p8,p7,p3,c2) -- l
-      trifill(p4,p8,p3,c2) -- l
+      solid_trifill_v3(p8,p7,p3,c2) -- l
+      solid_trifill_v3(p4,p8,p3,c2) -- l
   
     elseif(block.i == BLOCKS.half_north)then
     -- i ==102
@@ -115,7 +118,7 @@ function draw_block(block)
     --        ..7..  
   
       --draw top
-      trifill(p4,p2,p1,c1)
+      solid_trifill_v3(p4,p2,p1,c1)
   
       --draw 'front' (se)
       color(c3)
@@ -132,25 +135,25 @@ function draw_block(block)
     --     ...  |  ___
     --        ..7__  
       --draw top
-      trifill(p1,p3,p2,c1)
+      solid_trifill_v3(p1,p3,p2,c1)
   
-      trifill(p2,p3,p7,c3) -- r
-      trifill(p7,p6,p2,c3) 
+      solid_trifill_v3(p2,p3,p7,c3) -- r
+      solid_trifill_v3(p7,p6,p2,c3) 
     elseif(block.i == BLOCKS.ramp_north_west)then
       --draw top
-      trifill(p1,p4,p7,c1)
-      trifill(p7,p6,p1,c1)
+      solid_trifill_v3(p1,p4,p7,c1)
+      solid_trifill_v3(p7,p6,p1,c1)
   
       --draw left
-      trifill(p8,p7,p4,c2)
+      solid_trifill_v3(p8,p7,p4,c2)
     elseif(block.i == BLOCKS.ramp_north_east)then
   
       -- draw top
-      trifill(p1,p8,p7,c1)
-      trifill(p7,p2,p1,c1)
+      solid_trifill_v3(p1,p8,p7,c1)
+      solid_trifill_v3(p7,p2,p1,c1)
   
       --draw right
-      trifill(p7,p6,p2,c3)
+      solid_trifill_v3(p7,p6,p2,c3)
   
   
     elseif(block.i == BLOCKS.ramp_south_west)then
@@ -165,15 +168,15 @@ function draw_block(block)
     --        ..7..
   
       -- draw top
-      trifill(p7,p6,p2,c3)
-      trifill(p2,p3,p7,c3)
+      solid_trifill_v3(p7,p6,p2,c3)
+      solid_trifill_v3(p2,p3,p7,c3)
   
       --draw left
-      trifill(p8,p7,p3,c2)
+      solid_trifill_v3(p8,p7,p3,c2)
   
       --draw top
-      trifill(p8,p3,p2,c1)
-      trifill(p5,p8,p2,c1)
+      solid_trifill_v3(p8,p3,p2,c1)
+      solid_trifill_v3(p5,p8,p2,c1)
     elseif(block.i == BLOCKS.ramp_south_east)then
       -- i == BLOCKS.ramp_south_east
       --        ..1..
@@ -185,13 +188,13 @@ function draw_block(block)
       --     ...  .  ...
       --        ..7..
   
-      trifill(p4,p8,p3,c2) 
-      trifill(p8,p7,p3,c2) -- l
+      solid_trifill_v3(p4,p8,p3,c2) 
+      solid_trifill_v3(p8,p7,p3,c2) -- l
   
-      trifill(p7,p6,p3,c3) -- r
+      solid_trifill_v3(p7,p6,p3,c3) -- r
   
-      trifill(p3,p6,p5,c6) --t
-      trifill(p5,p4,p3,c6) 
+      solid_trifill_v3(p3,p6,p5,c6) --t
+      solid_trifill_v3(p5,p4,p3,c6) 
     elseif(block.i == BLOCKS.ramp_half_east)then
     -- i == BLOCKS.ramp_half_east
     --        ./1..
@@ -203,14 +206,14 @@ function draw_block(block)
     --     ...  .  ...
     --        ..7..
   
-      trifill(p1,p3,p2,c1) -- t
+      solid_trifill_v3(p1,p3,p2,c1) -- t
   
-      trifill(p1,p8,p3,c6) -- sw
+      solid_trifill_v3(p1,p8,p3,c6) -- sw
   
-      trifill(p3,p8,p7,c2) -- l
+      solid_trifill_v3(p3,p8,p7,c2) -- l
   
-      trifill(p2,p3,p7,c3) -- r
-      trifill(p7,p6,p2,c3) 
+      solid_trifill_v3(p2,p3,p7,c3) -- r
+      solid_trifill_v3(p7,p6,p2,c3) 
     elseif(block.i == BLOCKS.ramp_half_south)then
     -- i == BLOCKS.ramp_half_south
     -- i == BLOCKS.ramp_half_south
@@ -222,15 +225,15 @@ function draw_block(block)
     --  8..     .     ..6
     --     ...  .  ...
     --        ..7..
-      trifill(p3,p2,p4,c1) -- t
+      solid_trifill_v3(p3,p2,p4,c1) -- t
   
-      trifill(p4,p2,p5,c6) -- 𝘯𝘸
+      solid_trifill_v3(p4,p2,p5,c6) -- 𝘯𝘸
   
-      trifill(p4,p8,p3,c2) -- l
-      trifill(p8,p7,p3,c2) -- l
+      solid_trifill_v3(p4,p8,p3,c2) -- l
+      solid_trifill_v3(p8,p7,p3,c2) -- l
   
-      trifill(p7,p6,p3,c3) -- r
-      trifill(p2,p3,p6,c3) -- r
+      solid_trifill_v3(p7,p6,p3,c3) -- r
+      solid_trifill_v3(p2,p3,p6,c3) -- r
     
       
     elseif(block.i == BLOCKS.ramp_half_west)then
@@ -245,14 +248,14 @@ function draw_block(block)
     --     ...  .  ...
     --        ..7..  
   
-      trifill(p4,p3,p1,c1) -- t
+      solid_trifill_v3(p4,p3,p1,c1) -- t
   
-      trifill(p3,p6,p1,c6) -- 𝘯𝘦
+      solid_trifill_v3(p3,p6,p1,c6) -- 𝘯𝘦
   
-      trifill(p4,p8,p3,c2) -- l
-      trifill(p8,p7,p3,c2) -- l
+      solid_trifill_v3(p4,p8,p3,c2) -- l
+      solid_trifill_v3(p8,p7,p3,c2) -- l
   
-      trifill(p7,p6,p3,c3) -- r
+      solid_trifill_v3(p7,p6,p3,c3) -- r
     elseif(block.i == BLOCKS.ramp_half_north)then
     -- i == BLOCKS.ramp_half_north
     --        ..1..
@@ -263,12 +266,12 @@ function draw_block(block)
     --  8..  \     /  ..6
     --     ... \ /  ...
     --        ..7..  
-      trifill(p1,p4,p2,c1) -- t
+      solid_trifill_v3(p1,p4,p2,c1) -- t
   
-      trifill(p4,p7,p2,c3) -- 𝘴𝘦
-      trifill(p8,p7,p4,c2) -- l
+      solid_trifill_v3(p4,p7,p2,c3) -- 𝘴𝘦
+      solid_trifill_v3(p8,p7,p4,c2) -- l
   
-      trifill(p6,p2,p7,c3) -- r
+      solid_trifill_v3(p6,p2,p7,c3) -- r
   
     elseif(block.i == BLOCKS.ramp_east)then
     -- i == 9
@@ -282,9 +285,9 @@ function draw_block(block)
     --        ..7__
   
   
-      trifill(p2,p5,p7,c6) -- sw
+      solid_trifill_v3(p2,p5,p7,c6) -- sw
   
-      trifill(p2,p7,p6,c3) -- r
+      solid_trifill_v3(p2,p7,p6,c3) -- r
    
     elseif(block.i == BLOCKS.ramp_south)then
     -- i == 10
@@ -297,9 +300,9 @@ function draw_block(block)
     --     ___  |   ___
     --        __7__
   
-      trifill(p8,p7,p3,c2) -- l
+      solid_trifill_v3(p8,p7,p3,c2) -- l
   
-      trifill(p3,p7,p6,c3) -- r
+      solid_trifill_v3(p3,p7,p6,c3) -- r
     elseif(block.i == BLOCKS.ramp_west)then
     --        ..1..
     --     ...     ...
@@ -310,9 +313,9 @@ function draw_block(block)
     --    ___  \|  ...
     --        __7..
   
-      trifill(p4,p8,p7,c2) -- l
+      solid_trifill_v3(p4,p8,p7,c2) -- l
   
-      trifill(p5,p4,p7,c6) -- 𝘯𝘦
+      solid_trifill_v3(p5,p4,p7,c6) -- 𝘯𝘦
     elseif(block.i == BLOCKS.ramp_north)then
     -- i == BLOCKS.ramp_north
     --        ..1..
@@ -324,7 +327,7 @@ function draw_block(block)
     --     ...  .  ...
     --        ..7..
   
-      trifill(p1,p8,p6,c3) -- 𝘴𝘦
+      solid_trifill_v3(p1,p8,p6,c3) -- 𝘴𝘦
     end
   
    
@@ -344,8 +347,7 @@ function draw_block(block)
         line(p4.x, p4.y, p1.x, p1.y)
   
         q = get_quadrant(ball.current_grid_float.x % flr(ball.current_grid_float.x),ball.current_grid_float.y % flr(ball.current_grid_float.y))
-        print(q, ball.x, ball.y - ball.z + 30, 9)
-  
+
         color(c4)
      
         if(q == "a")then
@@ -353,28 +355,28 @@ function draw_block(block)
           line(pc.x,pc.y,p4.x,p4.y)
           line(p4.x,p4.y,p3.x,p3.y)
           
-          -- trifill(p3,pc,p4,12) 
+          print(q, pc.x + 2, pc.y - 5, COLORS.ORANGE)
         elseif(q == "b")then
   
           line(p4.x,p4.y,pc.x,pc.y)
           line(pc.x,pc.y,p1.x,p1.y)
           line(p1.x,p1.y,p4.x,p4.y)
           
-          --trifill(p4,pc,p1,12) 
+          print(q, pc.x + 2, pc.y - 5, COLORS.ORANGE)
         elseif(q == "c")then
   
           line(p1.x,p1.y,pc.x,pc.y)
           line(pc.x,pc.y,p2.x,p2.y)
           line(p2.x,p2.y,p1.x,p1.y)
-  
-          --trifill(p1,pc,p2,12) 
+
+          print(q, pc.x - 5, pc.y - 5, COLORS.ORANGE)
         elseif(q == "d")then
   
           line(p2.x,p2.y,pc.x,pc.y)
           line(pc.x,pc.y,p3.x,p3.y)
           line(p3.x,p3.y,p2.x,p2.y)
-  
-          --trifill(p2,pc,p3,12) 
+
+          print(q, pc.x - 5, pc.y - 5, COLORS.ORANGE)
         end
           
       end
@@ -389,7 +391,6 @@ function render_scene(blocks, ball)
   local renderable_max_x = ball.current_grid.x + 2
   local renderable_min_y = ball.current_grid.y - 2
   local renderable_max_y = ball.current_grid.y + 2
-
   
   for i = renderable_min_x,renderable_max_x do
     for j = renderable_min_y,renderable_max_y do
@@ -406,21 +407,19 @@ end
 
 function _draw()
     -- camera and bg
-    camera(-64+ball.x, -64+ ball.y)
-    clip(-64+ball.x, -64+ ball.y)
-    rectfill(-64+ball.x, -64+ ball.y, ball.x + 64, 64+ ball.y, c5)
+
+    -- in this setup, camera follows ball around
+    -- camera(-64+ball.x, -64 + ball.y)
+    -- clip(-64+ball.x, -64+ ball.y)
+    -- rectfill(-64+ball.x, -64+ ball.y, ball.x + 64, 64+ ball.y, c5)
+    clip(-64, -64, 64, 64)
+    rectfill(0, 0, 128, 128, c5)
     
     render_scene(blocks, ball)
 
-    -- draw blocks
-    --foreach(blocks, draw_block)
-
-    -- draw ball
-    --draw_ball(ball)
-
     -- this will bring debug stuff to fixed position
-    camera()
-    clip()
+    -- camera()
+    -- clip()
 
     if current_distance_to_hole ~= nil then 
         print("dist hole " .. current_distance_to_hole, 1, 110, 5)
@@ -433,8 +432,8 @@ function _draw()
     end
 
     print("b x:" .. ball.x .. " y:" .. ball.y .. " z:" .. ball.z, 1, 7, COLORS.BLACK)
-    -- print("ballg x:" .. ball.current_grid.x .. "   y:" .. ball.current_grid.y , 1, 14, COLORS.BLACK)
-    -- print("ballf x:" .. ball.current_grid_float.x .. "   y:" .. ball.current_grid_float.y , 1, 21, COLORS.BLACK)
+    print("ballg x:" .. ball.current_grid.x .. "   y:" .. ball.current_grid.y , 1, 14, COLORS.BLACK)
+    print("ballf x:" .. ball.current_grid_float.x .. "   y:" .. ball.current_grid_float.y , 1, 21, COLORS.BLACK)
     print("floor z:" .. ball.floor_height , 1, 28, COLORS.BLACK)
     print("cpu:" .. stat(1)*100 .. "%" , 1, 35, COLORS.DARK_PURPLE)
     print("triangles:" .. debug_count_triangles , 1, 42, COLORS.DARK_PURPLE)

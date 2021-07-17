@@ -132,11 +132,11 @@ function update_movement_ball(b)
   b.oldy = b.y
   b.oldz = b.z
   
-  b.x += b.vx
-  b.y += b.vy
-  b.z += b.vz
+  b.x = b.x + b.vx
+  b.y = b.y + b.vy
+  b.z = b.z + b.vz
 
-  b.z -= gravity
+  b.z = b.z - gravity
 
   ball.last_floor_height = ball.floor_height
   
@@ -193,6 +193,7 @@ function lower(thing)
   thing.z -= tz/2
 end
 
+-- TODO refactor force
 function add_force(obj, dir, force)
   if(dir == "s")then
    obj.oldx += 0.2 * force
