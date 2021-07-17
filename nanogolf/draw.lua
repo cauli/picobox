@@ -67,9 +67,9 @@ function draw_block(block)
         spr(22,pc.x-4,pc.y-4)
         spr(6,pc.x-4,pc.y-4-8)
       end
-    elseif(block.i == BLOCKS.half_south)then
+    elseif(block.i == BLOCKS.HALF_S)then
   
-        -- i == BLOCKS.half_south
+        -- i == BLOCKS.HALF_S
         --        ..1..
         --     ...     ...
         --  4_______________2
@@ -88,8 +88,8 @@ function draw_block(block)
   
       solid_trifill_v3(p2,p3,p7,c3) -- r
       solid_trifill_v3(p7,p6,p2,c3) 
-    elseif(block.i == BLOCKS.half_west)then
-      -- i == BLOCKS.half_west
+    elseif(block.i == BLOCKS.HALF_W)then
+      -- i == BLOCKS.HALF_W
       --        __1..
       --     ___  |  ...
       --  4__     |     ..2
@@ -106,7 +106,7 @@ function draw_block(block)
       solid_trifill_v3(p8,p7,p3,c2) -- l
       solid_trifill_v3(p4,p8,p3,c2) -- l
   
-    elseif(block.i == BLOCKS.half_north)then
+    elseif(block.i == BLOCKS.HALF_N)then
     -- i ==102
     --        __1__
     --    ___       ___
@@ -124,8 +124,8 @@ function draw_block(block)
       color(c3)
       rectfill(p4.x,p4.y,p6.x,p6.y)
   
-    elseif(block.i == BLOCKS.half_east)then
-    -- i == BLOCKS.half_east
+    elseif(block.i == BLOCKS.HALF_E)then
+    -- i == BLOCKS.HALF_E
     --        ..1__
     --     ...  |  ___
     --  4..     |     __2
@@ -139,14 +139,14 @@ function draw_block(block)
   
       solid_trifill_v3(p2,p3,p7,c3) -- r
       solid_trifill_v3(p7,p6,p2,c3) 
-    elseif(block.i == BLOCKS.ramp_north_west)then
+    elseif(block.i == BLOCKS.RAMP_NW)then
       --draw top
       solid_trifill_v3(p1,p4,p7,c1)
       solid_trifill_v3(p7,p6,p1,c1)
   
       --draw left
       solid_trifill_v3(p8,p7,p4,c2)
-    elseif(block.i == BLOCKS.ramp_north_east)then
+    elseif(block.i == BLOCKS.RAMP_NE)then
   
       -- draw top
       solid_trifill_v3(p1,p8,p7,c1)
@@ -156,7 +156,7 @@ function draw_block(block)
       solid_trifill_v3(p7,p6,p2,c3)
   
   
-    elseif(block.i == BLOCKS.ramp_south_west)then
+    elseif(block.i == BLOCKS.RAMP_SW)then
     -- i == 3
     --        ..1..
     --     ...     ...
@@ -177,8 +177,8 @@ function draw_block(block)
       --draw top
       solid_trifill_v3(p8,p3,p2,c1)
       solid_trifill_v3(p5,p8,p2,c1)
-    elseif(block.i == BLOCKS.ramp_south_east)then
-      -- i == BLOCKS.ramp_south_east
+    elseif(block.i == BLOCKS.RAMP_SE)then
+      -- i == BLOCKS.RAMP_SE
       --        ..1..
       --     ...     ...
       --  4..           ..2
@@ -195,8 +195,8 @@ function draw_block(block)
   
       solid_trifill_v3(p3,p6,p5,c6) --t
       solid_trifill_v3(p5,p4,p3,c6) 
-    elseif(block.i == BLOCKS.ramp_half_east)then
-    -- i == BLOCKS.ramp_half_east
+    elseif(block.i == BLOCKS.RAMP_HALF_E)then
+    -- i == BLOCKS.RAMP_HALF_E
     --        ./1..
     --     ../  |  ...
     --  4../    |     ..2
@@ -214,9 +214,7 @@ function draw_block(block)
   
       solid_trifill_v3(p2,p3,p7,c3) -- r
       solid_trifill_v3(p7,p6,p2,c3) 
-    elseif(block.i == BLOCKS.ramp_half_south)then
-    -- i == BLOCKS.ramp_half_south
-    -- i == BLOCKS.ramp_half_south
+    elseif(block.i == BLOCKS.RAMP_HALF_S)then
     --          1 
     --     _____5_____
     --  4_______________2
@@ -236,9 +234,7 @@ function draw_block(block)
       solid_trifill_v3(p2,p3,p6,c3) -- r
     
       
-    elseif(block.i == BLOCKS.ramp_half_west)then
-    -- i == BLOCKS.ramp_half_west
-    -- i == BLOCKS.ramp_half_west
+    elseif(block.i == BLOCKS.RAMP_HALF_W)then
     --        ..1\
     --     ...  |  \
     --  4..     |   \    2
@@ -256,8 +252,8 @@ function draw_block(block)
       solid_trifill_v3(p8,p7,p3,c2) -- l
   
       solid_trifill_v3(p7,p6,p3,c3) -- r
-    elseif(block.i == BLOCKS.ramp_half_north)then
-    -- i == BLOCKS.ramp_half_north
+    elseif(block.i == BLOCKS.RAMP_HALF_N)then
+    -- i == BLOCKS.RAMP_HALF_N
     --        ..1..
     --     ...     ...
     --  4_______________2
@@ -273,8 +269,7 @@ function draw_block(block)
   
       solid_trifill_v3(p6,p2,p7,c3) -- r
   
-    elseif(block.i == BLOCKS.ramp_east)then
-    -- i == 9
+    elseif(block.i == BLOCKS.RAMP_E)then
     --        ..1..
     --     ...     ...
     --  4..     5-------2
@@ -289,8 +284,7 @@ function draw_block(block)
   
       solid_trifill_v3(p2,p7,p6,c3) -- r
    
-    elseif(block.i == BLOCKS.ramp_south)then
-    -- i == 10
+    elseif(block.i == BLOCKS.RAMP_S)then
     --        ..1..
     --     ...     ...
     --  4..           ..2
@@ -303,7 +297,7 @@ function draw_block(block)
       solid_trifill_v3(p8,p7,p3,c2) -- l
   
       solid_trifill_v3(p3,p7,p6,c3) -- r
-    elseif(block.i == BLOCKS.ramp_west)then
+    elseif(block.i == BLOCKS.RAMP_W)then
     --        ..1..
     --     ...     ...
     --  4-------5      ..2
@@ -316,8 +310,8 @@ function draw_block(block)
       solid_trifill_v3(p4,p8,p7,c2) -- l
   
       solid_trifill_v3(p5,p4,p7,c6) -- 𝘯𝘦
-    elseif(block.i == BLOCKS.ramp_north)then
-    -- i == BLOCKS.ramp_north
+    elseif(block.i == BLOCKS.RAMP_N)then
+    -- i == BLOCKS.RAMP_N
     --        ..1..
     --     ... / \ ...
     --  4..  /     \  ..2

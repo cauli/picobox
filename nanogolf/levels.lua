@@ -1,5 +1,15 @@
 levels = {
-    -- multiple floors
+    {
+        metadata = {
+        name = "wave function collapse",
+        theme = THEMES.LEAN
+        },
+        level = {
+            {
+                {0,0,1,BLOCKS.REGULAR,false},
+            },
+        }
+    },
     {
         metadata = {
         name = "multiple floors",
@@ -9,20 +19,20 @@ levels = {
             {
                 {3,-2,1,BLOCKS.REGULAR,false},
                 {3,-1,1,BLOCKS.REGULAR,false},
-                {3,0,1,BLOCKS.ramp_north_east,false},
+                {3,0,1,BLOCKS.RAMP_NE,false},
 
-                --{4,-1,1,BLOCKS.ramp_south_east,false},
+                --{4,-1,1,BLOCKS.RAMP_SE,false},
 
-                {5,-4,1,BLOCKS.ramp_south_east,false},
+                {5,-4,1,BLOCKS.RAMP_SE,false},
                 {5,-3,1,BLOCKS.REGULAR,false},
                 {5,-2,1,BLOCKS.REGULAR,false},
             },
             {
-                {5,-3,1,BLOCKS.ramp_south_east,false},
-                {3,-2,1,BLOCKS.half_south,false},
+                {5,-3,1,BLOCKS.RAMP_SE,false},
+                {3,-2,1,BLOCKS.HALF_S,false},
                 {4,-2,1,BLOCKS.REGULAR,false},
                 {5,-2,1,BLOCKS.REGULAR,false},
-                {3,-1,1,BLOCKS.ramp_north_east,false},
+                {3,-1,1,BLOCKS.RAMP_NE,false},
             },
         }
     },
@@ -33,17 +43,17 @@ levels = {
         },
         level = {
             {
-                {1,-2,0.2,BLOCKS.ramp_south_east,false},
-                {3,-2,1.0,BLOCKS.ramp_south_east,false},
-                {5,-2,3.0,BLOCKS.ramp_south_east,false},
+                {1,-2,0.2,BLOCKS.RAMP_SE,false},
+                {3,-2,1.0,BLOCKS.RAMP_SE,false},
+                {5,-2,3.0,BLOCKS.RAMP_SE,false},
 
-                {1,0,0.2,BLOCKS.ramp_north_east,false},
-                {3,0,1.0,BLOCKS.ramp_north_east,false},
-                {5,0,3.0,BLOCKS.ramp_north_east,false},
+                {1,0,0.2,BLOCKS.RAMP_NE,false},
+                {3,0,1.0,BLOCKS.RAMP_NE,false},
+                {5,0,3.0,BLOCKS.RAMP_NE,false},
 
-                {1,2,0.2,BLOCKS.ramp_south_west,false},
-                {3,2,1.0,BLOCKS.ramp_south_west,false},
-                {5,2,3.0,BLOCKS.ramp_south_west,false},
+                {1,2,0.2,BLOCKS.RAMP_SW,false},
+                {3,2,1.0,BLOCKS.RAMP_SW,false},
+                {5,2,3.0,BLOCKS.RAMP_SW,false},
             },
         }
     },
@@ -56,20 +66,20 @@ levels = {
         },
         level = {
             { 
-                {1,1,1,BLOCKS.ramp_east,false},
-                {1,2,1,BLOCKS.ramp_south,false},
-                {0,2,1,BLOCKS.ramp_west,false},
-                {0,1,1,BLOCKS.ramp_north,false},
+                {1,1,1,BLOCKS.RAMP_E,false},
+                {1,2,1,BLOCKS.RAMP_S,false},
+                {0,2,1,BLOCKS.RAMP_W,false},
+                {0,1,1,BLOCKS.RAMP_N,false},
 
-                {4,1,1,BLOCKS.ramp_half_east,false},
-                {3,1,1,BLOCKS.ramp_half_north,false},
-                {3,2,1,BLOCKS.ramp_half_west,false},
-                {4,2,1,BLOCKS.ramp_half_south,false},
+                {4,1,1,BLOCKS.RAMP_HALF_E,false},
+                {3,1,1,BLOCKS.RAMP_HALF_N,false},
+                {3,2,1,BLOCKS.RAMP_HALF_W,false},
+                {4,2,1,BLOCKS.RAMP_HALF_S,false},
 
-                {8,1,1,BLOCKS.half_west,false},
-                {8,3,1,BLOCKS.half_north,false},
-                {6,3,1,BLOCKS.half_east,false},
-                {6,1,1,BLOCKS.half_south,false},
+                {8,1,1,BLOCKS.HALF_W,false},
+                {8,3,1,BLOCKS.HALF_N,false},
+                {6,3,1,BLOCKS.HALF_E,false},
+                {6,1,1,BLOCKS.HALF_S,false},
             },
         }
     }
@@ -120,4 +130,6 @@ function load_level(level_to_load)
         current_level_floor = current_level_floor + 1
         foreach(level_floor, create_block)
     end
+
+    wave_function_collapse(blocks, 1)
 end

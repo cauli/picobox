@@ -329,7 +329,7 @@ function _update()
         ball.floor_height = (block.z0  * tz * 2) + block_floor_offset
       end  
     -- 45 degrees angles blocks
-    elseif(block.i == BLOCKS.half_south or block.i == BLOCKS.half_west or block.i == BLOCKS.half_north or block.i == BLOCKS.half_east)then
+    elseif(block.i == BLOCKS.HALF_S or block.i == BLOCKS.HALF_W or block.i == BLOCKS.HALF_N or block.i == BLOCKS.HALF_E)then
    
       if(ball.quadrant == block.top1 or ball.quadrant == block.top2)then
         ball.floor_height = (block.z0  * tz * 2) + block_floor_offset
@@ -338,7 +338,7 @@ function _update()
       end
 
     -- diagonal ramp blocks z=(1-x/a-y/b)*c
-    elseif(block.i == BLOCKS.ramp_east or block.i == BLOCKS.ramp_south or block.i ==BLOCKS.ramp_west or block.i == BLOCKS.ramp_north)then
+    elseif(block.i == BLOCKS.RAMP_E or block.i == BLOCKS.RAMP_S or block.i ==BLOCKS.RAMP_W or block.i == BLOCKS.RAMP_N)then
       local pns
       local pwe
 
@@ -354,13 +354,13 @@ function _update()
 
           ball.floor_height = block.z0 + block_floor_offset
       elseif(ball.quadrant == block.slope1 or ball.quadrant == block.slope2)then
-        if(block.i == BLOCKS.ramp_north)then
+        if(block.i == BLOCKS.RAMP_N)then
           ball.floor_height = (1- (pns*16)/16 - (pwe*16)/16)  * (block.z0  * tz * 2) + block_floor_offset
-        elseif(block.i == BLOCKS.ramp_east)then
+        elseif(block.i == BLOCKS.RAMP_E)then
           ball.floor_height = (1- (pns *16)/16 - (abs(1-pwe) *16)/16)  * (block.z0  * tz*2)+ block_floor_offset
-        elseif(block.i ==BLOCKS.ramp_west)then
+        elseif(block.i ==BLOCKS.RAMP_W)then
           ball.floor_height = (1- (abs(1-pns)  *16)/16 - (pwe*16)/16)  * (block.z0  * tz*2)+ block_floor_offset
-        elseif(block.i == BLOCKS.ramp_south)then
+        elseif(block.i == BLOCKS.RAMP_S)then
           ball.floor_height = (1- ( abs(1-pns) *16)/16 - ( abs(1-pwe) *16)/16)  * (block.z0  * tz * 2)+ block_floor_offset
         end
       else 
@@ -385,34 +385,34 @@ function _update()
 
       -- TODO this shit is confusing. i want it betterz
       -- TODO height modelling is imprecise my merging two ramps
-      if(block.i == BLOCKS.ramp_half_east or block.i == BLOCKS.ramp_half_south or block.i == BLOCKS.ramp_half_west or block.i == BLOCKS.ramp_half_north)then -- half block
+      if(block.i == BLOCKS.RAMP_HALF_E or block.i == BLOCKS.RAMP_HALF_S or block.i == BLOCKS.RAMP_HALF_W or block.i == BLOCKS.RAMP_HALF_N)then -- half block
     
         if(ball.quadrant == nil)then
           -- do nothing
           not_on_slope = true
         elseif(ball.quadrant == "b" and (block.slope1 == "b" or block.slope2 == "b"))then
-          if(block.i == BLOCKS.ramp_half_south)then 
+          if(block.i == BLOCKS.RAMP_HALF_S)then 
             percent = pns
           else
             percent = abs(pns - 1)
           end
           ball.floor_height = ((block.z0  * tz * 2) * percent) + block_floor_offset
         elseif(ball.quadrant == "a" and (block.slope1 == "a" or block.slope2 == "a"))then
-          if(block.i == BLOCKS.ramp_half_north)then -- 4 is 𝘶𝘱
+          if(block.i == BLOCKS.RAMP_HALF_N)then -- 4 is 𝘶𝘱
             percent = abs(pwe - 1)
           else
             percent = pwe  -- 4 is 𝘥𝘰𝘸𝘯
           end
           ball.floor_height = ((block.z0  * tz * 2) * percent) + block_floor_offset
         elseif(ball.quadrant == "c" and (block.slope1 == "c" or block.slope2 == "c"))then
-          if(block.i == BLOCKS.ramp_half_west)then -- 4 is 𝘶𝘱
+          if(block.i == BLOCKS.RAMP_HALF_W)then -- 4 is 𝘶𝘱
             percent = abs(pwe-1)
           else
             percent = pwe
           end
           ball.floor_height = ((block.z0  * tz * 2) * percent) + block_floor_offset
         elseif(ball.quadrant == "d" and (block.slope1 == "d" or block.slope2 == "d"))then
-          if(block.i == BLOCKS.ramp_half_west)then -- 4 is 𝘶𝘱
+          if(block.i == BLOCKS.RAMP_HALF_W)then -- 4 is 𝘶𝘱
             percent = pns
           else
             percent = abs(pns - 1) 
