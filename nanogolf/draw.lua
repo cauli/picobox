@@ -156,16 +156,16 @@ function draw_block(block)
       solid_trifill_v3(p7,p6,p2,c3)
   
   
-    elseif(block.i == BLOCKS.RAMP_SW)then
-    -- i == 3
+    elseif(block.i == BLOCKS.RAMP_SE)then
     --        ..1..
     --     ...     ...
     --  4..           ..2
     --  .  ...     ...  .
-    --  --------.3..     .
+    --  .     ..3--------
     --  8..     .     ..6
     --     ...  .  ...
     --        ..7..
+
   
       -- draw top
       solid_trifill_v3(p7,p6,p2,c3)
@@ -177,16 +177,15 @@ function draw_block(block)
       --draw top
       solid_trifill_v3(p8,p3,p2,c1)
       solid_trifill_v3(p5,p8,p2,c1)
-    elseif(block.i == BLOCKS.RAMP_SE)then
-      -- i == BLOCKS.RAMP_SE
-      --        ..1..
-      --     ...     ...
-      --  4..           ..2
-      --  .  ...     ...  .
-      --  .     ..3--------
-      --  8..     .     ..6
-      --     ...  .  ...
-      --        ..7..
+    elseif(block.i == BLOCKS.RAMP_SW)then
+    --        ..1..
+    --     ...     ...
+    --  4..           ..2
+    --  .  ...     ...  .
+    --  --------.3..     .
+    --  8..     .     ..6
+    --     ...  .  ...
+    --        ..7..
   
       solid_trifill_v3(p4,p8,p3,c2) 
       solid_trifill_v3(p8,p7,p3,c2) -- l
@@ -377,6 +376,54 @@ function draw_block(block)
     end
 end
 
+-- common comparators
+function  ascending(a,b) return a<b end
+function descending(a,b) return a>b end
+
+-- a: array to be sorted in-place
+-- c: comparator (optional, defaults to ascending)
+-- l: first index to be sorted (optional, defaults to 1)
+-- r: last index to be sorted (optional, defaults to #a)
+function qsort(a,c,l,r)
+    c,l,r=c or ascending,l or 1,r or #a
+    if l<r then
+        if c(a[r],a[l]) then
+            a[l],a[r]=a[r],a[l]
+        end
+        local lp,rp,k,p,q=l+1,r-1,l+1,a[l],a[r]
+        while k<=rp do
+            if c(a[k],p) then
+                a[k],a[lp]=a[lp],a[k]
+                lp+=1
+            elseif not c(a[k],q) then
+                while c(q,a[rp]) and k<rp do
+                    rp-=1
+                end
+                a[k],a[rp]=a[rp],a[k]
+                rp-=1
+                if c(a[k],p) then
+                    a[k],a[lp]=a[lp],a[k]
+                    lp+=1
+                end
+            end
+            k+=1
+        end
+        lp-=1
+        rp+=1
+        a[l],a[lp]=a[lp],a[l]
+        a[r],a[rp]=a[rp],a[r]
+        qsort(a,c,l,lp-1       )
+        qsort(a,c,  lp+1,rp-1  )
+        qsort(a,c,       rp+1,r)
+    end
+end
+
+function sortDepth(blocks)
+  qsort(blocks, function(a,b) 
+    return a.x0 + a.y0 < b.x0 + b.y0
+  end)
+end
+
 function render_scene(blocks, ball)
   -- NOTE a ball moving it's Z coordinate currently isn't
   -- followed by the camera. This might need to be tweaked
@@ -392,6 +439,7 @@ function render_scene(blocks, ball)
     end    
   end
   
+
   --draw blocks
   foreach(blocks, draw_block)
 

@@ -1,3 +1,5 @@
+DIRECTIONS = { N, S, E, W, NW, SW, NE, SE }
+
 BLOCKS = {
     -- a plateau
     --        ..1..
@@ -25,7 +27,7 @@ BLOCKS = {
     HALF_S=100,
     HALF_W=101,
     HALF_N=102,
-    HALF_E=103,
+    HALF_E=103, 
 
     -- a long ramp that raises to the specified direction
 
@@ -148,6 +150,59 @@ BLOCKS = {
     RAMP_N=12,
 }
 
+-- groups of blocks used for the wave function collapser
+BLOCK_GROUPS = {
+    ELEVATED_AT = {
+        SW = {
+            BLOCKS.REGULAR, 
+            BLOCKS.HALF_E, 
+            BLOCKS.HALF_N, 
+            BLOCKS.RAMP_NE, 
+            BLOCKS.RAMP_HALF_E, 
+            BLOCKS.RAMP_HALF_N
+        },
+        NW = {
+            BLOCKS.REGULAR, 
+            BLOCKS.RAMP_SE,
+            BLOCKS.HALF_E, 
+            BLOCKS.HALF_S,
+            BLOCKS.RAMP_HALF_E, 
+            BLOCKS.RAMP_HALF_S  
+        },
+        SE = {
+            BLOCKS.REGULAR, 
+            BLOCKS.HALF_N, 
+            BLOCKS.HALF_W, 
+            BLOCKS.RAMP_NW, 
+            BLOCKS.RAMP_HALF_W, 
+            BLOCKS.RAMP_HALF_N
+        },
+        NE = {
+            BLOCKS.REGULAR,
+            BLOCKS.HALF_W,
+            BLOCKS.HALF_S,
+            BLOCKS.RAMP_SW,
+            BLOCKS.RAMP_HALF_W,
+            BLOCKS.RAMP_HALF_S
+        }
+    },
+    SUNKEN_AT = {
+        SW = {
+            BLOCKS.HALF_E, BLOCKS.HALF_S,
+            BLOCKS.RAMP_NE
+        },
+        NW = {
+            BLOCKS.HALF_S, BLOCKS.HALF_E
+        },
+        SE = {
+            BLOCKS.HALF_W, BLOCKS.HALF_N
+        },
+        NE = {
+            BLOCKS.HALF_E, BLOCKS.HALF_N
+        }
+    }
+}
+
 -- for each block type, we determine which are the possible
 -- connection blocks for each coordinate set, in the following 
 -- clockwise order, starting from SW
@@ -166,17 +221,16 @@ BLOCKS = {
 -- 
 BLOCK_CONNECTIONS = {
     REGULAR = {
-        -- possible connections to SW
-        SW = {BLOCKS.REGULAR, BLOCKS.HALF_E, BLOCKS.HALF_N, BLOCKS.RAMP_NE, BLOCKS.RAMP_HALF_E, BLOCKS.RAMP_HALF_N},
-    
-        -- TODO possible connections to NW
-        NW = {BLOCKS.REGULAR},
-    
-        -- TODO possible connections to NE
-        NE = {BLOCKS.REGULAR},
-    
-        -- TODO possible connections to SE
-        SE = {BLOCKS.REGULAR, BLOCKS.HALF_W, BLOCKS.HALF_N, BLOCKS.RAMP_NW, BLOCKS.RAMP_HALF_W, BLOCKS.RAMP_HALF_N}
+        SW = BLOCK_GROUPS.ELEVATED_AT.SW,
+        NW = BLOCK_GROUPS.ELEVATED_AT.NW,
+        NE = BLOCK_GROUPS.ELEVATED_AT.NE,
+        SE = BLOCK_GROUPS.ELEVATED_AT.SE
+    },
+    RAMP_NE = {
+        NE = BLOCK_GROUPS.ELEVATED_AT.NE,
+        NW = {}, -- {RAMP_NE},
+        SE = {}, -- {RAMP_NE},
+        SW = {} -- {BLOCK_GROUPS.SUNKEN_AT.SW}
     }
 }
 

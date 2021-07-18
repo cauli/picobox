@@ -6,7 +6,7 @@ levels = {
         },
         level = {
             {
-                {0,0,1,BLOCKS.REGULAR,false},
+                {2,1,1,BLOCKS.RAMP_NE,false},
             },
         }
     },
@@ -132,4 +132,6 @@ function load_level(level_to_load)
     end
 
     wave_function_collapse(blocks, 1)
+
+    sortDepth(blocks)
 end

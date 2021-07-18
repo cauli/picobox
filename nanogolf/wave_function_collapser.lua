@@ -25,8 +25,8 @@ function wave_function_collapse(blocks, rounds_left)
     offsets = {
       {x=0, y=1, coord="SW"},
       {x=1, y=0, coord="SE"},
-      -- {x=0, y=-1, coord="NE"},
-      -- {x=-1, y=0, coord="NE"}
+      {x=0, y=-1, coord="NE"},
+      {x=-1, y=0, coord="NW"}
     }
 
     for offset in all(offsets) do

@@ -209,6 +209,10 @@ function generate_block(x0,y0,z0,floor,i,has_hole)
     block.slope = 0 * block.z0
     block.directionup = nil
     block.directiondown = nil
+
+    block.elevations = {
+      elevated={}
+    }
   elseif(i == BLOCKS.RAMP_NW) then
     block.name = "RAMP_NW"
     block.slope = 0.25 * block.z0
@@ -219,13 +223,13 @@ function generate_block(x0,y0,z0,floor,i,has_hole)
     block.slope = 0.25 * block.z0
     block.directionup = "n"
     block.directiondown = "s"
-  elseif(i == BLOCKS.RAMP_SW) then
-    block.name = "RAMP_SW"
+  elseif(i == BLOCKS.RAMP_SE) then
+    block.name = "RAMP_SE"
     block.slope = 0.25 * block.z0
     block.directionup = "e"
     block.directiondown = "w"
-  elseif(i == BLOCKS.RAMP_SE) then
-    block.name = "RAMP_SE"
+  elseif(i == BLOCKS.RAMP_SW) then
+    block.name = "RAMP_SW"
     block.slope = 0.25 * block.z0
     block.directionup = "s"
     block.directiondown = "n"
