@@ -1,8 +1,3 @@
-function draw_ball(b)
-    pset(64, 64 - b.floor_height, 0) -- shadow
-    pset(64, 64 - b.z, ball.color)
-end
-
 function draw_tile(x0,y0, c)
   color(c)
 
@@ -418,9 +413,9 @@ function qsort(a,c,l,r)
     end
 end
 
-function sortDepth(blocks)
-  qsort(blocks, function(a,b) 
-    return a.x0 + a.y0 < b.x0 + b.y0
+function sortDepth(elem)
+  qsort(elem, function(a,b) 
+    return a.x0 + a.y0 + a.z0 - (a.zIndex/5) < b.x0 + b.y0 + b.z0 - (b.zIndex/5)
   end)
 end
 
@@ -438,13 +433,38 @@ function render_scene(blocks, ball)
       draw_tile(i, j, COLORS.DARK_GREY)
     end    
   end
-  
 
-  --draw blocks
-  foreach(blocks, draw_block)
+  drawn_ball = false
+  drawn_ball_shadow = false
 
-  -- draw ball
-  draw_ball(ball)
+  renderables = {}
+  for key, value in pairs(blocks) do
+    renderables[key] = value
+  end
+
+  printf(ball.z)
+  add(renderables, {zIndex=1,x0=ball.current_grid.x, y0=ball.current_grid.y, z0=ball.floor_height, class="ball_shadow"})
+  add(renderables, {zIndex=-1,x0=ball.current_grid.x, y0=ball.current_grid.y, z0=ball.current_floor, class="ball"})
+
+  sortDepth(renderables)
+
+  printf('>>>>>> will render')
+  for renderable in all(renderables) do
+
+    printf(renderable.zIndex)
+
+    if (renderable.class == 'block') then
+      draw_block(renderable)
+    end
+
+    if (renderable.class == 'ball_shadow') then
+      pset(64, 64 - ball.floor_height, 0) -- shadow      
+    end 
+    
+    if (renderable.class == 'ball') then    
+      pset(64, 64 - ball.z, ball.color)
+    end 
+  end
 end
 
 function _draw()
@@ -473,11 +493,12 @@ function _draw()
         print(block.x0 .. ", " .. block.y0, 1, 120, 9)
     end
 
-    print("b x:" .. ball.x .. " y:" .. ball.y .. " z:" .. ball.z, 1, 7, COLORS.BLACK)
-    print("ballg x:" .. ball.current_grid.x .. "   y:" .. ball.current_grid.y , 1, 14, COLORS.BLACK)
-    print("ballf x:" .. ball.current_grid_float.x .. "   y:" .. ball.current_grid_float.y , 1, 21, COLORS.BLACK)
-    print("floor z:" .. ball.floor_height , 1, 28, COLORS.BLACK)
-    print("cpu:" .. stat(1)*100 .. "%" , 1, 35, COLORS.DARK_PURPLE)
-    print("triangles:" .. debug_count_triangles , 1, 42, COLORS.DARK_PURPLE)
+    -- print("b x:" .. ball.x .. " y:" .. ball.y .. " z:" .. ball.z, 1, 7, COLORS.BLACK)
+    print("floor" .. ball.current_floor, 1, 7, COLORS.BLACK)
+    -- print("ballg x:" .. ball.current_grid.x .. "   y:" .. ball.current_grid.y , 1, 14, COLORS.BLACK)
+    -- print("ballf x:" .. ball.current_grid_float.x .. "   y:" .. ball.current_grid_float.y , 1, 21, COLORS.BLACK)
+    -- print("floor z:" .. ball.floor_height , 1, 28, COLORS.BLACK)
+    -- print("cpu:" .. stat(1)*100 .. "%" , 1, 35, COLORS.DARK_PURPLE)
+    -- print("triangles:" .. debug_count_triangles , 1, 42, COLORS.DARK_PURPLE)
 end
   

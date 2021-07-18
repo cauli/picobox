@@ -1,19 +1,23 @@
 levels = {
     {
         metadata = {
-        name = "wave function collapse",
-        theme = THEMES.LEAN
+            name = "wave function collapse",
+            theme = THEMES.LEAN,
+            procedural = true
         },
         level = {
             {
                 {2,1,1,BLOCKS.RAMP_NE,false},
+
+                {5,1,1,BLOCKS.REGULAR,false},
             },
         }
     },
     {
         metadata = {
-        name = "multiple floors",
-        theme = THEMES.LEAN
+            name = "multiple floors",
+            theme = THEMES.LEAN,
+            procedural = false
         },
         level = {
             {
@@ -23,12 +27,12 @@ levels = {
 
                 --{4,-1,1,BLOCKS.RAMP_SE,false},
 
-                {5,-4,1,BLOCKS.RAMP_SE,false},
+                {5,-4,1,BLOCKS.RAMP_SW,false},
                 {5,-3,1,BLOCKS.REGULAR,false},
                 {5,-2,1,BLOCKS.REGULAR,false},
             },
             {
-                {5,-3,1,BLOCKS.RAMP_SE,false},
+                {5,-3,1,BLOCKS.RAMP_SW,false},
                 {3,-2,1,BLOCKS.HALF_S,false},
                 {4,-2,1,BLOCKS.REGULAR,false},
                 {5,-2,1,BLOCKS.REGULAR,false},
@@ -38,8 +42,9 @@ levels = {
     },
     {
         metadata = {
-        name = "ramps with multiple heights",
-        theme = THEMES.SQUASH
+            name = "ramps with multiple heights",
+            theme = THEMES.SQUASH,
+            procedural = false
         },
         level = {
             {
@@ -61,8 +66,9 @@ levels = {
     -- diagonal ramps
     {
         metadata = {
-        name = "diagonals",
-        theme = THEMES.ROSEY
+            name = "diagonals",
+            theme = THEMES.ROSEY,
+            procedural = false
         },
         level = {
             { 
@@ -131,7 +137,9 @@ function load_level(level_to_load)
         foreach(level_floor, create_block)
     end
 
-    wave_function_collapse(blocks, 1)
+    if level_to_load.metadata.procedural then
+        wave_function_collapse(blocks, #blocks)
+    end
 
     sortDepth(blocks)
 end

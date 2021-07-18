@@ -192,127 +192,126 @@ function generate_block(x0,y0,z0,floor,i,has_hole)
   --     ...  .  ...
   --        ..7..
   local block = {}
+  block.class="block"
   block.x0 = x0
   block.y0 = y0
-  block.z0 = z0
+  block.height = z0
+  block.z0 = floor
   block.floor = floor
   block.i = i
   block.has_hole = has_hole
   block.friction = 0.99
+  block.zIndex = 0 -- just to tie-break depth sorting
 
   block.x = (block.x0-block.y0) * tw/2
   block.y = (block.x0+block.y0) * th/2
-  block.z = tz + (block.z0 * tz)
+  block.z = tz + (block.height * tz)
 
   if(i == BLOCKS.REGULAR)then
     block.name = "REGULAR"
-    block.slope = 0 * block.z0
+    block.slope = 0 * block.height
     block.directionup = nil
     block.directiondown = nil
-
-    block.elevations = {
-      elevated={}
-    }
   elseif(i == BLOCKS.RAMP_NW) then
     block.name = "RAMP_NW"
-    block.slope = 0.25 * block.z0
+    block.slope = 0.25 * block.height
     block.directionup = "w"
     block.directiondown = "e"
   elseif(i == BLOCKS.RAMP_NE) then
     block.name = "RAMP_NE"
-    block.slope = 0.25 * block.z0
+    block.slope = 0.25 * block.height
     block.directionup = "n"
     block.directiondown = "s"
   elseif(i == BLOCKS.RAMP_SE) then
     block.name = "RAMP_SE"
-    block.slope = 0.25 * block.z0
+    block.slope = 0.25 * block.height
     block.directionup = "e"
     block.directiondown = "w"
   elseif(i == BLOCKS.RAMP_SW) then
     block.name = "RAMP_SW"
-    block.slope = 0.25 * block.z0
+    block.slope = 0.25 * block.height
     block.directionup = "s"
     block.directiondown = "n"
   elseif(i == BLOCKS.RAMP_HALF_E) then
     block.name = "RAMP_HALF_E"
-    block.slope = 0.5 * block.z0
+    block.slope = 0.5 * block.height
     block.directionup = "ne"
     block.directiondown = "sw"
     block.slope1 = "a" 
     block.slope2 = "b"
   elseif(i == BLOCKS.RAMP_HALF_S) then
     block.name = "RAMP_HALF_S"
-    block.slope = 0.5 * block.z0
+    block.slope = 0.5 * block.height
     block.directionup = "se"
     block.directiondown = "nw"
     block.slope1 = "b" 
     block.slope2 = "c"
   elseif(i == BLOCKS.RAMP_HALF_W) then
     block.name = "RAMP_HALF_W"
-    block.slope = 0.5 * block.z0
+    block.slope = 0.5 * block.height
     block.directionup = "sw"
     block.directiondown = "ne"
     block.slope1 = "c" 
     block.slope2 = "d"
   elseif(i == BLOCKS.RAMP_HALF_N) then
     block.name = "RAMP_HALF_N"
-    block.slope = 0.5 * block.z0
+    block.slope = 0.5 * block.height
     block.directionup = "nw"
     block.directiondown = "se"
     block.slope1 = "d" 
     block.slope2 = "a"
   elseif(i == BLOCKS.RAMP_E) then
     block.name = "RAMP_E"
-    block.slope = 0.5 * block.z0
+    block.slope = 0.5 * block.height
     block.directionup = "ne"
     block.directiondown = "sw"
     block.slope1 = "c" 
     block.slope2 = "d"
   elseif(i == BLOCKS.RAMP_S) then
     block.name = "RAMP_S"
-    block.slope = 0.5 * block.z0
+    block.slope = 0.5 * block.height
     block.directionup = "se"
     block.directiondown = "nw"
     block.slope1 = "a" 
     block.slope2 = "d"
   elseif(i == BLOCKS.RAMP_W) then
     block.name = "RAMP_W"
-    block.slope = 0.5 * block.z0
+    block.slope = 0.5 * block.height
     block.directionup = "sw"
     block.directiondown = "ne"
     block.slope1 = "a" 
     block.slope2 = "b"
   elseif(i == BLOCKS.RAMP_N) then
     block.name = "RAMP_N"
-    block.slope = 0.5 * block.z0
+    block.slope = 0.5 * block.height
     block.directionup = "nw"
     block.directiondown = "se"
     block.slope1 = "b" 
     block.slope2 = "c"
   elseif(i == BLOCKS.HALF_S)then
     block.name = "HALF_S"
-    block.slope = 0 * block.z0
+    block.slope = 0 * block.height
     block.directionup = nil
     block.directiondown = nil
     block.top1 = "a"
     block.top2 = "d"  
   elseif(i == BLOCKS.HALF_W)then
     block.name = "HALF_W"
-    block.slope = 0 * block.z0
+    block.slope = 0 * block.height
     block.directionup = nil
     block.directiondown = nil
     block.top1 = "a"
     block.top2 = "b"
   elseif(i == BLOCKS.HALF_N)then
     block.name = "HALF_N"
-    block.slope = 0 * block.z0
+    block.slope = 0 * block.height
     block.directionup = nil
     block.directiondown = nil
     block.top1 = "b"
     block.top2 = "c"
   elseif(i == BLOCKS.HALF_E)then
     block.name = "HALF_E"
-    block.slope = 0 * block.z0
+    block.slope = 0 * block.height
     block.directionup = nil
     block.directiondown = nil
     block.top1 = "c"
