@@ -494,7 +494,7 @@ function _draw()
     end
 
     -- print("b x:" .. ball.x .. " y:" .. ball.y .. " z:" .. ball.z, 1, 7, COLORS.BLACK)
-    print("floor" .. ball.current_floor, 1, 7, COLORS.BLACK)
+    -- print("floor" .. ball.current_floor, 1, 7, COLORS.BLACK)
     -- print("ballg x:" .. ball.current_grid.x .. "   y:" .. ball.current_grid.y , 1, 14, COLORS.BLACK)
     -- print("ballf x:" .. ball.current_grid_float.x .. "   y:" .. ball.current_grid_float.y , 1, 21, COLORS.BLACK)
     -- print("floor z:" .. ball.floor_height , 1, 28, COLORS.BLACK)

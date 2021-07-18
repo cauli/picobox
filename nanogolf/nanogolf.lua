@@ -42,7 +42,7 @@ function hit_right_wall(b)
   b.vx = -b.vx
   b.vy = -b.vy
 
-  ball.color = COLORS.GREEN
+  ball.color = COLORS.WHITE
 
   -- 𝘸e always set 𝘮ay 𝘣e 𝘴tuck to true when hitting a wall.
   -- 𝘵hen we count the may_be_stuck frames and, if > than 𝘵hreshold,
@@ -66,7 +66,7 @@ function hit_left_wall(b)
   b.vx = -b.vx
   b.vy = -b.vy
 
-  ball.color = COLORS.GREEN
+  ball.color = COLORS.WHITE
 
   -- 𝘸e always set 𝘮ay 𝘣e 𝘴tuck to true when hitting a wall.
   -- 𝘵hen we count the may_be_stuck frames and, if > than 𝘵hreshold,
@@ -246,8 +246,6 @@ function _update()
   if (global_state.change_level.will_change_level) then
     global_state.change_level.counter = global_state.change_level.counter + 1
 
-    -- printh(global_state.change_level.max_counter)
-    -- printh(global_state.change_level.max_counter)
     if (global_state.change_level.counter > global_state.change_level.max_counter) then 
       next_level()
     end 
@@ -318,7 +316,6 @@ function _update()
         ball_copy.y = ball.y - ball.z
 
         current_distance_to_hole = distance(ball_copy,block)
-        printh(current_distance_to_hole)
         if(current_distance_to_hole < (tz*2))then
           ball.floor_height = 0 + block_floor_offset
 
