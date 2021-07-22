@@ -188,16 +188,20 @@ BLOCK_GROUPS = {
     },
     SUNKEN_AT = {
         SW = {
-            BLOCKS.HALF_E, BLOCKS.HALF_S,
-            BLOCKS.RAMP_NE
+            nil,
+            BLOCKS.HALF_W, BLOCKS.HALF_S,
+            BLOCKS.RAMP_SW
         },
         NW = {
+            nil,
             BLOCKS.HALF_S, BLOCKS.HALF_E
         },
         SE = {
+            nil,
             BLOCKS.HALF_W, BLOCKS.HALF_N
         },
         NE = {
+            nil,
             BLOCKS.HALF_E, BLOCKS.HALF_N
         }
     }
@@ -228,9 +232,27 @@ BLOCK_CONNECTIONS = {
     },
     RAMP_NE = {
         NE = BLOCK_GROUPS.ELEVATED_AT.NE,
-        NW = {}, -- {RAMP_NE},
-        SE = {}, -- {RAMP_NE},
-        SW = {} -- {BLOCK_GROUPS.SUNKEN_AT.SW}
+        NW = {nil, RAMP_NE},--TODO
+        SE = {nil, RAMP_NE},--TODO
+        SW = BLOCK_GROUPS.SUNKEN_AT.SW
+    },
+    RAMP_NW = {
+        NE = {nil, RAMP_NW}, --TODO
+        NW = BLOCK_GROUPS.ELEVATED_AT.NW,
+        SE = BLOCK_GROUPS.SUNKEN_AT.SE,
+        SW = {nil, RAMP_NW} --TODO
+    },
+    RAMP_SE = {
+        NE = {nil, RAMP_SE},--TODO
+        NW = BLOCK_GROUPS.SUNKEN_AT.NW, 
+        SE = BLOCK_GROUPS.ELEVATED_AT.SE,
+        SW = {nil, RAMP_SE}--TODO
+    },
+    RAMP_SW = {
+        NE = BLOCK_GROUPS.SUNKEN_AT.NE,
+        NW = {nil, RAMP_SW}, --TODO
+        SE = {nil, RAMP_SW},--TODO
+        SW = BLOCK_GROUPS.ELEVATED_AT.SW
     }
 }
 
@@ -239,11 +261,6 @@ BLOCK_CONNECTIONS = {
     --   HALF_S
     --   HALF_W
     --   HALF_N
-    --   HALF_E
-    --   RAMP_NW
-    --   RAMP_NE
-    --   RAMP_SW
-    --   RAMP_SE
     --   RAMP_HALF_E
     --   RAMP_HALF_S
     --   RAMP_HALF_W

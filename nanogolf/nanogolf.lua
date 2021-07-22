@@ -196,23 +196,23 @@ end
 -- TODO refactor force
 function add_force(obj, dir, force)
   if(dir == "s")then
-   obj.oldx += 0.2 * force
+   obj.oldx += 0.3 * force
    obj.oldy -= 0.1 * force
   end
 
   if(dir == "n")then
-   obj.oldx -= 0.2 * force
+   obj.oldx -= 0.3 * force
    obj.oldy += 0.1 * force
   end
 
   if(dir == "w")then
    obj.oldx += 0.3 * force
-   obj.oldy += 0.15 * force
+   obj.oldy += 0.1 * force
   end
 
   if(dir == "e")then
    obj.oldx -= 0.3 * force
-   obj.oldy -= 0.15 * force
+   obj.oldy -= 0.1 * force
   end
 
   if(dir == "se")then
@@ -238,7 +238,7 @@ end
 
 function get_ball_vertical_speed_multiplier()
   local dz = ball.oldz - ball.z
-  return min(max(dz*6,1),17)
+  return min(max(dz*5,1),17)
  end
 
 function _update()

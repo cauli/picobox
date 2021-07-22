@@ -51,7 +51,7 @@ function generate_ball(x0,y0,z0)
   return b
 end
 
-function generate_block(x0,y0,z0,floor,i,has_hole)
+function generate_block(x0,y0,z0,floor,i,has_hole,is_procedural)
   -- 𝘳𝘦𝘨𝘶𝘭𝘢𝘳
   --        ..1..
   --     ...     ...
@@ -202,7 +202,8 @@ function generate_block(x0,y0,z0,floor,i,has_hole)
   block.has_hole = has_hole
   block.friction = 0.99
   block.zIndex = 0 -- just to tie-break depth sorting
-
+  block.is_procedural = is_procedural
+  
   block.x = (block.x0-block.y0) * tw/2
   block.y = (block.x0+block.y0) * th/2
   block.z = tz + (block.height * tz)

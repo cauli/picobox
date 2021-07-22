@@ -24,7 +24,8 @@ function draw_block(block)
     local z = block.z
     local f = ((block.floor-1) * (th/2))
     
-    
+    local is_procedural = block.is_procedural
+
     -- top 4
     local p1 = generators.point(x, y-z, f) -- ttc
     local p2 = generators.point(x+tw/2,y+th/2-z, f)   -- tcr
@@ -369,6 +370,10 @@ function draw_block(block)
           
       end
     end
+
+    if is_procedural then
+      spr(16,pc.x-4,pc.y-4)
+    end
 end
 
 -- common comparators
@@ -442,17 +447,12 @@ function render_scene(blocks, ball)
     renderables[key] = value
   end
 
-  printf(ball.z)
   add(renderables, {zIndex=1,x0=ball.current_grid.x, y0=ball.current_grid.y, z0=ball.floor_height, class="ball_shadow"})
   add(renderables, {zIndex=-1,x0=ball.current_grid.x, y0=ball.current_grid.y, z0=ball.current_floor, class="ball"})
 
   sortDepth(renderables)
 
-  printf('>>>>>> will render')
   for renderable in all(renderables) do
-
-    printf(renderable.zIndex)
-
     if (renderable.class == 'block') then
       draw_block(renderable)
     end

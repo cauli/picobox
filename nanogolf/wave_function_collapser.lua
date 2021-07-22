@@ -8,7 +8,6 @@ end
 function wave_function_collapse(blocks, rounds_left)
   printf('-- starting wave fn collapse')
 
-
   for block in all(blocks) do 
 
     if rounds_left == 0 then
@@ -32,7 +31,8 @@ function wave_function_collapse(blocks, rounds_left)
 
         if #possible_connecting ~= 0 then
           chosen_block_type = rnd(possible_connecting)
-          local block_to_add = generators.block(block.x0 + offset.x, block.y0 + offset.y, 1, 1, chosen_block_type, false)
+          is_procedural = true
+          local block_to_add = generators.block(block.x0 + offset.x, block.y0 + offset.y, 1, 1, chosen_block_type, false, is_procedural)
           add(blocks, block_to_add)
         end 
       end 
