@@ -227,9 +227,9 @@ end
 
 current_level_floor = 0
 
-local function create_block(b) 
+local function create_block(b, is_user) 
     is_procedural = false
-    local block_to_add = generators.block(b[1], b[2], b[3], current_level_floor, b[4], b[5], is_procedural)
+    local block_to_add = generators.block(b[1], b[2], b[3], current_level_floor, b[4], b[5], is_procedural, is_user)
     add(blocks, block_to_add)
 end
 

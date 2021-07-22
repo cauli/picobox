@@ -24,10 +24,10 @@ BLOCKS = {
     --  8..     |     __6
     --     ...  |  ___
     --        ..7__
-    HALF_S=100,
-    HALF_W=101,
-    HALF_N=102,
-    HALF_E=103, 
+    HALF_S=1,
+    HALF_W=2,
+    HALF_N=3,
+    HALF_E=4, 
 
     -- a long ramp that raises to the specified direction
 
@@ -39,7 +39,7 @@ BLOCKS = {
     --  8..  \  .     ..6
     --     ...\ .  ...
     --        ..7..
-    RAMP_NW=1,
+    RAMP_NW=5,
 
     --        ..1_
     --     ... /   - _
@@ -49,7 +49,7 @@ BLOCKS = {
     --  8__     .  /  ..6
     --     ___  . /...
     --        __7..
-    RAMP_NE=2,
+    RAMP_NE=6,
 
     --        ..1..
     --     ...      ..
@@ -59,8 +59,8 @@ BLOCKS = {
     --  8..     .     ..6
     --     ...  .  ...
     --        ..7..
-    RAMP_SW=3,
-    RAMP_SE=4,
+    RAMP_SW=7,
+    RAMP_SE=8,
 
     -- RAMP_HALF_(E|S|W|N)
     --
@@ -75,7 +75,7 @@ BLOCKS = {
     --  8..     .     ..6
     --     ...  .  ...
     --        ..7..
-    RAMP_HALF_E=5,
+    RAMP_HALF_E=9,
 
     --          1 
     --     _____5_____
@@ -85,7 +85,7 @@ BLOCKS = {
     --  8..     .     ..6
     --     ...  .  ...
     --        ..7..
-    RAMP_HALF_S=6,
+    RAMP_HALF_S=10,
 
     --        ..1\
     --     ...  |  \
@@ -95,7 +95,7 @@ BLOCKS = {
     --  8..     .  --- \ 6
     --     ...  .  ...
     --        ..7..  
-    RAMP_HALF_W=7,
+    RAMP_HALF_W=11,
 
     --        ..1..
     --     ...     ...
@@ -105,7 +105,7 @@ BLOCKS = {
     --  8..  \     /  ..6
     --     ... \ /  ...
     --        ..7..  
-    RAMP_HALF_N=8,
+    RAMP_HALF_N=12,
 
     -- RAMP_(E|S|N|W)
     -- a small diagonal ramp that raises to the specified direction
@@ -117,7 +117,7 @@ BLOCKS = {
     --  8..     |  /  __6
     --     ...  |/ ___
     --        ..7__
-    RAMP_E=9,
+    RAMP_E=13,
         
     --        ..1..
     --     ...     ...
@@ -127,7 +127,7 @@ BLOCKS = {
     --  8 /     |     ⟍ 6
     --     ___  |   ___
     --        __7__
-    RAMP_S=10,
+    RAMP_S=14,
 
     --        ..1..
     --     ...     ...
@@ -137,7 +137,7 @@ BLOCKS = {
     --  8    \  |       6
     --    ___  \|  ...
     --        __7..
-    RAMP_W=11,
+    RAMP_W=15,
 
     --        ..1..
     --     ... / \ ...
@@ -147,7 +147,7 @@ BLOCKS = {
     --  8---------------6
     --     ...  .  ...
     --        ..7..
-    RAMP_N=12,
+    RAMP_N=16,
 }
 
 -- groups of blocks used for the wave function collapser

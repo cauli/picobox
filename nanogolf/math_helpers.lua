@@ -79,3 +79,11 @@ function px_to_grid_float(x,y)
     current_grid.y = (y / (th/2) -(x/ (tw/2))) /2;
     return current_grid
 end
+
+function grid_to_px(x0,y0,z0) 
+    local pos_px = {}
+    pos_px.x = (x0-y0) * tw/2
+    pos_px.y = (x0+y0) * th/2
+    pos_px.z = tz + (z0 * tz)
+    return pos_px
+end

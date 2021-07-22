@@ -25,6 +25,7 @@ function draw_block(block)
     local f = ((block.floor-1) * (th/2))
     
     local is_procedural = block.is_procedural
+    local is_user = block.is_user
 
     -- top 4
     local p1 = generators.point(x, y-z, f) -- ttc
@@ -371,8 +372,14 @@ function draw_block(block)
       end
     end
 
-    if is_procedural then
-      spr(16,pc.x-4,pc.y-4)
+    if is_edit_mode then 
+      if is_procedural then
+        spr(16,pc.x-4,pc.y-4)
+      end
+
+      if is_user then
+        spr(17,pc.x-4,pc.y-4)
+      end
     end
 end
 
@@ -439,6 +446,7 @@ function render_scene(blocks, ball)
     end    
   end
 
+
   drawn_ball = false
   drawn_ball_shadow = false
 
@@ -465,6 +473,10 @@ function render_scene(blocks, ball)
       pset(64, 64 - ball.z, ball.color)
     end 
   end
+
+    -- edit mode current tile
+    draw_tile(cursor_position.x, cursor_position.y, COLORS.PINK)
+
 end
 
 function _draw()
