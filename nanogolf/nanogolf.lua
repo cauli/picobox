@@ -7,9 +7,14 @@ global_state = {
   }
 }
 
-tw = 50
-th = 25
-tz = 12.5/2
+-- in screen px
+TILE_WIDTH = 50
+TILE_HEIGHT = 25
+TILE_HEIGHT_HALF = TILE_HEIGHT/2
+TILE_WIDTH_HALF = TILE_WIDTH/2
+
+DEFAULT_BLOCK_HEIGHT = 12.5/2
+
 
 -- height climbable
 height_climbable = 5
@@ -37,6 +42,7 @@ function toggle_edit_mode()
 
     cursor_position.x = ball.current_grid.x
     cursor_position.y = ball.current_grid.y
+    cursor_position.z = 0
 
     teletransport_ball_to(ball, cursor_position.x, cursor_position.y, 5)
   end
@@ -197,7 +203,7 @@ function get_block_at(x,y,z)
     z = 0
   end 
   for block in all(blocks) do
-    if(block.x0 == x and block.y0 == y and (block.floor-1)*(tz*2) <= z+2)then
+    if(block.x0 == x and block.y0 == y and (block.floor-1)*(DEFAULT_BLOCK_HEIGHT*2) <= z+2)then
       add(possible_blocks, block)
     end
   end
@@ -224,11 +230,11 @@ function get_block_at(x,y,z)
 end
 
 function raise(thing)
-  thing.z += tz/2
+  thing.z += DEFAULT_BLOCK_HEIGHT/2
 end
 
 function lower(thing)
-  thing.z -= tz/2
+  thing.z -= DEFAULT_BLOCK_HEIGHT/2
 end
 
 -- TODO refactor force
@@ -381,7 +387,7 @@ function _update()
     -- no need to call this if update_movement_ball is one
     ball.current_grid =       px_to_grid(ball.x, ball.y)
     ball.current_grid_float = px_to_grid_float(ball.x, ball.y)
-    ball.current_floor = 1 + (ball.z / (th/2))
+    ball.current_floor = 1 + (ball.z / (TILE_HEIGHT_HALF))
   
     block = get_block_at(ball.current_grid.x, ball.current_grid.y, ball.z)
   
@@ -395,7 +401,7 @@ function _update()
       ball.floor_height = 0
     -- plain block
     else 
-      block_floor_offset = ((block.floor-1) * tz * 2)
+      block_floor_offset = ((block.floor-1) * DEFAULT_BLOCK_HEIGHT * 2)
       quadrant = get_quadrant(ball.current_grid_float.x % flr(ball.current_grid_float.x), ball.current_grid_float.y % flr(ball.current_grid_float.y))
       ball.quadrant = quadrant
   
@@ -412,21 +418,21 @@ function _update()
           ball_copy.y = ball.y - ball.z
   
           current_distance_to_hole = distance(ball_copy,block)
-          if(current_distance_to_hole < (tz*2))then
+          if(current_distance_to_hole < (DEFAULT_BLOCK_HEIGHT*2))then
             ball.floor_height = 0 + block_floor_offset
   
             global_state.change_level.will_change_level = true
           else
-            ball.floor_height = (block.height  * tz * 2) + block_floor_offset
+            ball.floor_height = (block.height  * DEFAULT_BLOCK_HEIGHT * 2) + block_floor_offset
           end
         else
-          ball.floor_height = (block.height  * tz * 2) + block_floor_offset
+          ball.floor_height = (block.height  * DEFAULT_BLOCK_HEIGHT * 2) + block_floor_offset
         end  
       -- 45 degrees angles blocks
       elseif(block.i == BLOCKS.HALF_S or block.i == BLOCKS.HALF_W or block.i == BLOCKS.HALF_N or block.i == BLOCKS.HALF_E)then
      
         if(ball.quadrant == block.top1 or ball.quadrant == block.top2)then
-          ball.floor_height = (block.height  * tz * 2) + block_floor_offset
+          ball.floor_height = (block.height  * DEFAULT_BLOCK_HEIGHT * 2) + block_floor_offset
         else
           ball.floor_height = 0 + block_floor_offset
         end
@@ -449,13 +455,13 @@ function _update()
             ball.floor_height = block.height + block_floor_offset
         elseif(ball.quadrant == block.slope1 or ball.quadrant == block.slope2)then
           if(block.i == BLOCKS.RAMP_N)then
-            ball.floor_height = (1- (pns*16)/16 - (pwe*16)/16)  * (block.height  * tz * 2) + block_floor_offset
+            ball.floor_height = (1- (pns*16)/16 - (pwe*16)/16)  * (block.height  * DEFAULT_BLOCK_HEIGHT * 2) + block_floor_offset
           elseif(block.i == BLOCKS.RAMP_E)then
-            ball.floor_height = (1- (pns *16)/16 - (abs(1-pwe) *16)/16)  * (block.height  * tz*2)+ block_floor_offset
+            ball.floor_height = (1- (pns *16)/16 - (abs(1-pwe) *16)/16)  * (block.height  * DEFAULT_BLOCK_HEIGHT*2)+ block_floor_offset
           elseif(block.i ==BLOCKS.RAMP_W)then
-            ball.floor_height = (1- (abs(1-pns)  *16)/16 - (pwe*16)/16)  * (block.height  * tz*2)+ block_floor_offset
+            ball.floor_height = (1- (abs(1-pns)  *16)/16 - (pwe*16)/16)  * (block.height  * DEFAULT_BLOCK_HEIGHT*2)+ block_floor_offset
           elseif(block.i == BLOCKS.RAMP_S)then
-            ball.floor_height = (1- ( abs(1-pns) *16)/16 - ( abs(1-pwe) *16)/16)  * (block.height  * tz * 2)+ block_floor_offset
+            ball.floor_height = (1- ( abs(1-pns) *16)/16 - ( abs(1-pwe) *16)/16)  * (block.height  * DEFAULT_BLOCK_HEIGHT * 2)+ block_floor_offset
           end
         else 
             -- do nothing
@@ -489,21 +495,21 @@ function _update()
             else
               percent = abs(pns - 1)
             end
-            ball.floor_height = ((block.height  * tz * 2) * percent) + block_floor_offset
+            ball.floor_height = ((block.height  * DEFAULT_BLOCK_HEIGHT * 2) * percent) + block_floor_offset
           elseif(ball.quadrant == "a" and (block.slope1 == "a" or block.slope2 == "a"))then
             if(block.i == BLOCKS.RAMP_HALF_N)then -- 4 is 𝘶𝘱
               percent = abs(pwe - 1)
             else
               percent = pwe  -- 4 is 𝘥𝘰𝘸𝘯
             end
-            ball.floor_height = ((block.height  * tz * 2) * percent) + block_floor_offset
+            ball.floor_height = ((block.height  * DEFAULT_BLOCK_HEIGHT * 2) * percent) + block_floor_offset
           elseif(ball.quadrant == "c" and (block.slope1 == "c" or block.slope2 == "c"))then
             if(block.i == BLOCKS.RAMP_HALF_W)then -- 4 is 𝘶𝘱
               percent = abs(pwe-1)
             else
               percent = pwe
             end
-            ball.floor_height = ((block.height  * tz * 2) * percent) + block_floor_offset
+            ball.floor_height = ((block.height  * DEFAULT_BLOCK_HEIGHT * 2) * percent) + block_floor_offset
           elseif(ball.quadrant == "d" and (block.slope1 == "d" or block.slope2 == "d"))then
             if(block.i == BLOCKS.RAMP_HALF_W)then -- 4 is 𝘶𝘱
               percent = pns
@@ -511,20 +517,20 @@ function _update()
               percent = abs(pns - 1) 
             end
            
-            ball.floor_height = ((block.height  * tz * 2) * percent) + block_floor_offset
+            ball.floor_height = ((block.height  * DEFAULT_BLOCK_HEIGHT * 2) * percent) + block_floor_offset
           else
             not_on_slope = true
-            ball.floor_height = ((block.height  * tz * 2)) + block_floor_offset
+            ball.floor_height = ((block.height  * DEFAULT_BLOCK_HEIGHT * 2)) + block_floor_offset
           end
         end
   
         if(block.directionup == "w" or block.directionup == "n")then
           percent = abs(percent - 1)
-          ball.floor_height = ((block.height  * tz * 2) * percent) + block_floor_offset
+          ball.floor_height = ((block.height  * DEFAULT_BLOCK_HEIGHT * 2) * percent) + block_floor_offset
         end
   
         if(block.directionup == "e" or block.directionup == "s")then
-           ball.floor_height = ((block.height  * tz * 2) * percent) + block_floor_offset
+           ball.floor_height = ((block.height  * DEFAULT_BLOCK_HEIGHT * 2) * percent) + block_floor_offset
         end
   
       end

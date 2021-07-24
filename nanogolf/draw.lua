@@ -1,45 +1,82 @@
-function draw_tile(x0,y0, c)
+
+function draw_wireframe_block(x0,y0,z0, c)
   color(c)
 
-  local x = (x0-y0) * tw/2
-  local y = (x0+y0) * th/2
+  local x = (x0-y0) * TILE_WIDTH_HALF
+  local y = (x0+y0) * TILE_HEIGHT_HALF
+  local z = (x0+y0) * TILE_HEIGHT_HALF
   
   x += (64 - ball.x)
   y += (64 - ball.y)
-  line(x,y,x+tw/2,y+th/2)
-  line(x+tw/2,y+th/2,x,y+th)
-  line(x,y+th,x-tw/2,y+th/2)
-  line(x-tw/2,y+th/2,x,y)
+  line(x,y,x+TILE_WIDTH_HALF,y+TILE_HEIGHT_HALF) -- n to e
+  line(x+TILE_WIDTH_HALF,y+TILE_HEIGHT_HALF,x,y+TILE_HEIGHT) -- e to s
+  line(x,y+TILE_HEIGHT,x-TILE_WIDTH_HALF,y+TILE_HEIGHT_HALF) -- s to w
+  line(x-TILE_WIDTH_HALF,y+TILE_HEIGHT_HALF,x,y) -- w to n
 
-  if (x0 + y0) % 2 == 0 then
-    line(x-6,y +16,x+6,y + 16, COLORS.LIGHT_GREY)
-  end
+  line(x,y,x,y-TILE_HEIGHT_HALF) -- pole on n
+  line(x+TILE_WIDTH_HALF,y+TILE_HEIGHT_HALF,x+TILE_WIDTH_HALF,y) -- pole on  e
+  line(x,y+TILE_HEIGHT,x,y+TILE_HEIGHT-TILE_HEIGHT_HALF) -- pole on s
+  line(x-TILE_WIDTH_HALF,y+TILE_HEIGHT_HALF,x-TILE_WIDTH_HALF,y) -- pole on  w
+
+  line(x,y-TILE_HEIGHT_HALF,x+TILE_WIDTH_HALF,y) -- n to e
+  line(x+TILE_WIDTH_HALF,y,x,y+TILE_HEIGHT_HALF) -- e to s
+  line(x,y+TILE_HEIGHT_HALF,x-TILE_WIDTH_HALF,y) -- s to w
+  line(x-TILE_WIDTH_HALF,y,x,y-TILE_HEIGHT_HALF) -- w to n
+
+  if is_edit_mode then
+    if (x0 + y0) % 2 == 0 then
+      line(x-6,y +16,x+6,y + 16, COLORS.LIGHT_GREY)
+    end
   
-  print(x0 .. "," .. y0, x - 5, y  +10, COLORS.LIGHT_GREY)
+    print(x0 .. "," .. y0, x - 5, y  +10, COLORS.LIGHT_GREY)
+  end 
+end
+
+function draw_tile(x0,y0, c)
+  color(c)
+
+  local x = (x0-y0) * TILE_WIDTH_HALF
+  local y = (x0+y0) * TILE_HEIGHT_HALF
+  
+  x += (64 - ball.x)
+  y += (64 - ball.y)
+  line(x,y,x+TILE_WIDTH_HALF,y+TILE_HEIGHT_HALF)
+  line(x+TILE_WIDTH_HALF,y+TILE_HEIGHT_HALF,x,y+TILE_HEIGHT)
+  line(x,y+TILE_HEIGHT,x-TILE_WIDTH_HALF,y+TILE_HEIGHT_HALF)
+  line(x-TILE_WIDTH_HALF,y+TILE_HEIGHT_HALF,x,y)
+
+
+  if is_edit_mode then
+    if (x0 + y0) % 2 == 0 then
+      line(x-6,y +16,x+6,y + 16, COLORS.LIGHT_GREY)
+    end
+  
+    print(x0 .. "," .. y0, x - 5, y  +10, COLORS.LIGHT_GREY)
+  end 
 end
 
 function draw_block(block)
     local x = block.x + (64 - ball.x)
     local y = block.y + (64 - ball.y)
     local z = block.z
-    local f = ((block.floor-1) * (th/2))
+    local f = ((block.floor-1) * (TILE_HEIGHT_HALF))
     
     local is_procedural = block.is_procedural
     local is_user = block.is_user
 
     -- top 4
     local p1 = generators.point(x, y-z, f) -- ttc
-    local p2 = generators.point(x+tw/2,y+th/2-z, f)   -- tcr
-    local p3 = generators.point(x,y+th-z, f) -- tbc
-    local p4 = generators.point(x-tw/2,y+th/2-z, f) -- tcl
+    local p2 = generators.point(x+TILE_WIDTH_HALF,y+TILE_HEIGHT_HALF-z, f)   -- tcr
+    local p3 = generators.point(x,y+TILE_HEIGHT-z, f) -- tbc
+    local p4 = generators.point(x-TILE_WIDTH_HALF,y+TILE_HEIGHT_HALF-z, f) -- tcl
 
     local pc = generators.point(x, y, f)
 
     -- bottom 4
     local p5 = generators.point(x, y, f)  -- btc
-    local p6 = generators.point(x+tw/2, y+th/2, f) -- bcr
-    local p7 = generators.point(x, y+th, f)  -- bbc
-    local p8 = generators.point(x-tw/2, y+th/2, f)  -- bcl
+    local p6 = generators.point(x+TILE_WIDTH_HALF, y+TILE_HEIGHT_HALF, f) -- bcr
+    local p7 = generators.point(x, y+TILE_HEIGHT, f)  -- bbc
+    local p8 = generators.point(x-TILE_WIDTH_HALF, y+TILE_HEIGHT_HALF, f)  -- bcl
 
     if(block.i == BLOCKS.REGULAR)then
       --draw top
@@ -474,9 +511,10 @@ function render_scene(blocks, ball)
     end 
   end
 
+  if is_edit_mode == true then
     -- edit mode current tile
-    draw_tile(cursor_position.x, cursor_position.y, COLORS.PINK)
-
+    draw_wireframe_block(cursor_position.x, cursor_position.y, cursor_position.z, COLORS.PINK)
+  end 
 end
 
 function _draw()

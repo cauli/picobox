@@ -68,22 +68,22 @@ end
 
 function px_to_grid(x,y)
     local current_grid = {}
-    current_grid.x = flr((x / (tw/2) + y / (th/2)) /2);
-    current_grid.y = flr((y / (th/2) -(x/ (tw/2))) /2);
+    current_grid.x = flr((x / (TILE_WIDTH_HALF) + y / (TILE_HEIGHT_HALF)) /2);
+    current_grid.y = flr((y / (TILE_HEIGHT_HALF) -(x/ (TILE_WIDTH_HALF))) /2);
     return current_grid
 end
 
 function px_to_grid_float(x,y)
     local current_grid = {}
-    current_grid.x = (x / (tw/2) + y / (th/2)) /2;
-    current_grid.y = (y / (th/2) -(x/ (tw/2))) /2;
+    current_grid.x = (x / (TILE_WIDTH_HALF) + y / (TILE_HEIGHT_HALF)) /2;
+    current_grid.y = (y / (TILE_HEIGHT_HALF) -(x/ (TILE_WIDTH_HALF))) /2;
     return current_grid
 end
 
 function grid_to_px(x0,y0,z0) 
     local pos_px = {}
-    pos_px.x = (x0-y0) * tw/2
-    pos_px.y = (x0+y0) * th/2
-    pos_px.z = tz + (z0 * tz)
+    pos_px.x = (x0-y0) * TILE_WIDTH_HALF
+    pos_px.y = (x0+y0) * TILE_HEIGHT_HALF
+    pos_px.z = DEFAULT_BLOCK_HEIGHT + (z0 * DEFAULT_BLOCK_HEIGHT)
     return pos_px
 end

@@ -21,9 +21,9 @@ function generate_ball(x0,y0,z0)
   local b = {}
 
   -- convert to global
-  local x = (x0-y0) * tw/2
-  local y = (x0+y0) * th/2
-  local z = (z0 * tz) - tz
+  local x = (x0-y0) * TILE_WIDTH_HALF
+  local y = (x0+y0) * TILE_HEIGHT_HALF
+  local z = (z0 * DEFAULT_BLOCK_HEIGHT) - DEFAULT_BLOCK_HEIGHT
 
   b.x = x
   b.y = y
@@ -205,9 +205,9 @@ function generate_block(x0,y0,z0,floor,i,has_hole,is_procedural,is_user)
   block.is_procedural = is_procedural
   block.is_user = is_user
   
-  block.x = (block.x0-block.y0) * tw/2
-  block.y = (block.x0+block.y0) * th/2
-  block.z = tz + (block.height * tz)
+  block.x = (block.x0-block.y0) * TILE_WIDTH_HALF
+  block.y = (block.x0+block.y0) * TILE_HEIGHT_HALF
+  block.z = DEFAULT_BLOCK_HEIGHT + (block.height * DEFAULT_BLOCK_HEIGHT)
 
   if(i == BLOCKS.REGULAR)then
     block.name = "REGULAR"
