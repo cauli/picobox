@@ -78,6 +78,16 @@ function project_shadow_px(p, f)
   return p_to_px
 end
 
+function draw_decoration(decoration)
+
+  pos = grid_to_px(decoration.x0, decoration.y0, decoration.z0)
+
+  local x = pos.x + (64 - ball.x) - 4
+  local y = pos.y + (64 - ball.y) + 5
+  local z = pos.z
+  
+  spr(decoration.sprites[decoration.currentSprite], x, y)
+end
 
 function draw_block(block, is_shadow)
     local x = block.x + (64 - ball.x)
@@ -271,17 +281,13 @@ function draw_block(block, is_shadow)
   
     elseif(block.i == BLOCKS.RAMP_E)then
       solid_trifill_v3(p2,p5,p7,c6) -- sw
-  
       solid_trifill_v3(p2,p7,p6,c3) -- r
-   
     elseif(block.i == BLOCKS.RAMP_S)then
       solid_trifill_v3(p8,p7,p3,c2) -- l
-  
       solid_trifill_v3(p3,p7,p6,c3) -- r
     elseif(block.i == BLOCKS.RAMP_W)then
  
       solid_trifill_v3(p4,p8,p7,c2) -- l
-  
       solid_trifill_v3(p5,p4,p7,c6) -- 𝘯𝘦
     elseif(block.i == BLOCKS.RAMP_N)then  
       solid_trifill_v3(p1,p8,p6,c3) -- 𝘴𝘦
@@ -369,11 +375,11 @@ function render_scene(blocks, ball)
   local renderable_min_y = ball.current_grid.y - 2
   local renderable_max_y = ball.current_grid.y + 2
   
-  for i = renderable_min_x,renderable_max_x do
-    for j = renderable_min_y,renderable_max_y do
-      draw_tile(i, j, COLORS.DARK_GREY)
-    end    
-  end
+  -- for i = renderable_min_x,renderable_max_x do
+  --   for j = renderable_min_y,renderable_max_y do
+  --     draw_tile(i, j, COLORS.DARK_GREY)
+  --   end    
+  -- end
 
 
   drawn_ball = false
@@ -383,6 +389,8 @@ function render_scene(blocks, ball)
   for key, value in pairs(blocks) do
     renderables[key] = value
   end
+
+  renderables = TableConcat(renderables, decorations)
 
   add(renderables, {zIndex=1,x0=ball.current_grid.x, y0=ball.current_grid.y, z0=ball.floor_height, class="ball_shadow"})
   add(renderables, {zIndex=-1,x0=ball.current_grid.x, y0=ball.current_grid.y, z0=ball.current_floor, class="ball"})
@@ -398,6 +406,10 @@ function render_scene(blocks, ball)
   for renderable in all(renderables) do
     if (renderable.class == 'block') then
       draw_block(renderable)
+    end
+
+    if (renderable.class == 'decoration') then
+      draw_decoration(renderable)
     end
 
     if (renderable.class == 'ball_shadow') then
@@ -417,11 +429,6 @@ end
 
 function _draw()
     -- camera and bg
-
-    -- in this setup, camera follows ball around
-    -- camera(-64+ball.x, -64 + ball.y)
-    -- clip(-64+ball.x, -64+ ball.y)
-    -- rectfill(-64+ball.x, -64+ ball.y, ball.x + 64, 64+ ball.y, c5)
     clip(-64, -64, 64, 64)
     rectfill(0, 0, 128, 128, c5)
     
@@ -430,10 +437,6 @@ function _draw()
     -- this will bring debug stuff to fixed position
     -- camera()
     -- clip()
-
-    if current_distance_to_hole ~= nil then 
-        print("dist hole " .. current_distance_to_hole, 1, 110, 5)
-    end
 
     if block == nil then
         print(ball.current_grid.x .. ", " .. ball.current_grid.y, 1, 120, 5)

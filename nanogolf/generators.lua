@@ -52,6 +52,25 @@ function generate_ball(x0,y0,z0)
   return b
 end
 
+
+function generate_decoration(x0,y0,z0,type)
+  local decoration = {}
+  decoration.class="decoration"
+  decoration.type=type
+  decoration.x0 = x0
+  decoration.y0 = y0
+  decoration.z0 = z0
+  decoration.zIndex = 0
+
+  if decoration.type == 'folliage' then
+    decoration.sprites = {0,0,0,0,1,1,1,1,2,2,2,2,2,3,3,3,3,3,2,2,2,2,2,2,1,1,1,1,1,0,0,0,0,0}
+    decoration.currentSprite = flr(rnd() * #decoration.sprites)
+  end 
+
+  return decoration
+end
+
+
 function generate_block(x0,y0,z0,floor,i,has_hole,is_procedural,is_user)
   -- 𝘳𝘦𝘨𝘶𝘭𝘢𝘳
   --        ..1..
@@ -325,7 +344,8 @@ function generate_block(x0,y0,z0,floor,i,has_hole,is_procedural,is_user)
 end
 
 generators = {
-  block= generate_block,
+  block = generate_block,
+  decoration = generate_decoration,
   point= generate_point,
   ball = generate_ball
 }

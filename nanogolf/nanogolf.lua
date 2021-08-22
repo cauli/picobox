@@ -31,6 +31,8 @@ friction = 0.97
 bounce = 1
 
 blocks = {}
+decorations = {}
+
 
 debug_quadrants = false
 debug_count_triangles = 0
@@ -220,7 +222,9 @@ end
 
 function _init()
   ball = generators.ball(3,1,1)
-  next_level()
+
+  random_level()
+  -- next_level()
 end
 
 -- given X, Y, Z coordinates, will
@@ -381,6 +385,7 @@ function _update()
     oy = -10 * cos(shadow_angle2_percent)
   end 
 
+  
   if (global_state.change_level.will_change_level) then
     global_state.change_level.counter = global_state.change_level.counter + 1
 
@@ -388,6 +393,11 @@ function _update()
       next_level()
     end 
   end 
+
+  for decoration in all(decorations) do
+    decoration.currentSprite += 1
+    decoration.currentSprite %= #decoration.sprites
+  end
 
   debug_count_triangles = 0
 
