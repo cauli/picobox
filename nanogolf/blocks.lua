@@ -152,8 +152,13 @@ BLOCKS = {
 
 -- groups of blocks used for the wave function collapser
 BLOCK_GROUPS = {
+    EMPTY = {
+        nil,
+    },
     ELEVATED_AT = {
         SW = {
+            BLOCKS.REGULAR, 
+            BLOCKS.REGULAR, 
             BLOCKS.REGULAR, 
             BLOCKS.HALF_E, 
             BLOCKS.HALF_N, 
@@ -163,6 +168,8 @@ BLOCK_GROUPS = {
         },
         NW = {
             BLOCKS.REGULAR, 
+            BLOCKS.REGULAR, 
+            BLOCKS.REGULAR, 
             BLOCKS.RAMP_SE,
             BLOCKS.HALF_E, 
             BLOCKS.HALF_S,
@@ -171,6 +178,8 @@ BLOCK_GROUPS = {
         },
         SE = {
             BLOCKS.REGULAR, 
+            BLOCKS.REGULAR, 
+            BLOCKS.REGULAR, 
             BLOCKS.HALF_N, 
             BLOCKS.HALF_W, 
             BLOCKS.RAMP_NW, 
@@ -178,6 +187,8 @@ BLOCK_GROUPS = {
             BLOCKS.RAMP_HALF_N
         },
         NE = {
+            BLOCKS.REGULAR, 
+            BLOCKS.REGULAR, 
             BLOCKS.REGULAR,
             BLOCKS.HALF_W,
             BLOCKS.HALF_S,
@@ -186,26 +197,79 @@ BLOCK_GROUPS = {
             BLOCKS.RAMP_HALF_S
         }
     },
+    ELEVATING_TOWARDS = {
+        SW = {
+            BLOCKS.RAMP_SW,
+        },
+        NW = {
+            BLOCKS.RAMP_NW,
+        },
+        SE = {
+            BLOCKS.RAMP_SE,
+        },
+        NE = {
+            BLOCKS.RAMP_NE,
+        },
+        N = {
+            BLOCKS.RAMP_N,
+        },
+        W = {
+            BLOCKS.RAMP_W,
+        },
+        S = {
+            BLOCKS.RAMP_S,
+        },
+        E = {
+            BLOCKS.RAMP_E,
+        }
+    },
     SUNKEN_AT = {
         SW = {
+            nil,
+            nil,
             nil,
             BLOCKS.HALF_W, BLOCKS.HALF_S,
             BLOCKS.RAMP_SW
         },
         NW = {
             nil,
+            nil,
+            nil,
             BLOCKS.HALF_S, BLOCKS.HALF_E
         },
         SE = {
+            nil,
+            nil,
             nil,
             BLOCKS.HALF_W, BLOCKS.HALF_N
         },
         NE = {
             nil,
+            nil,
+            nil,
             BLOCKS.HALF_E, BLOCKS.HALF_N
         }
     }
 }
+
+function TableConcat(t1,t2)
+    t1c = {}
+    t2c = {}
+
+    for key, value in pairs(t1) do
+        t1c[key] = value
+    end
+      
+    for key, value in pairs(t2) do
+        t2c[key] = value
+    end
+
+    for i=1,#t2c do
+        t1c[#t1c+1] = t2c[i]
+    end
+    
+    return t1c
+end
 
 -- for each block type, we determine which are the possible
 -- connection blocks for each coordinate set, in the following 
@@ -225,33 +289,33 @@ BLOCK_GROUPS = {
 -- 
 BLOCK_CONNECTIONS = {
     REGULAR = {
-        SW = BLOCK_GROUPS.ELEVATED_AT.SW,
-        NW = BLOCK_GROUPS.ELEVATED_AT.NW,
-        NE = BLOCK_GROUPS.ELEVATED_AT.NE,
-        SE = BLOCK_GROUPS.ELEVATED_AT.SE
+        SW = TableConcat(BLOCK_GROUPS.EMPTY, BLOCK_GROUPS.ELEVATED_AT.SW),
+        NW = TableConcat(BLOCK_GROUPS.EMPTY, BLOCK_GROUPS.ELEVATED_AT.NW),
+        NE = TableConcat(BLOCK_GROUPS.EMPTY, BLOCK_GROUPS.ELEVATED_AT.NE),
+        SE = TableConcat(BLOCK_GROUPS.EMPTY, BLOCK_GROUPS.ELEVATED_AT.SE)
     },
     RAMP_NE = {
         NE = BLOCK_GROUPS.ELEVATED_AT.NE,
-        NW = {nil, RAMP_NE},--TODO
-        SE = {nil, RAMP_NE},--TODO
+        NW = TableConcat(BLOCK_GROUPS.ELEVATING_TOWARDS.NE, BLOCK_GROUPS.ELEVATING_TOWARDS.E),
+        SE = TableConcat(BLOCK_GROUPS.ELEVATING_TOWARDS.NE, BLOCK_GROUPS.ELEVATING_TOWARDS.N),
         SW = BLOCK_GROUPS.SUNKEN_AT.SW
     },
     RAMP_NW = {
-        NE = {nil, RAMP_NW}, --TODO
+        NE = TableConcat(BLOCK_GROUPS.ELEVATING_TOWARDS.NW, BLOCK_GROUPS.ELEVATING_TOWARDS.W),
         NW = BLOCK_GROUPS.ELEVATED_AT.NW,
-        SE = BLOCK_GROUPS.SUNKEN_AT.SE,
-        SW = {nil, RAMP_NW} --TODO
+        SE = BLOCK_GROUPS.SUNKEN_AT.NW,
+        SW = TableConcat(BLOCK_GROUPS.ELEVATING_TOWARDS.NW, BLOCK_GROUPS.ELEVATING_TOWARDS.N),
     },
     RAMP_SE = {
-        NE = {nil, RAMP_SE},--TODO
-        NW = BLOCK_GROUPS.SUNKEN_AT.NW, 
+        NE = TableConcat(BLOCK_GROUPS.ELEVATING_TOWARDS.SE, BLOCK_GROUPS.ELEVATING_TOWARDS.S),
+        NW = BLOCK_GROUPS.SUNKEN_AT.SE, 
         SE = BLOCK_GROUPS.ELEVATED_AT.SE,
-        SW = {nil, RAMP_SE}--TODO
+        SW = TableConcat(BLOCK_GROUPS.ELEVATING_TOWARDS.SE, BLOCK_GROUPS.ELEVATING_TOWARDS.E),
     },
     RAMP_SW = {
         NE = BLOCK_GROUPS.SUNKEN_AT.NE,
-        NW = {nil, RAMP_SW}, --TODO
-        SE = {nil, RAMP_SW},--TODO
+        NW = TableConcat(BLOCK_GROUPS.ELEVATING_TOWARDS.SW, BLOCK_GROUPS.ELEVATING_TOWARDS.S),
+        SE = TableConcat(BLOCK_GROUPS.ELEVATING_TOWARDS.SW, BLOCK_GROUPS.ELEVATING_TOWARDS.W),
         SW = BLOCK_GROUPS.ELEVATED_AT.SW
     }
 }

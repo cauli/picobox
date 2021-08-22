@@ -18,7 +18,7 @@ local COLORS = {
 }
 
 local THEMES = {
-    ROSEY = {
+    {
       c1 = COLORS.DARK_GREY,
       c2 = COLORS.BLACK,
       c3 = COLORS.PINK,
@@ -26,7 +26,7 @@ local THEMES = {
       c5 = COLORS.LAVENDER,
       c6 = COLORS.DARK_PURPLE,
     },
-    LEAN = {
+    {
       c1 = COLORS.LIGHT_GREY,
       c2 = COLORS.WHITE,
       c3 = COLORS.DARK_GREY,
@@ -34,7 +34,7 @@ local THEMES = {
       c5 = COLORS.LIGHT_PEACH,
       c6 = COLORS.BLACK,
     },
-    SQUASH = {
+    {
       c1 = COLORS.BLUE,
       c2 = COLORS.DARK_BLUE,
       c3 = COLORS.LIGHT_GREY,
@@ -42,12 +42,12 @@ local THEMES = {
       c5 = COLORS.ORANGE,
       c6 = COLORS.LAVENDER,
     },
-    RANDOM = {
-      c1 = flr(rnd()*16),
-      c2 = flr(rnd()*16),
-      c3 = flr(rnd()*16),
-      c4 = flr(rnd()*16),
-      c5 = flr(rnd()*16),
-      c6 = flr(rnd()*16),
-    }
   }
+
+function getRandomTheme(themeSeed) 
+  srand(themeSeed)
+  local t = rnd(THEMES)
+
+  printf(t)
+  return t
+end

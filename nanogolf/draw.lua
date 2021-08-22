@@ -165,18 +165,6 @@ function draw_block(block, is_shadow)
         spr(6,pc.x-4,pc.y-4-8)
       end
     elseif(block.i == BLOCKS.HALF_S)then
-  
-        -- i == BLOCKS.HALF_S
-        --        ..1..
-        --     ...     ...
-        --  4_______________2
-        --  |  ---     ---  |
-        --  |     --3--     |
-        --  8--     |     --6
-        --     ---  |  ---
-        --        --7--
-  
-  
       --draw top
       solid_trifill_v3(p4,p3,p2,c1) --t
   
@@ -185,35 +173,14 @@ function draw_block(block, is_shadow)
   
       solid_trifill_v3(p2,p3,p7,c3) -- r
       solid_trifill_v3(p7,p6,p2,c3) 
-    elseif(block.i == BLOCKS.HALF_W)then
-      -- i == BLOCKS.HALF_W
-      --        __1..
-      --     ___  |  ...
-      --  4__     |     ..2
-      --  |  ___  |  ...  .
-      --  |     __3..     .
-      --  8__     |     ..6
-      --     ___  |  ...
-      --        __7..
-  
-  
+    elseif(block.i == BLOCKS.HALF_W)then  
       --draw top
       solid_trifill_v3(p4,p3,p1,c1)
   
       solid_trifill_v3(p8,p7,p3,c2) -- l
       solid_trifill_v3(p4,p8,p3,c2) -- l
   
-    elseif(block.i == BLOCKS.HALF_N)then
-    -- i ==102
-    --        __1__
-    --    ___       ___
-    --  4_______________2
-    --  |  ...     ...  |
-    --  |     ..3..     |
-    --  8_______________6
-    --     ...  .  ...
-    --        ..7..  
-  
+    elseif(block.i == BLOCKS.HALF_N)then  
       --draw top
       solid_trifill_v3(p4,p2,p1,c1)
   
@@ -222,15 +189,6 @@ function draw_block(block, is_shadow)
       rectfill(p4.x,p4.y,p6.x,p6.y)
   
     elseif(block.i == BLOCKS.HALF_E)then
-    -- i == BLOCKS.HALF_E
-    --        ..1__
-    --     ...  |  ___
-    --  4..     |     __2
-    --  .  ...  |  ___  |
-    --  .     ..3__     |
-    --  8..     |     __6
-    --     ...  |  ___
-    --        ..7__  
       --draw top
       solid_trifill_v3(p1,p3,p2,c1)
   
@@ -254,16 +212,6 @@ function draw_block(block, is_shadow)
   
   
     elseif(block.i == BLOCKS.RAMP_SE)then
-    --        ..1..
-    --     ...     ...
-    --  4..           ..2
-    --  .  ...     ...  .
-    --  .     ..3--------
-    --  8..     .     ..6
-    --     ...  .  ...
-    --        ..7..
-
-  
       -- draw top
       solid_trifill_v3(p7,p6,p2,c3)
       solid_trifill_v3(p2,p3,p7,c3)
@@ -274,16 +222,7 @@ function draw_block(block, is_shadow)
       --draw top
       solid_trifill_v3(p8,p3,p2,c1)
       solid_trifill_v3(p5,p8,p2,c1)
-    elseif(block.i == BLOCKS.RAMP_SW)then
-    --        ..1..
-    --     ...     ...
-    --  4..           ..2
-    --  .  ...     ...  .
-    --  --------.3..     .
-    --  8..     .     ..6
-    --     ...  .  ...
-    --        ..7..
-  
+    elseif(block.i == BLOCKS.RAMP_SW)then 
       solid_trifill_v3(p4,p8,p3,c2) 
       solid_trifill_v3(p8,p7,p3,c2) -- l
   
@@ -292,16 +231,7 @@ function draw_block(block, is_shadow)
       solid_trifill_v3(p3,p6,p5,c6) --t
       solid_trifill_v3(p5,p4,p3,c6) 
     elseif(block.i == BLOCKS.RAMP_HALF_E)then
-    -- i == BLOCKS.RAMP_HALF_E
-    --        ./1..
-    --     ../  |  ...
-    --  4../    |     ..2
-    --  ./      |  ...  .
-    --  --------.3..     .
-    --  8..     .     ..6
-    --     ...  .  ...
-    --        ..7..
-  
+ 
       solid_trifill_v3(p1,p3,p2,c1) -- t
   
       solid_trifill_v3(p1,p8,p3,c6) -- sw
@@ -311,14 +241,6 @@ function draw_block(block, is_shadow)
       solid_trifill_v3(p2,p3,p7,c3) -- r
       solid_trifill_v3(p7,p6,p2,c3) 
     elseif(block.i == BLOCKS.RAMP_HALF_S)then
-    --          1 
-    --     _____5_____
-    --  4_______________2
-    --  .  ...      ...  .
-    --  .     ..3..     .
-    --  8..     .     ..6
-    --     ...  .  ...
-    --        ..7..
       solid_trifill_v3(p3,p2,p4,c1) -- t
   
       solid_trifill_v3(p4,p2,p5,c6) -- 𝘯𝘸
@@ -331,15 +253,6 @@ function draw_block(block, is_shadow)
     
       
     elseif(block.i == BLOCKS.RAMP_HALF_W)then
-    --        ..1\
-    --     ...  |  \
-    --  4..     |   \    2
-    --  .  ...  |    \   
-    --  .     ..3__   \  
-    --  8..     .  --- \ 6
-    --     ...  .  ...
-    --        ..7..  
-  
       solid_trifill_v3(p4,p3,p1,c1) -- t
   
       solid_trifill_v3(p3,p6,p1,c6) -- 𝘯𝘦
@@ -349,15 +262,6 @@ function draw_block(block, is_shadow)
   
       solid_trifill_v3(p7,p6,p3,c3) -- r
     elseif(block.i == BLOCKS.RAMP_HALF_N)then
-    -- i == BLOCKS.RAMP_HALF_N
-    --        ..1..
-    --     ...     ...
-    --  4_______________2
-    --  . \           / .
-    --  .   \        /  .
-    --  8..  \     /  ..6
-    --     ... \ /  ...
-    --        ..7..  
       solid_trifill_v3(p1,p4,p2,c1) -- t
   
       solid_trifill_v3(p4,p7,p2,c3) -- 𝘴𝘦
@@ -366,57 +270,20 @@ function draw_block(block, is_shadow)
       solid_trifill_v3(p6,p2,p7,c3) -- r
   
     elseif(block.i == BLOCKS.RAMP_E)then
-    --        ..1..
-    --     ...     ...
-    --  4..     5-------2
-    --  .       |      /|
-    --  .       |    /  |
-    --  8..     |  /  __6
-    --     ...  |/ ___
-    --        ..7__
-  
-  
       solid_trifill_v3(p2,p5,p7,c6) -- sw
   
       solid_trifill_v3(p2,p7,p6,c3) -- r
    
     elseif(block.i == BLOCKS.RAMP_S)then
-    --        ..1..
-    --     ...     ...
-    --  4..           ..2
-    --  .     / 3 \     .  
-    --  .   /   |   \   . 
-    --  8 /     |     \ 6
-    --     ___  |   ___
-    --        __7__
-  
       solid_trifill_v3(p8,p7,p3,c2) -- l
   
       solid_trifill_v3(p3,p7,p6,c3) -- r
     elseif(block.i == BLOCKS.RAMP_W)then
-    --        ..1..
-    --     ...     ...
-    --  4-------5      ..2
-    --  |  \    |   ..   .  
-    --  |   \   |..      . 
-    --  8    \  |       6
-    --    ___  \|  ...
-    --        __7..
-  
+ 
       solid_trifill_v3(p4,p8,p7,c2) -- l
   
       solid_trifill_v3(p5,p4,p7,c6) -- 𝘯𝘦
-    elseif(block.i == BLOCKS.RAMP_N)then
-    -- i == BLOCKS.RAMP_N
-    --        ..1..
-    --     ... / \ ...
-    --  4..  /     \  ..2
-    --  .  /         \  .  
-    --  ./             \. 
-    --  8---------------6
-    --     ...  .  ...
-    --        ..7..
-  
+    elseif(block.i == BLOCKS.RAMP_N)then  
       solid_trifill_v3(p1,p8,p6,c3) -- 𝘴𝘦
     end
   
