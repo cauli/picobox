@@ -1,6 +1,24 @@
 levels = {
     {
         metadata = {
+            name = "shadow",
+            theme = THEMES.SQUASH,
+            procedural = false
+        },
+        level = {
+            {
+                {3,0,1.0,BLOCKS.REGULAR,false},
+                -- {3,3,1.0,BLOCKS.REGULAR,false},
+            },
+            {
+                -- {3,3,1.0,BLOCKS.REGULAR,false},
+
+                -- {3,6,1.0,BLOCKS.REGULAR,false},
+            },
+        }
+    },
+    {
+        metadata = {
             name = "multiple heights",
             theme = THEMES.SQUASH,
             procedural = true

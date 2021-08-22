@@ -55,7 +55,31 @@ function draw_tile(x0,y0, c)
   end 
 end
 
-function draw_block(block)
+function draw_block_shadow(block)
+  draw_block(block, true)
+end 
+
+function project_shadow_px(p, f)
+  -- in order to keep the triangles drawn for the blocks, 
+  -- the shadow can only project "up"
+  -- in the screen (towards NORTH)
+  -- if we wish to draw shadows to other directions, we need to choose other triangles to draw
+  -- depending on the base block type
+  local offset_x = ox
+  local offset_y = oy
+
+
+  local p_grid = px_to_grid_float(p.x, p.y)
+  p_grid.z = f
+  p_projected = project_point(p_grid, offset_x, offset_y)
+  p_to_px = grid_to_px(p_projected.x, p_projected.y, p_projected.z)
+
+  -- pset(p_to_px.x, p_to_px.y, 0)
+  return p_to_px
+end
+
+
+function draw_block(block, is_shadow)
     local x = block.x + (64 - ball.x)
     local y = block.y + (64 - ball.y)
     local z = block.z
@@ -78,19 +102,58 @@ function draw_block(block)
     local p7 = generators.point(x, y+TILE_HEIGHT, f)  -- bbc
     local p8 = generators.point(x-TILE_WIDTH_HALF, y+TILE_HEIGHT_HALF, f)  -- bcl
 
+    local c1 = c1 
+    local c2 = c2
+    local c3 = c3    
+    local c4 = c4 
+    local c5 = c5
+    local c6 = c6
+
+    if is_shadow == true then
+      if is_shadow_debug == true then
+        c1 = COLORS.GREEN
+        c2 = COLORS.RED
+        c3 = COLORS.BLUE
+        c4 = COLORS.BLACK
+        c5 = COLORS.DARK_GREEN
+        c6 = COLORS.DARK_BLUE
+      else 
+        c1 = COLORS.DARK_PURPLE
+        c2 = COLORS.DARK_PURPLE
+        c3 = COLORS.DARK_PURPLE
+        c4 = COLORS.DARK_PURPLE
+        c5 = COLORS.DARK_PURPLE
+        c6 = COLORS.DARK_PURPLE
+      end
+
+
+      -- top
+      p1 = project_shadow_px(p1, block.z)
+      p2 = project_shadow_px(p2, block.z)
+      p3 = project_shadow_px(p3, block.z)
+      p4 = project_shadow_px(p4, block.z)
+
+      -- bottom
+      -- p5 = project_shadow_px(p5, f)
+      -- p6 = project_shadow_px(p6, f)
+      -- p7 = project_shadow_px(p7, f)
+      -- p8 = project_shadow_px(p8, f)
+
+    end 
+   
     if(block.i == BLOCKS.REGULAR)then
       --draw top
       solid_trifill_v3(p3,p2,p1,c1)
       solid_trifill_v3(p1,p4,p3,c1)
-  
+
       --draw left
       solid_trifill_v3(p8,p7,p3,c2)
       solid_trifill_v3(p3,p4,p8,c2)
-     
+      
       --draw right
       solid_trifill_v3(p7,p6,p2,c3)
       solid_trifill_v3(p2,p3,p7,c3)
-  
+
       if(block.has_hole)then
         palt(14, true)
         palt(0,false)
@@ -424,44 +487,6 @@ end
 function  ascending(a,b) return a<b end
 function descending(a,b) return a>b end
 
--- a: array to be sorted in-place
--- c: comparator (optional, defaults to ascending)
--- l: first index to be sorted (optional, defaults to 1)
--- r: last index to be sorted (optional, defaults to #a)
-function qsort(a,c,l,r)
-    c,l,r=c or ascending,l or 1,r or #a
-    if l<r then
-        if c(a[r],a[l]) then
-            a[l],a[r]=a[r],a[l]
-        end
-        local lp,rp,k,p,q=l+1,r-1,l+1,a[l],a[r]
-        while k<=rp do
-            if c(a[k],p) then
-                a[k],a[lp]=a[lp],a[k]
-                lp+=1
-            elseif not c(a[k],q) then
-                while c(q,a[rp]) and k<rp do
-                    rp-=1
-                end
-                a[k],a[rp]=a[rp],a[k]
-                rp-=1
-                if c(a[k],p) then
-                    a[k],a[lp]=a[lp],a[k]
-                    lp+=1
-                end
-            end
-            k+=1
-        end
-        lp-=1
-        rp+=1
-        a[l],a[lp]=a[lp],a[l]
-        a[r],a[rp]=a[rp],a[r]
-        qsort(a,c,l,lp-1       )
-        qsort(a,c,  lp+1,rp-1  )
-        qsort(a,c,       rp+1,r)
-    end
-end
-
 function sortDepth(elem)
   qsort(elem, function(a,b) 
     return a.x0 + a.y0 + a.z0 - (a.zIndex/5) < b.x0 + b.y0 + b.z0 - (b.zIndex/5)
@@ -496,6 +521,12 @@ function render_scene(blocks, ball)
   add(renderables, {zIndex=-1,x0=ball.current_grid.x, y0=ball.current_grid.y, z0=ball.current_floor, class="ball"})
 
   sortDepth(renderables)
+
+  for renderable in all(renderables) do
+    if (renderable.class == 'block') then
+      draw_block_shadow(renderable)
+    end
+  end
 
   for renderable in all(renderables) do
     if (renderable.class == 'block') then

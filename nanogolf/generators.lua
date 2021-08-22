@@ -12,6 +12,7 @@ function generate_point(x,y,f)
   local p = {}
   p.x = x
   p.y = y - f
+  p.z = f
   return p
 end
 

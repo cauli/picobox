@@ -2,7 +2,7 @@ debugfile = 'deb.txt'
 
 function printf(str)
 
-  printh(str, debugfile, false)
+  printh(str, debugfile, true)
 end
 
 function wave_function_collapse(blocks, rounds_left)
