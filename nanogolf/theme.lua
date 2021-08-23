@@ -41,7 +41,7 @@ local THEMES = {
       c4 = COLORS.DARK_GREY,
       c5 = COLORS.ORANGE,
       c6 = COLORS.LAVENDER,
-    },
+    }
   }
 
 function getRandomTheme(themeSeed) 

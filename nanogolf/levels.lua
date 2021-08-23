@@ -310,7 +310,13 @@ function get_sub_seeds()
     local themeSeed = subSeeds[1] -- theme
     local baseLevel = subSeeds[2] -- base level
 
-    return { themeSeed = subSeeds[1], baseLeverPickerSeed = subSeeds[2], waveFn1 = subSeeds[3], folliage = subSeeds[4] }
+    return { 
+        themeSeed = subSeeds[1], 
+        baseLeverPickerSeed = subSeeds[2], 
+        waveFn1 = subSeeds[3], 
+        folliage = subSeeds[4],
+        darkPalette = subSeeds[5] 
+    }
 end
 >>>>>>> 5d80ee3 (Add decorations)
 
@@ -393,6 +399,14 @@ function load_level(level_to_load, subSeeds)
     local theme = getRandomTheme(subSeeds.themeSeed)
 >>>>>>> 5d80ee3 (Add decorations)
 
+    srand(subSeeds.darkPalette)
+    if rnd() < 0.15 then
+        for i=0,15 do
+            pal(i,i+128,1)
+        end
+        attr_is_night = true
+    end
+
     c1 = theme.c1
     c2 = theme.c2
     c3 = theme.c3
@@ -400,7 +414,7 @@ function load_level(level_to_load, subSeeds)
     c5 = theme.c5
     c6 = theme.c6
     
-    srand(baseLevel)
+    srand(subSeeds.baseLevel)
     randomLevel = rnd(level_to_load.level)
     
     for level_floor in all(level_to_load.level) do
@@ -410,21 +424,25 @@ function load_level(level_to_load, subSeeds)
 
     if level_to_load.metadata.procedural then
         srand(subSeeds.waveFn1)
-        wave_function_collapse(blocks, 10)
+        wave_function_collapse(blocks, 100)
     end
 
-    for x = -0,10 do
-        for y = -10,10 do
-         
+    for x = -5,5 do
+        for y = -5,5 do
             block = get_block_at(x, y, 1)
-            printf('adding decoration')
-   
             if block == nil then
-
                 if rnd() < 0.10 then 
                     add(decorations, generate_decoration(x, y, 0, "folliage"))
                 end
+            end 
             
+            if attr_is_night ~= true then
+                block = get_block_at(x, y, 1)
+                if block == nil then
+                    if rnd() < 0.01 then 
+                        add(decorations, generate_decoration(x, y, 0, "flamingo"))
+                    end
+                end 
             end 
         
         end    

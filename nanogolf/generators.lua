@@ -60,11 +60,27 @@ function generate_decoration(x0,y0,z0,type)
   decoration.x0 = x0
   decoration.y0 = y0
   decoration.z0 = z0
-  decoration.zIndex = 0
 
   if decoration.type == 'folliage' then
-    decoration.sprites = {0,0,0,0,1,1,1,1,2,2,2,2,2,3,3,3,3,3,2,2,2,2,2,2,1,1,1,1,1,0,0,0,0,0}
-    decoration.currentSprite = flr(rnd() * #decoration.sprites)
+    decoration.zIndex = 0
+    decoration.offsetY = 0
+    decoration.w = 1
+    decoration.h = 1
+    decoration.tick = 0
+    decoration.step = 5
+    decoration.sprites = {0,1,2,3,2,1,0}
+    decoration.frame = flr(rnd() * #decoration.sprites)
+  end 
+
+  if decoration.type == 'flamingo' then
+    decoration.zIndex = -10
+    decoration.offsetY = -2
+    decoration.w = 2
+    decoration.h = 3
+    decoration.tick = 0
+    decoration.step = 10
+    decoration.sprites = {9,9,9,11,13,11,9,9,9}
+    decoration.frame = flr(rnd() * #decoration.sprites)
   end 
 
   return decoration

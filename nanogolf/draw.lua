@@ -83,10 +83,10 @@ function draw_decoration(decoration)
   pos = grid_to_px(decoration.x0, decoration.y0, decoration.z0)
 
   local x = pos.x + (64 - ball.x) - 4
-  local y = pos.y + (64 - ball.y) + 5
+  local y = pos.y + (64 - ball.y) + 5 + decoration.offsetY
   local z = pos.z
   
-  spr(decoration.sprites[decoration.currentSprite], x, y)
+  spr(decoration.sprites[decoration.frame], x, y, decoration.w, decoration.h)
 end
 
 function draw_block(block, is_shadow)
@@ -286,10 +286,11 @@ function draw_block(block, is_shadow)
       solid_trifill_v3(p8,p7,p3,c2) -- l
       solid_trifill_v3(p3,p7,p6,c3) -- r
     elseif(block.i == BLOCKS.RAMP_W)then
- 
       solid_trifill_v3(p4,p8,p7,c2) -- l
       solid_trifill_v3(p5,p4,p7,c6) -- 𝘯𝘦
     elseif(block.i == BLOCKS.RAMP_N)then  
+      solid_trifill_v3(p4,p8,p7,c2) -- l
+      solid_trifill_v3(p5,p4,p7,c6) -- 𝘯𝘦
       solid_trifill_v3(p1,p8,p6,c3) -- 𝘴𝘦
     end
   
@@ -375,11 +376,11 @@ function render_scene(blocks, ball)
   local renderable_min_y = ball.current_grid.y - 2
   local renderable_max_y = ball.current_grid.y + 2
   
-  -- for i = renderable_min_x,renderable_max_x do
-  --   for j = renderable_min_y,renderable_max_y do
-  --     draw_tile(i, j, COLORS.DARK_GREY)
-  --   end    
-  -- end
+  for i = renderable_min_x,renderable_max_x do
+    for j = renderable_min_y,renderable_max_y do
+      draw_tile(i, j, COLORS.DARK_GREY)
+    end    
+  end
 
 
   drawn_ball = false
@@ -433,6 +434,7 @@ function _draw()
     rectfill(0, 0, 128, 128, c5)
     
     render_scene(blocks, ball)
+        
 
     -- this will bring debug stuff to fixed position
     -- camera()

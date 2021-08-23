@@ -395,8 +395,8 @@ function _update()
   end 
 
   for decoration in all(decorations) do
-    decoration.currentSprite += 1
-    decoration.currentSprite %= #decoration.sprites
+    decoration.tick = (decoration.tick+1)%decoration.step
+    if (decoration.tick == 0) decoration.frame = decoration.frame % #decoration.sprites+1
   end
 
   debug_count_triangles = 0
