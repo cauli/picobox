@@ -7,7 +7,19 @@ function printf(str)
   printh(str, debugfile, true)
 end
 
-function wave_function_collapse(blocks, rounds_left)
+function wave_function_collapse(blocks, rounds_left, subSeeds)
+  
+  possibleHeights = {  1, 1, 1 }
+
+  srand(subSeeds.waveFn2)
+  if rnd() < 0.3 then
+    possibleHeights = { 1, 1, 3 }
+  elseif rnd() < 0.1 then
+    possibleHeights = { 1, 1, 1, 5 }
+  end
+
+
+  srand(subSeeds.waveFn1)
   printf('-- starting wave fn collapse')
 
 
@@ -36,7 +48,7 @@ function wave_function_collapse(blocks, rounds_left)
             chosen_block_type = rnd(possible_connecting)
 
             is_procedural = true
-            local block_to_add = generators.block(block.x0 + offset.x, block.y0 + offset.y, 1, 1, chosen_block_type, false, is_procedural)
+            local block_to_add = generators.block(block.x0 + offset.x, block.y0 + offset.y, rnd(possibleHeights), 1, chosen_block_type, false, is_procedural)
             add(blocks, block_to_add)
           end 
         end

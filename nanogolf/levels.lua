@@ -314,8 +314,9 @@ function get_sub_seeds()
         themeSeed = subSeeds[1], 
         baseLeverPickerSeed = subSeeds[2], 
         waveFn1 = subSeeds[3], 
-        folliage = subSeeds[4],
-        darkPalette = subSeeds[5] 
+        waveFn2 = subSeeds[4],
+        folliage = subSeeds[5],
+        darkPalette = subSeeds[6]
     }
 end
 >>>>>>> 5d80ee3 (Add decorations)
@@ -423,8 +424,8 @@ function load_level(level_to_load, subSeeds)
     end
 
     if level_to_load.metadata.procedural then
-        srand(subSeeds.waveFn1)
-        wave_function_collapse(blocks, 100)
+
+        wave_function_collapse(blocks, 100, subSeeds)
     end
 
     for x = -5,5 do
