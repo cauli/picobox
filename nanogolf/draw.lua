@@ -342,6 +342,15 @@ function render_scene(blocks, ball)
 
   sortDepth(renderables)
 
+
+  srand(globalSubSeeds.wireframeBoundaries)
+  draw_wireframe = false
+  wireframe_color = c1
+  if rnd() <= 0.02 then
+    draw_wireframe = true
+    wireframe_color = rnd({c1,c2,c3,c4,c5,c6,c7})
+  end
+
   srand(globalSubSeeds.waveFn1)
   if rnd() < 0.12 then
     for renderable in all(renderables) do
@@ -354,6 +363,9 @@ function render_scene(blocks, ball)
   for renderable in all(renderables) do
     if (renderable.class == 'block') then
       draw_block(renderable, false)
+
+      if (draw_wireframe) then draw_wireframe_block(renderable.x0, renderable.y0, renderable.z0, wireframe_color) end 
+      
     end
 
     if (renderable.class == 'decoration') then

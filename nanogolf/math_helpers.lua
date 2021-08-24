@@ -44,26 +44,8 @@ function get_quadrant(x,y)
     return nil
 end
 
-function min3(a,b,c)
-    local mab = min(a,b)
-    return min(mab,c)
-end
-
-function max3(a,b,c)
-    local mab = max(a,b)
-    return max(mab,c)
-end
-
-function orient2d(a, b, c)
-    return (b.x-a.x)*(c.y-a.y) - (b.y-a.y)*(c.x-a.x);
-end
-
 function clip(v)
     return max(-1,min(128,v))
-end
-
-function lerp(a,b,alpha)
-    return a*(1.0-alpha)+b*alpha
 end
 
 function px_to_grid(x,y)

@@ -12,7 +12,6 @@ TILE_WIDTH = 50
 TILE_HEIGHT = 25
 TILE_HEIGHT_HALF = TILE_HEIGHT/2
 TILE_WIDTH_HALF = TILE_WIDTH/2
-
 DEFAULT_BLOCK_HEIGHT = 12.5/2
 
 
@@ -129,6 +128,32 @@ function hit_left_wall(b)
   ball.may_be_stuck = true
 end
 
+function update_stick(s)
+  dx = s.p1.x - s.p0.x
+  dy = s.p1.y - s.p0.y
+  
+  dist    = sqrt(dx*dx+dy*dy)
+  diff    = s.length - dist
+  percent = diff/dist/2
+  offsetx = dx*percent
+  offsety = dy*percent
+  
+  if(s.p0.fixed)then
+  	s.p1.x += 2*offsetx
+	  s.p1.y += 2*offsety
+  else
+  	if(s.p1.fixed)then
+  	s.p0.x -= 2*offsetx
+	  s.p0.y -= 2*offsety
+  	else
+  	  s.p0.x -= offsetx
+	    s.p0.y -= offsety
+	    s.p1.x += offsetx
+	    s.p1.y += offsety
+  	end
+  end
+end
+
 function update_movement_ball(b)
 
   b.vx = (b.x - b.oldx) * friction
@@ -222,6 +247,8 @@ end
 
 function _init()
   ball = generators.ball(3,1,1)
+
+  -- stick = generators.stick(3,1,1)
 
   random_level()
   -- next_level()
@@ -596,8 +623,6 @@ function _update()
   else 
     update_edit_mode()
   end
-
-
 end
 
 function distance(p0, p1)

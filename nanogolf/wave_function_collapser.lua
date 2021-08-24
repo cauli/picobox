@@ -11,9 +11,9 @@ function wave_function_collapse(blocks, rounds_left, subSeeds)
   possibleHeights = {  1, 1, 1 }
 
   srand(subSeeds.waveFn2)
-  if rnd() < 0.3 then
+  if rnd() < 0.35 then
     possibleHeights = { 1, 1, 3 }
-  elseif rnd() < 0.1 then
+  elseif rnd() < 0.15 then
     possibleHeights = { 1, 1, 1, 5 }
   end
 

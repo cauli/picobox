@@ -1,76 +1,76 @@
 globalSubSeeds = {}
 
-levels = {   
-     {
-        metadata = {
-            procedural = true
-        },
-        level = {
-            {
-                {3,1,1,BLOCKS.RAMP_HALF_E,false},
-            },
-        }
-    },
-    {
-        metadata = {
-            procedural = true
-        },
-        level = {
-            {
-                {3,1,1,BLOCKS.RAMP_E,false},
-            },
-        }
-    },
-    {
-        metadata = {
-            procedural = true
-        },
-        level = {
-            {
-                {3,1,1,BLOCKS.REGULAR,false},
-            },
-        }
-    },
-    {
-        metadata = {
-            procedural = true
-        },
-        level = {
-            {
-                {3,1,1,BLOCKS.RAMP_SW,false},
-            },
-        }
-    },
-    {
-        metadata = {
-            procedural = true
-        },
-        level = {
-            {
-                {3,1,1,BLOCKS.RAMP_NW,false},
-            },
-        }
-    },
-    {
-        metadata = {
-            procedural = true
-        },
-        level = {
-            {
-                {3,1,1,BLOCKS.RAMP_W,false},
-            },
-        }
-    },
-    {
-        metadata = {
-            procedural = true
-        },
-        level = {
-            {
-                {2,1,1,BLOCKS.RAMP_N,false},
-            },
-        }
-    },
+-- levels = {   
+--      {
+--         metadata = {
+--             procedural = true
+--         },
+--         level = {
+--             {
+--                 {3,1,1,BLOCKS.RAMP_HALF_E,false},
+--             },
+--         }
+--     },
+    -- {
+    --     metadata = {
+    --         procedural = true
+    --     },
+    --     level = {
+    --         {
+    --             {3,1,1,BLOCKS.RAMP_E,false},
+    --         },
+    --     }
+    -- },
+    -- {
+    --     metadata = {
+    --         procedural = true
+    --     },
+    --     level = {
+    --         {
+    --             {3,1,1,BLOCKS.REGULAR,false},
+    --         },
+    --     }
+    -- },
+    -- {
+    --     metadata = {
+    --         procedural = true
+    --     },
+    --     level = {
+    --         {
+    --             {3,1,1,BLOCKS.RAMP_SW,false},
+    --         },
+    --     }
+    -- },
+    -- {
+    --     metadata = {
+    --         procedural = true
+    --     },
+    --     level = {
+    --         {
+    --             {3,1,1,BLOCKS.RAMP_NW,false},
+    --         },
+    --     }
+    -- },
+    -- {
+    --     metadata = {
+    --         procedural = true
+    --     },
+    --     level = {
+    --         {
+    --             {3,1,1,BLOCKS.RAMP_W,false},
+    --         },
+    --     }
+    -- },
+    -- {
+    --     metadata = {
+    --         procedural = true
+    --     },
+    --     level = {
+    --         {
+    --             {2,1,1,BLOCKS.RAMP_N,false},
+    --         },
+    --     }
+    -- },
     -- {
     --     metadata = {
     --         name = "multiple heights",
@@ -143,7 +143,7 @@ levels = {
     --     }
     -- },
     -- diagonal ramps
-}
+-- }
 
 current_level = 0
 function next_level()
@@ -218,7 +218,9 @@ function get_sub_seeds()
         microscopic = subSeeds[9],
         floorWireframe = subSeeds[10],
         theCrowd = subSeeds[11],
-        directionRemover = subSeeds[12],
+        directionScrambler = subSeeds[12],
+        moonGravity = subSeeds[13],
+        wireframeBoundaries = subSeeds[14],
     }
     
     return globalSubSeeds
@@ -226,6 +228,13 @@ end
 
 function load_level(level_to_load, subSeeds)
     reset_map()
+
+    srand(subSeeds.moonGravity)
+    if rnd() < 0.1 then
+        gravity = 0.05
+    end
+    
+
 
     teletransport_ball_to(ball, 3, 1, 10)
     srand(subSeeds.microscopic)
@@ -277,17 +286,27 @@ function load_level(level_to_load, subSeeds)
     end 
 
     srand(subSeeds.baseLevel)
-    randomLevel = rnd(level_to_load.level)
-    
-    for level_floor in all(level_to_load.level) do
-        current_level_floor = current_level_floor + 1
-        foreach(level_floor, create_block)
-    end
+    -- randomLevel = rnd(level_to_load.level)
+
+    current_level_floor = current_level_floor + 1
+    create_block({3,1,1,rnd({BLOCKS.RAMP_HALF_E,
+    BLOCKS.RAMP_E,
+    BLOCKS.REGULAR,
+    BLOCKS.RAMP_SW,
+    BLOCKS.RAMP_NW,
+    BLOCKS.RAMP_W,
+    BLOCKS.RAMP_N}),false}, false)
+
+    -- original level loader
+    -- for level_floor in all(level_to_load.level) do
+    --     current_level_floor = current_level_floor + 1
+    --     foreach(level_floor, create_block)
+    -- end
 
     possibleSteps = { 0, 1, 3, 4, 5, 7, 8, 10, 20 }
-    if level_to_load.metadata.procedural then
+    -- if level_to_load.metadata.procedural then
         wave_function_collapse(blocks, rnd(possibleSteps), subSeeds) 
-    end
+    -- end
 
     for x = -8,8 do
         for y = -8,8 do
@@ -302,6 +321,7 @@ function load_level(level_to_load, subSeeds)
                 block = get_block_at(x, y, 1)
                 if block == nil then
                     if rnd() < chanceOfFlamingo then 
+                        chanceOfFlamingo -= 0.003
                         add(decorations, generate_decoration(x, y, 0, "flamingo"))
                     end
                 end 

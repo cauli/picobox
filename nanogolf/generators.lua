@@ -52,6 +52,14 @@ function generate_ball(x0,y0,z0)
   return b
 end
 
+function generate_stick(x0,y0,z0)
+  p1 = generate_ball(x0,y0,z0)
+  p2 = generate_ball(x0+1,y0+1,z0)
+
+  local stick = {p1, p2}
+
+  return stick
+end
 
 function generate_decoration(x0,y0,z0,type)
   local decoration = {}
