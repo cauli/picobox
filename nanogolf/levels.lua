@@ -7,7 +7,17 @@ levels = {
         },
         level = {
             {
-                {3,1,1,BLOCKS.RAMP_N,false},
+                {3,1,1,BLOCKS.RAMP_HALF_E,false},
+            },
+        }
+    },
+    {
+        metadata = {
+            procedural = true
+        },
+        level = {
+            {
+                {3,1,1,BLOCKS.RAMP_E,false},
             },
         }
     },
@@ -57,7 +67,7 @@ levels = {
         },
         level = {
             {
-                {2,1,1,BLOCKS.RAMP_E,false},
+                {2,1,1,BLOCKS.RAMP_N,false},
             },
         }
     },
@@ -207,7 +217,8 @@ function get_sub_seeds()
         shadowDir2 = subSeeds[8],
         microscopic = subSeeds[9],
         floorWireframe = subSeeds[10],
-        theCrowd = subSeeds[11]
+        theCrowd = subSeeds[11],
+        directionRemover = subSeeds[12],
     }
     
     return globalSubSeeds
@@ -275,7 +286,7 @@ function load_level(level_to_load, subSeeds)
 
     possibleSteps = { 0, 1, 3, 4, 5, 7, 8, 10, 20 }
     if level_to_load.metadata.procedural then
-        wave_function_collapse(blocks, rnd(possibleSteps), subSeeds)
+        wave_function_collapse(blocks, rnd(possibleSteps), subSeeds) 
     end
 
     for x = -8,8 do
