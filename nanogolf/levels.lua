@@ -7,7 +7,21 @@ levels = {
         },
         level = {
             {
-                {3,1,1,BLOCKS.RAMP_HALF_E,false},
+                {3,1,1,BLOCKS.RAMP_N,false},
+            },
+        }
+    },
+    {
+        metadata = {
+            name = "wave function collapse",
+            theme = THEMES.LEAN,
+            procedural = true
+        },
+        level = {
+            {
+                {3,1,1,BLOCKS.RAMP_N,false},
+                {2,0,1,BLOCKS.RAMP_S,false},
+                {1,0,1,BLOCKS.RAMP_W,false},
             },
         }
     },
@@ -19,7 +33,6 @@ levels = {
     --     },
     --     level = {
     --         {
-<<<<<<< HEAD
     --             {3,-4,1.0,BLOCKS.RAMP_SE,false},
             
     --             {3,0,1.0,BLOCKS.RAMP_NE,false},
@@ -53,75 +66,6 @@ levels = {
     --             {3,56,1.0,BLOCKS.RAMP_W,false},
 
     --             {3,60,1.0,BLOCKS.RAMP_S,false},
-=======
-    --             {1,-2,0.2,BLOCKS.RAMP_SE,false},
-    --             {3,-2,1.0,BLOCKS.RAMP_SE,false},
-    --             {5,-2,3.0,BLOCKS.RAMP_SE,false},
-
-    --             {1,0,0.2,BLOCKS.RAMP_NE,false},
-    --             {3,0,1.0,BLOCKS.RAMP_NE,false},
-    --             {5,0,3.0,BLOCKS.RAMP_NE,false},
-
-    --             {1,2,0.2,BLOCKS.RAMP_SW,false},
-    --             {3,2,1.0,BLOCKS.RAMP_SW,false},
-    --             {5,2,3.0,BLOCKS.RAMP_SW,false},
-
-    --             {1,4,0.2,BLOCKS.RAMP_NW,false},
-    --             {3,4,1.0,BLOCKS.RAMP_NW,false},
-    --             {5,4,3.0,BLOCKS.RAMP_NW,false},
-
-    --             {1,6,0.2,BLOCKS.REGULAR,false},
-    --             {3,6,1.0,BLOCKS.REGULAR,false},
-    --             {5,6,3.0,BLOCKS.REGULAR,false},
-
-    --             {1,8,0.2,BLOCKS.RAMP_HALF_E,false},
-    --             {3,8,1.0,BLOCKS.RAMP_HALF_E,false},
-    --             {5,8,3.0,BLOCKS.RAMP_HALF_E,false},
-
-    --             {1,10,0.2,BLOCKS.RAMP_HALF_N,false},
-    --             {3,10,1.0,BLOCKS.RAMP_HALF_N,false},
-    --             {5,10,3.0,BLOCKS.RAMP_HALF_N,false},
-
-    --             {1,12,0.2,BLOCKS.RAMP_HALF_W,false},
-    --             {3,12,1.0,BLOCKS.RAMP_HALF_W,false},
-    --             {5,12,3.0,BLOCKS.RAMP_HALF_W,false},
-
-    --             {1,14,0.2,BLOCKS.RAMP_HALF_S,false},
-    --             {3,14,1.0,BLOCKS.RAMP_HALF_S,false},
-    --             {5,14,3.0,BLOCKS.RAMP_HALF_S,false},
-
-    --             {1,16,0.2,BLOCKS.HALF_E,false},
-    --             {3,16,1.0,BLOCKS.HALF_E,false},
-    --             {5,16,3.0,BLOCKS.HALF_E,false},
-
-    --             {1,18,0.2,BLOCKS.HALF_N,false},
-    --             {3,18,1.0,BLOCKS.HALF_N,false},
-    --             {5,18,3.0,BLOCKS.HALF_N,false},
-
-    --             {1,20,0.2,BLOCKS.HALF_W,false},
-    --             {3,20,1.0,BLOCKS.HALF_W,false},
-    --             {5,20,3.0,BLOCKS.HALF_W,false},
-
-    --             {1,22,0.2,BLOCKS.HALF_S,false},
-    --             {3,22,1.0,BLOCKS.HALF_S,false},
-    --             {5,22,3.0,BLOCKS.HALF_S,false},
-
-    --             {1,24,0.2,BLOCKS.RAMP_E,false},
-    --             {3,24,1.0,BLOCKS.RAMP_E,false},
-    --             {5,24,3.0,BLOCKS.RAMP_E,false},
-
-    --             {1,26,0.2,BLOCKS.RAMP_N,false},
-    --             {3,26,1.0,BLOCKS.RAMP_N,false},
-    --             {5,26,3.0,BLOCKS.RAMP_N,false},
-
-    --             {1,28,0.2,BLOCKS.RAMP_W,false},
-    --             {3,28,1.0,BLOCKS.RAMP_W,false},
-    --             {5,28,3.0,BLOCKS.RAMP_W,false},
-
-    --             {1,30,0.2,BLOCKS.RAMP_S,false},
-    --             {3,30,1.0,BLOCKS.RAMP_S,false},
-    --             {5,30,3.0,BLOCKS.RAMP_S,false},
->>>>>>> 5d80ee3 (Add decorations)
     --         },
     --     }
     -- },
@@ -129,11 +73,7 @@ levels = {
     --     metadata = {
     --         name = "pyramids",
     --         theme = THEMES.SQUASH,
-<<<<<<< HEAD
     --         procedural = false
-=======
-    --         procedural = true
->>>>>>> 5d80ee3 (Add decorations)
     --     },
     --     level = {
     --         {
@@ -226,11 +166,7 @@ levels = {
     --     metadata = {
     --         name = "multiple floors",
     --         theme = THEMES.LEAN,
-<<<<<<< HEAD
     --         procedural = false
-=======
-    --         procedural = true
->>>>>>> 5d80ee3 (Add decorations)
     --     },
     --     level = {
     --         {
@@ -258,11 +194,7 @@ levels = {
     --     metadata = {
     --         name = "diagonals",
     --         theme = THEMES.ROSEY,
-<<<<<<< HEAD
     --         procedural = false
-=======
-    --         procedural = true
->>>>>>> 5d80ee3 (Add decorations)
     --     },
     --     level = {
     --         { 
@@ -284,42 +216,6 @@ levels = {
     --     }
     -- }
 }
-<<<<<<< HEAD
-=======
-
-function get_sub_seeds() 
-    maxInt = 65534
-    seed = "2364370628715260564250796008920406354802159042933974286750175206921467854849";
-    
-    randomSeed = true
-
-    pointer = 1
-    seedLength = 4
-    seedCount = flr(#seed / 4)
-    subSeeds = {}
-
-    for s=1,#seed,seedLength do
-
-        if randomSeed then
-            add(subSeeds, tostring(flr(1000 + rnd(9000))))
-        else 
-            add(subSeeds, tonum(sub(seed, s, s+seedLength-1)))
-        end
-    end
-
-    local themeSeed = subSeeds[1] -- theme
-    local baseLevel = subSeeds[2] -- base level
-
-    return { 
-        themeSeed = subSeeds[1], 
-        baseLeverPickerSeed = subSeeds[2], 
-        waveFn1 = subSeeds[3], 
-        waveFn2 = subSeeds[4],
-        folliage = subSeeds[5],
-        darkPalette = subSeeds[6]
-    }
-end
->>>>>>> 5d80ee3 (Add decorations)
 
 current_level = 0
 function next_level()
@@ -339,7 +235,7 @@ end
 function random_level()
     subSeeds = get_sub_seeds()
 
-    srand(subSeeds.baseLeverPickerSeed)
+    srand(subSeeds.baseLevelPickerSeed)
     rnd(levels)
 
     load_level(rnd(levels), subSeeds)
@@ -366,13 +262,12 @@ function rnd32()
     return rnd() << 16 | rnd()
 end
 
-function load_level(level_to_load, subSeeds)
-    reset_map()
-
-<<<<<<< HEAD
+function get_sub_seeds()
     maxInt = 65534
-    seed = "2364370628715260564250796008920406354802159042933974286750175206921467854849";
-    
+    -- seed = "1364330648715260564240796008920406354802159042933974286750175206921467854849";
+    -- seed = "1264370628715260564250796008920406354802159042933974286750175205821956227073";
+    seed = "66418630152144138420887529467591841897902352589395023086471333752449146031912";
+
     randomSeed = true
     pointer = 1
     seedLength = 4
@@ -388,17 +283,14 @@ function load_level(level_to_load, subSeeds)
         end
     end
 
-    local themeSeed = subSeeds[1] -- theme
-    printf(subSeeds[19])
+    return {baseLevelPickerSeed = subSeeds[1], themeSeed = subSeeds[2], darkPalette = subSeeds[3], baseLevel = subSeeds[4], waveFn1 = subSeeds[5], wafeFn2 = subSeeds[6]}
+end
+
+function load_level(level_to_load, subSeeds)
+    reset_map()
       
     printf(tostr(seed, true))
-
-    -- srand("1264370628715260564250796008920406354802159042933974286750175206921467854849")
-
-    local theme = getRandomTheme(themeSeed)
-=======
     local theme = getRandomTheme(subSeeds.themeSeed)
->>>>>>> 5d80ee3 (Add decorations)
 
     srand(subSeeds.darkPalette)
     if rnd() < 0.15 then
@@ -424,8 +316,7 @@ function load_level(level_to_load, subSeeds)
     end
 
     if level_to_load.metadata.procedural then
-
-        wave_function_collapse(blocks, 100, subSeeds)
+        wave_function_collapse(blocks, 10, subSeeds)
     end
 
     for x = -5,5 do

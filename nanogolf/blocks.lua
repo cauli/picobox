@@ -2,14 +2,6 @@ DIRECTIONS = { N, S, E, W, NW, SW, NE, SE }
 
 BLOCKS = {
     -- a plateau
-    --        ..1..
-    --     ...     ...
-    --  4..           ..2
-    --  .  ...     ...  .
-    --  .     ..3..     .
-    --  8..     .     ..6
-    --     ...  .  ...
-    --        ..7..
     REGULAR = 0,
 
     -- nothing on one side
@@ -271,28 +263,12 @@ function TableConcat(t1,t2)
     return t1c
 end
 
--- for each block type, we determine which are the possible
--- connection blocks for each coordinate set, in the following 
--- clockwise order, starting from SW
---
--- [<<SW>>, <<NW>, <<NE>>, <<SE>>]
--- 
---            N
---          ..1..
---      ...      ...
--- W  4..           ..2 E
---    .  ...     ...  .
---    .     ..3..     .
---    8..     S     ..6
---       ...  .  ...
---          ..7..
--- 
 BLOCK_CONNECTIONS = {
     REGULAR = {
         NE =  TableConcat(BLOCK_GROUPS.EMPTY, BLOCK_GROUPS.ELEVATED_AT.NE),
-        NW =  BLOCK_GROUPS.EMPTY, -- TableConcat(BLOCK_GROUPS.EMPTY, BLOCK_GROUPS.ELEVATED_AT.NW),
-        SW =  BLOCK_GROUPS.EMPTY, -- TableConcat(BLOCK_GROUPS.EMPTY, BLOCK_GROUPS.ELEVATED_AT.SW),
-        SE =  BLOCK_GROUPS.EMPTY, --TableConcat(BLOCK_GROUPS.EMPTY, BLOCK_GROUPS.ELEVATED_AT.SE)
+        NW =  TableConcat(BLOCK_GROUPS.EMPTY, BLOCK_GROUPS.ELEVATED_AT.NW),
+        SW =  TableConcat(BLOCK_GROUPS.EMPTY, BLOCK_GROUPS.ELEVATED_AT.SW),
+        SE =  TableConcat(BLOCK_GROUPS.EMPTY, BLOCK_GROUPS.ELEVATED_AT.SE)
     },
     RAMP_NE = {
         NE = BLOCK_GROUPS.ELEVATED_AT.NE,

@@ -94,17 +94,23 @@ function draw_block(block, is_shadow)
     local y = block.y + (64 - ball.y)
     local z = block.z
     local f = ((block.floor-1) * (TILE_HEIGHT_HALF))
-    
+
     local is_procedural = block.is_procedural
     local is_user = block.is_user
 
     -- top 4
+    local pc = generators.point(x, y, f)
+    
+    -- skip rendering blocks that are too distant
+    if distance(ball, block) > 128 then 
+      return 
+    end    
+
     local p1 = generators.point(x, y-z, f) -- ttc
     local p2 = generators.point(x+TILE_WIDTH_HALF,y+TILE_HEIGHT_HALF-z, f)   -- tcr
     local p3 = generators.point(x,y+TILE_HEIGHT-z, f) -- tbc
     local p4 = generators.point(x-TILE_WIDTH_HALF,y+TILE_HEIGHT_HALF-z, f) -- tcl
 
-    local pc = generators.point(x, y, f)
 
     -- bottom 4
     local p5 = generators.point(x, y, f)  -- btc
@@ -183,84 +189,7 @@ function draw_block(block, is_shadow)
   
       solid_trifill_v3(p2,p3,p7,c3) -- r
       solid_trifill_v3(p7,p6,p2,c3) 
-    elseif(block.i == BLOCKS.HALF_W)then  
-      --draw top
-      solid_trifill_v3(p4,p3,p1,c1)
-  
-      solid_trifill_v3(p8,p7,p3,c2) -- l
-      solid_trifill_v3(p4,p8,p3,c2) -- l
-  
-    elseif(block.i == BLOCKS.HALF_N)then  
-      --draw top
-      solid_trifill_v3(p4,p2,p1,c1)
-  
-      --draw 'front' (se)
-      color(c3)
-      rectfill(p4.x,p4.y,p6.x,p6.y)
-  
-    elseif(block.i == BLOCKS.HALF_E)then
-      --draw top
-      solid_trifill_v3(p1,p3,p2,c1)
-  
-      solid_trifill_v3(p2,p3,p7,c3) -- r
-      solid_trifill_v3(p7,p6,p2,c3) 
-    elseif(block.i == BLOCKS.RAMP_NW)then
-      --draw top
-      solid_trifill_v3(p1,p4,p7,c1)
-      solid_trifill_v3(p7,p6,p1,c1)
-  
-      --draw left
-      solid_trifill_v3(p8,p7,p4,c2)
-    elseif(block.i == BLOCKS.RAMP_NE)then
-  
-      -- draw top
-      solid_trifill_v3(p1,p8,p7,c1)
-      solid_trifill_v3(p7,p2,p1,c1)
-  
-      --draw right
-      solid_trifill_v3(p7,p6,p2,c3)
-  
-  
-    elseif(block.i == BLOCKS.RAMP_SE)then
-      -- draw top
-      solid_trifill_v3(p7,p6,p2,c3)
-      solid_trifill_v3(p2,p3,p7,c3)
-  
-      --draw left
-      solid_trifill_v3(p8,p7,p3,c2)
-  
-      --draw top
-      solid_trifill_v3(p8,p3,p2,c1)
-      solid_trifill_v3(p5,p8,p2,c1)
-    elseif(block.i == BLOCKS.RAMP_SW)then 
-      solid_trifill_v3(p4,p8,p3,c2) 
-      solid_trifill_v3(p8,p7,p3,c2) -- l
-  
-      solid_trifill_v3(p7,p6,p3,c3) -- r
-  
-      solid_trifill_v3(p3,p6,p5,c6) --t
-      solid_trifill_v3(p5,p4,p3,c6) 
-    elseif(block.i == BLOCKS.RAMP_HALF_E)then
- 
-      solid_trifill_v3(p1,p3,p2,c1) -- t
-  
-      solid_trifill_v3(p1,p8,p3,c6) -- sw
-  
-      solid_trifill_v3(p3,p8,p7,c2) -- l
-  
-      solid_trifill_v3(p2,p3,p7,c3) -- r
-      solid_trifill_v3(p7,p6,p2,c3) 
-    elseif(block.i == BLOCKS.RAMP_HALF_S)then
-      solid_trifill_v3(p3,p2,p4,c1) -- t
-  
-      solid_trifill_v3(p4,p2,p5,c6) -- 𝘯𝘸
-  
-      solid_trifill_v3(p4,p8,p3,c2) -- l
-      solid_trifill_v3(p8,p7,p3,c2) -- l
-  
-      solid_trifill_v3(p7,p6,p3,c3) -- r
-      solid_trifill_v3(p2,p3,p6,c3) -- r
-    
+
       
     elseif(block.i == BLOCKS.RAMP_HALF_W)then
       solid_trifill_v3(p4,p3,p1,c1) -- t
@@ -278,72 +207,79 @@ function draw_block(block, is_shadow)
       solid_trifill_v3(p8,p7,p4,c2) -- l
   
       solid_trifill_v3(p6,p2,p7,c3) -- r
-  
+     elseif(block.i == BLOCKS.HALF_W)then
+         solid_trifill_v3(p4,p3,p1,c1)
+
+         solid_trifill_v3(p8,p7,p3,c2) -- l
+         solid_trifill_v3(p4,p8,p3,c2) -- l
+
+     elseif(block.i == BLOCKS.HALF_N)then
+      solid_trifill_v3(p4,p2,p1,c1)
+
+      color(c3)
+      rectfill(p4.x,p4.y,p6.x,p6.y)
+
+    elseif(block.i == BLOCKS.HALF_E)then
+      solid_trifill_v3(p1,p3,p2,c1)
+
+      solid_trifill_v3(p2,p3,p7,c3) -- r
+      solid_trifill_v3(p7,p6,p2,c3)
+    elseif(block.i == BLOCKS.RAMP_NW)then
+      solid_trifill_v3(p1,p4,p7,c1)
+      solid_trifill_v3(p7,p6,p1,c1)
+
+      solid_trifill_v3(p8,p7,p4,c2)
+    elseif(block.i == BLOCKS.RAMP_NE)then
+      solid_trifill_v3(p1,p8,p7,c1)
+      solid_trifill_v3(p7,p2,p1,c1)
+      solid_trifill_v3(p7,p6,p2,c3)
+    elseif(block.i == BLOCKS.RAMP_SE)then
+      solid_trifill_v3(p7,p6,p2,c3)
+      solid_trifill_v3(p2,p3,p7,c3)
+
+      solid_trifill_v3(p8,p7,p3,c2)
+
+      solid_trifill_v3(p8,p3,p2,c1)
+      solid_trifill_v3(p5,p8,p2,c1)
+    elseif(block.i == BLOCKS.RAMP_SW)then
+      solid_trifill_v3(p4,p8,p3,c2)
+      solid_trifill_v3(p8,p7,p3,c2)
+
+      solid_trifill_v3(p7,p6,p3,c3)
+
+      solid_trifill_v3(p3,p6,p5,c6)
+      solid_trifill_v3(p5,p4,p3,c6)
+    elseif(block.i == BLOCKS.RAMP_HALF_E)then
+
+      solid_trifill_v3(p1,p3,p2,c1)
+
+      solid_trifill_v3(p1,p8,p3,c6)
+
+      solid_trifill_v3(p3,p8,p7,c2)
+
+      solid_trifill_v3(p2,p3,p7,c3)
+      solid_trifill_v3(p7,p6,p2,c3)
+    elseif(block.i == BLOCKS.RAMP_HALF_S)then
+      solid_trifill_v3(p3,p2,p4,c1)
+
+      solid_trifill_v3(p4,p2,p5,c6)
+
+      solid_trifill_v3(p4,p8,p3,c2)
+      solid_trifill_v3(p8,p7,p3,c2)
+
+      solid_trifill_v3(p7,p6,p3,c3)
+      solid_trifill_v3(p2,p3,p6,c3)
     elseif(block.i == BLOCKS.RAMP_E)then
-      solid_trifill_v3(p2,p5,p7,c6) -- sw
-      solid_trifill_v3(p2,p7,p6,c3) -- r
+      solid_trifill_v3(p2,p5,p7,c6)
+      solid_trifill_v3(p2,p7,p6,c3)
     elseif(block.i == BLOCKS.RAMP_S)then
-      solid_trifill_v3(p8,p7,p3,c2) -- l
-      solid_trifill_v3(p3,p7,p6,c3) -- r
+      solid_trifill_v3(p8,p7,p3,c2)
+      solid_trifill_v3(p3,p7,p6,c3)
     elseif(block.i == BLOCKS.RAMP_W)then
-      solid_trifill_v3(p4,p8,p7,c2) -- l
-      solid_trifill_v3(p5,p4,p7,c6) -- 𝘯𝘦
+      solid_trifill_v3(p4,p8,p7,c2)
+      solid_trifill_v3(p5,p4,p7,c6)
     elseif(block.i == BLOCKS.RAMP_N)then  
-      solid_trifill_v3(p4,p8,p7,c2) -- l
-      solid_trifill_v3(p5,p4,p7,c6) -- 𝘯𝘦
-      solid_trifill_v3(p1,p8,p6,c3) -- 𝘴𝘦
-    end
-  
-   
-    if(debug_quadrants)then
-      if(block.x0 == ball.current_grid.x and block.y0 == ball.current_grid.y)then
-  
-        if(block.has_hole)then
-          line(ball.x, ball.y - ball.z, hole.x, hole.y, 4)
-        end
-  
-        print("block x:" .. pc.x .. "   y:" .. pc.y .. "   h:" .. z, 1, 1, 7)
-  
-        color(7)
-        line(p1.x, p1.y, p2.x, p2.y)
-        line(p2.x, p2.y, p3.x, p3.y)
-        line(p3.x, p3.y, p4.x, p4.y)
-        line(p4.x, p4.y, p1.x, p1.y)
-  
-        q = get_quadrant(ball.current_grid_float.x % flr(ball.current_grid_float.x),ball.current_grid_float.y % flr(ball.current_grid_float.y))
-
-        color(c4)
-     
-        if(q == "a")then
-          line(p3.x,p3.y,pc.x,pc.y)
-          line(pc.x,pc.y,p4.x,p4.y)
-          line(p4.x,p4.y,p3.x,p3.y)
-          
-          print(q, pc.x + 2, pc.y - 5, COLORS.ORANGE)
-        elseif(q == "b")then
-  
-          line(p4.x,p4.y,pc.x,pc.y)
-          line(pc.x,pc.y,p1.x,p1.y)
-          line(p1.x,p1.y,p4.x,p4.y)
-          
-          print(q, pc.x + 2, pc.y - 5, COLORS.ORANGE)
-        elseif(q == "c")then
-  
-          line(p1.x,p1.y,pc.x,pc.y)
-          line(pc.x,pc.y,p2.x,p2.y)
-          line(p2.x,p2.y,p1.x,p1.y)
-
-          print(q, pc.x - 5, pc.y - 5, COLORS.ORANGE)
-        elseif(q == "d")then
-  
-          line(p2.x,p2.y,pc.x,pc.y)
-          line(pc.x,pc.y,p3.x,p3.y)
-          line(p3.x,p3.y,p2.x,p2.y)
-
-          print(q, pc.x - 5, pc.y - 5, COLORS.ORANGE)
-        end
-          
-      end
+      solid_trifill_v3(p1,p8,p6,c3)
     end
 
     if is_edit_mode then 
@@ -406,7 +342,7 @@ function render_scene(blocks, ball)
 
   for renderable in all(renderables) do
     if (renderable.class == 'block') then
-      draw_block(renderable)
+      draw_block(renderable, false)
     end
 
     if (renderable.class == 'decoration') then
@@ -435,23 +371,11 @@ function _draw()
     
     render_scene(blocks, ball)
         
-
-    -- this will bring debug stuff to fixed position
-    -- camera()
-    -- clip()
-
     if block == nil then
         print(ball.current_grid.x .. ", " .. ball.current_grid.y, 1, 120, 5)
     else 
         print(block.x0 .. ", " .. block.y0, 1, 120, 9)
     end
 
-    -- print("b x:" .. ball.x .. " y:" .. ball.y .. " z:" .. ball.z, 1, 7, COLORS.BLACK)
-    -- print("floor" .. ball.current_floor, 1, 7, COLORS.BLACK)
-    -- print("ballg x:" .. ball.current_grid.x .. "   y:" .. ball.current_grid.y , 1, 14, COLORS.BLACK)
-    -- print("ballf x:" .. ball.current_grid_float.x .. "   y:" .. ball.current_grid_float.y , 1, 21, COLORS.BLACK)
-    -- print("floor z:" .. ball.floor_height , 1, 28, COLORS.BLACK)
-    -- print("cpu:" .. stat(1)*100 .. "%" , 1, 35, COLORS.DARK_PURPLE)
-    -- print("triangles:" .. debug_count_triangles , 1, 42, COLORS.DARK_PURPLE)
 end
   

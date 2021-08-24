@@ -1,10 +1,10 @@
 debugfile = 'deb.txt'
 
-printh('GENERATING WORLD', debugfile, true)
+-- printh('GENERATING WORLD', debugfile, true)
 
 function printf(str)
 
-  printh(str, debugfile, true)
+  -- printh(str, debugfile, true)
 end
 
 function wave_function_collapse(blocks, rounds_left, subSeeds)
