@@ -21,9 +21,31 @@ levels = {
         },
         level = {
             {
-                {3,1,1,BLOCKS.RAMP_N,false},
-                {2,0,1,BLOCKS.RAMP_S,false},
-                {1,0,1,BLOCKS.RAMP_W,false},
+                {3,1,1,BLOCKS.REGULAR,false},
+            },
+        }
+    },
+    {
+        metadata = {
+            name = "wave function collapse",
+            theme = THEMES.LEAN,
+            procedural = true
+        },
+        level = {
+            {
+                {3,1,1,BLOCKS.RAMP_NW,false},
+            },
+        }
+    },
+    {
+        metadata = {
+            name = "wave function collapse",
+            theme = THEMES.LEAN,
+            procedural = true
+        },
+        level = {
+            {
+                {3,1,1,BLOCKS.RAMP_W,false},
             },
         }
     },
@@ -68,99 +90,6 @@ levels = {
     --             {3,56,1.0,BLOCKS.RAMP_W,false},
 
     --             {3,60,1.0,BLOCKS.RAMP_S,false},
-    --         },
-    --     }
-    -- },
-    -- {
-    --     metadata = {
-    --         name = "pyramids",
-    --         theme = THEMES.SQUASH,
-    --         procedural = false
-    --     },
-    --     level = {
-    --         {
-    --             -- pyramid 1 base
-    --             {0,-1,1,BLOCKS.RAMP_S,false},
-    --             {1,-1,1,BLOCKS.RAMP_HALF_S,false},
-    --             {1,-2,1,BLOCKS.RAMP_S,false},
-    --             {2,-2,1,BLOCKS.RAMP_HALF_S,false},
-    --             {2,-3,1,BLOCKS.RAMP_S,false},
-
-    --             {0,0,1,BLOCKS.RAMP_E,false},
-    --             {1,0,1,BLOCKS.RAMP_HALF_E,false},
-    --             {1,1,1,BLOCKS.RAMP_E,false},
-    --             {2,1,1,BLOCKS.RAMP_HALF_E,false},
-    --             {2,2,1,BLOCKS.RAMP_E,false},
-                
-    --             {3,2,1,BLOCKS.RAMP_N,false},
-    --             {3,1,1,BLOCKS.RAMP_HALF_N,false},
-    --             {4,1,1,BLOCKS.RAMP_N,false},
-    --             {4,0,1,BLOCKS.RAMP_HALF_N,false},
-    --             {5,0,1,BLOCKS.RAMP_N,false},
-
-    --             {5,-1,1,BLOCKS.RAMP_W,false},
-    --             {3,-2,1,BLOCKS.RAMP_HALF_W,false},
-    --             {4,-2,1,BLOCKS.RAMP_W,false},
-    --             {4,-1,1,BLOCKS.RAMP_HALF_W,false},
-    --             {3,-3,1,BLOCKS.RAMP_W,false},
-
-
-    --             -- pyramid 2 base
-    --             {1+5,-1 + -1,1,BLOCKS.RAMP_S,false},
-    --             {2+5,-1 + -1,1,BLOCKS.RAMP_HALF_S,false},
-    --             {2+5,-1 + -2,1,BLOCKS.RAMP_S,false},
-                
-    --             {1+5,-1 + 0,1,BLOCKS.RAMP_E,false},
-    --             {2+5,-1 + 0,1,BLOCKS.RAMP_HALF_E,false},
-    --             {2+5,-1 + 1,1,BLOCKS.RAMP_E,false},
-
-    --             {3+5,-1 + 1,1,BLOCKS.RAMP_N,false},
-    --             {3+5,-1 + 0,1,BLOCKS.RAMP_HALF_N,false},
-    --             {4+5,-1 + 0,1,BLOCKS.RAMP_N,false},
-
-    --             {3+5,-1 + -2,1,BLOCKS.RAMP_W,false},
-    --             {3+5,-1 + -1,1,BLOCKS.RAMP_HALF_W,false},
-    --             {4+5,-1 + -1,1,BLOCKS.RAMP_W,false},
-
-                
-    --             -- pyramid 3 base
-    --             {8+2,-1,1,BLOCKS.RAMP_S,false},
-    --             {8+2,0,1,BLOCKS.RAMP_E,false},
-    --             {8+3,0,1,BLOCKS.RAMP_N,false},
-    --             {8+3,-1,1,BLOCKS.RAMP_W,false},
-                
-    --         },
-    --         {
-    --             -- pyramid 1 mid
-    --             {1,-1,1,BLOCKS.RAMP_S,false},
-    --             {2,-1,1,BLOCKS.RAMP_HALF_S,false},
-    --             {2,-2,1,BLOCKS.RAMP_S,false},
-                
-    --             {1,0,1,BLOCKS.RAMP_E,false},
-    --             {2,0,1,BLOCKS.RAMP_HALF_E,false},
-    --             {2,1,1,BLOCKS.RAMP_E,false},
-
-    --             {3,1,1,BLOCKS.RAMP_N,false},
-    --             {3,0,1,BLOCKS.RAMP_HALF_N,false},
-    --             {4,0,1,BLOCKS.RAMP_N,false},
-
-    --             {3,-2,1,BLOCKS.RAMP_W,false},
-    --             {3,-1,1,BLOCKS.RAMP_HALF_W,false},
-    --             {4,-1,1,BLOCKS.RAMP_W,false},
-
-    --             -- pyramid 2
-    --             {5+2,-1 + -1,1,BLOCKS.RAMP_S,false},
-    --             {5+2,-1 + 0,1,BLOCKS.RAMP_E,false},
-    --             {5+3,-1 + 0,1,BLOCKS.RAMP_N,false},
-    --             {5+3,-1 + -1,1,BLOCKS.RAMP_W,false},
-    --         },
-    --         {
-    --             -- pyramid 1 top
-    --             {2,-1,1,BLOCKS.RAMP_S,false},
-    --             {2,0,1,BLOCKS.RAMP_E,false},
-    --             {3,0,1,BLOCKS.RAMP_N,false},
-    --             {3,-1,1,BLOCKS.RAMP_W,false},
-                
     --         },
     --     }
     -- },
@@ -273,7 +202,6 @@ function get_sub_seeds()
     subSeeds = {}
 
     for s=1,#seed,seedLength do
-
         if randomSeed then
             add(subSeeds, tostring(flr(1000 + rnd(9000))))
         else 
@@ -281,8 +209,7 @@ function get_sub_seeds()
         end
     end
 
-
-    globalSubSeeds = {baseLevelPickerSeed = subSeeds[1], themeSeed = subSeeds[2], darkPalette = subSeeds[3], baseLevel = subSeeds[4], waveFn1 = subSeeds[5], wafeFn2 = subSeeds[6], shadowDir1 = subSeeds[7], shadowDir2 = subSeeds[8]}
+    globalSubSeeds = {baseLevelPickerSeed = subSeeds[1], themeSeed = subSeeds[2], darkPalette = subSeeds[3], baseLevel = subSeeds[4], waveFn1 = subSeeds[5], waveFn2 = subSeeds[6], shadowDir1 = subSeeds[7], shadowDir2 = subSeeds[8]}
     
     return globalSubSeeds
 end
@@ -317,7 +244,7 @@ function load_level(level_to_load, subSeeds)
     end
 
     if level_to_load.metadata.procedural then
-        wave_function_collapse(blocks, 10, subSeeds)
+        wave_function_collapse(blocks, 5, subSeeds)
     end
 
     for x = -5,5 do
