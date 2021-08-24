@@ -1,3 +1,5 @@
+globalSubSeeds = {}
+
 levels = {   
      {
         metadata = {
@@ -258,10 +260,6 @@ local function create_block(b, is_user)
     add(blocks, block_to_add)
 end
 
-function rnd32()
-    return rnd() << 16 | rnd()
-end
-
 function get_sub_seeds()
     maxInt = 65534
     -- seed = "1364330648715260564240796008920406354802159042933974286750175206921467854849";
@@ -283,13 +281,15 @@ function get_sub_seeds()
         end
     end
 
-    return {baseLevelPickerSeed = subSeeds[1], themeSeed = subSeeds[2], darkPalette = subSeeds[3], baseLevel = subSeeds[4], waveFn1 = subSeeds[5], wafeFn2 = subSeeds[6]}
+
+    globalSubSeeds = {baseLevelPickerSeed = subSeeds[1], themeSeed = subSeeds[2], darkPalette = subSeeds[3], baseLevel = subSeeds[4], waveFn1 = subSeeds[5], wafeFn2 = subSeeds[6], shadowDir1 = subSeeds[7], shadowDir2 = subSeeds[8]}
+    
+    return globalSubSeeds
 end
 
 function load_level(level_to_load, subSeeds)
     reset_map()
-      
-    printf(tostr(seed, true))
+    
     local theme = getRandomTheme(subSeeds.themeSeed)
 
     srand(subSeeds.darkPalette)
@@ -306,6 +306,7 @@ function load_level(level_to_load, subSeeds)
     c4 = theme.c4
     c5 = theme.c5
     c6 = theme.c6
+    c7 = theme.c7
     
     srand(subSeeds.baseLevel)
     randomLevel = rnd(level_to_load.level)

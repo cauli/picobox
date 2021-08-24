@@ -95,15 +95,14 @@ function project_point(p, offset_x, offset_y)
     
     -- 1 = midday = applies offsets once
     -- 0.1 = "sunset-like" long shadow
-    sunset_factor = 0.4
+    sunset_factor = 1
     
     while z > 0 do 
-        z = 0
+        z -= sunset_factor
         x += offset_x
         y += offset_y
     end
-    printf('-----')
-
+    
     return {z=z, x=x, y=y}
 end
 

@@ -65,8 +65,19 @@ function project_shadow_px(p, f)
   -- in the screen (towards NORTH)
   -- if we wish to draw shadows to other directions, we need to choose other triangles to draw
   -- depending on the base block type
-  local offset_x = ox
-  local offset_y = oy
+
+  
+  srand(globalSubSeeds.waveFn1)
+  shadowInverter1 = 1
+  if rnd() < 0.3 then shadowInverter1 = -1 end
+  srand(globalSubSeeds.waveFn2)
+  shadowInverter2 = 1
+  if rnd() < 0.3 then shadowInverter2 = -1 end
+
+  srand(globalSubSeeds.shadowDir1)
+  local offset_x = rnd() * -0.20 * shadowInverter1
+  srand(globalSubSeeds.shadowDir2)
+  local offset_y = rnd() * -0.20 * shadowInverter2
 
 
   local p_grid = px_to_grid_float(p.x, p.y)
@@ -74,7 +85,6 @@ function project_shadow_px(p, f)
   p_projected = project_point(p_grid, offset_x, offset_y)
   p_to_px = grid_to_px(p_projected.x, p_projected.y, p_projected.z)
 
-  -- pset(p_to_px.x, p_to_px.y, 0)
   return p_to_px
 end
 
@@ -111,7 +121,6 @@ function draw_block(block, is_shadow)
     local p3 = generators.point(x,y+TILE_HEIGHT-z, f) -- tbc
     local p4 = generators.point(x-TILE_WIDTH_HALF,y+TILE_HEIGHT_HALF-z, f) -- tcl
 
-
     -- bottom 4
     local p5 = generators.point(x, y, f)  -- btc
     local p6 = generators.point(x+TILE_WIDTH_HALF, y+TILE_HEIGHT_HALF, f) -- bcr
@@ -134,14 +143,13 @@ function draw_block(block, is_shadow)
         c5 = COLORS.DARK_GREEN
         c6 = COLORS.DARK_BLUE
       else 
-        c1 = COLORS.DARK_PURPLE
-        c2 = COLORS.DARK_PURPLE
-        c3 = COLORS.DARK_PURPLE
-        c4 = COLORS.DARK_PURPLE
-        c5 = COLORS.DARK_PURPLE
-        c6 = COLORS.DARK_PURPLE
+        c1 = c7
+        c2 = c7
+        c3 = c7
+        c4 = c7
+        c5 = c7
+        c6 = c7
       end
-
 
       -- top
       p1 = project_shadow_px(p1, block.z)

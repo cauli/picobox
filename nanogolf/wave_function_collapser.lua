@@ -1,11 +1,10 @@
-debugfile = 'deb.txt'
+debugfile = 'debe.txt'
 
--- printh('GENERATING WORLD', debugfile, true)
 
 function printf(str)
-
-  -- printh(str, debugfile, true)
+  printh(str, debugfile, true)
 end
+
 
 function wave_function_collapse(blocks, rounds_left, subSeeds)
   
@@ -18,11 +17,7 @@ function wave_function_collapse(blocks, rounds_left, subSeeds)
     possibleHeights = { 1, 1, 1, 5 }
   end
 
-
   srand(subSeeds.waveFn1)
-  printf('-- starting wave fn collapse')
-
-
   for block in all(blocks) do 
     if rounds_left == 0 then
       return 

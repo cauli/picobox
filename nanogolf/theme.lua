@@ -25,6 +25,7 @@ local THEMES = {
       c4 = COLORS.DARK_GREEN,
       c5 = COLORS.LAVENDER,
       c6 = COLORS.DARK_PURPLE,
+      c7 = COLORS.BLACK,
     },
     {
       c1 = COLORS.LIGHT_GREY,
@@ -33,6 +34,7 @@ local THEMES = {
       c4 = COLORS.ORANGE,
       c5 = COLORS.LIGHT_PEACH,
       c6 = COLORS.BLACK,
+      c7 = COLORS.DARK_BLUE, 
     },
     {
       c1 = COLORS.BLUE,
@@ -41,6 +43,7 @@ local THEMES = {
       c4 = COLORS.DARK_GREY,
       c5 = COLORS.ORANGE,
       c6 = COLORS.LAVENDER,
+      c7 = COLORS.DARK_BLUE,
     }
   }
 
@@ -48,6 +51,5 @@ function getRandomTheme(themeSeed)
   srand(themeSeed)
   local t = rnd(THEMES)
 
-  printf(t)
   return t
 end

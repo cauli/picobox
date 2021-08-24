@@ -19,8 +19,8 @@ DEFAULT_BLOCK_HEIGHT = 12.5/2
 shadow_angle1_percent = 0
 shadow_angle2_percent = 0
 jumpy_angle = 0
-ox = -5
-oy = -3
+ox = 0
+oy = 0
 
 -- height climbable
 height_climbable = 5
