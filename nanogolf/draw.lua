@@ -343,7 +343,7 @@ function render_scene(blocks, ball)
   sortDepth(renderables)
 
   srand(globalSubSeeds.waveFn1)
-  if rnd() < 0.3 then
+  if rnd() < 0.12 then
     for renderable in all(renderables) do
       if (renderable.class == 'block') then
         draw_block_shadow(renderable)

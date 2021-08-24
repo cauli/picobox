@@ -3,8 +3,6 @@ globalSubSeeds = {}
 levels = {   
      {
         metadata = {
-            name = "wave function collapse",
-            theme = THEMES.LEAN,
             procedural = true
         },
         level = {
@@ -15,8 +13,6 @@ levels = {
     },
     {
         metadata = {
-            name = "wave function collapse",
-            theme = THEMES.LEAN,
             procedural = true
         },
         level = {
@@ -27,8 +23,16 @@ levels = {
     },
     {
         metadata = {
-            name = "wave function collapse",
-            theme = THEMES.LEAN,
+            procedural = true
+        },
+        level = {
+            {
+                {3,1,1,BLOCKS.RAMP_SW,false},
+            },
+        }
+    },
+    {
+        metadata = {
             procedural = true
         },
         level = {
@@ -39,13 +43,21 @@ levels = {
     },
     {
         metadata = {
-            name = "wave function collapse",
-            theme = THEMES.LEAN,
             procedural = true
         },
         level = {
             {
                 {3,1,1,BLOCKS.RAMP_W,false},
+            },
+        }
+    },
+    {
+        metadata = {
+            procedural = true
+        },
+        level = {
+            {
+                {2,1,1,BLOCKS.RAMP_E,false},
             },
         }
     },
@@ -120,32 +132,7 @@ levels = {
     --         },
     --     }
     -- },
-    -- -- diagonal ramps
-    -- {
-    --     metadata = {
-    --         name = "diagonals",
-    --         theme = THEMES.ROSEY,
-    --         procedural = false
-    --     },
-    --     level = {
-    --         { 
-    --             {1,1,1,BLOCKS.RAMP_E,false},
-    --             {1,2,1,BLOCKS.RAMP_S,false},
-    --             {0,2,1,BLOCKS.RAMP_W,false},
-    --             {0,1,1,BLOCKS.RAMP_N,false},
-
-    --             {4,1,1,BLOCKS.RAMP_HALF_E,false},
-    --             {3,1,1,BLOCKS.RAMP_HALF_N,false},
-    --             {3,2,1,BLOCKS.RAMP_HALF_W,false},
-    --             {4,2,1,BLOCKS.RAMP_HALF_S,false},
-
-    --             {8,1,1,BLOCKS.HALF_W,false},
-    --             {8,3,1,BLOCKS.HALF_N,false},
-    --             {6,3,1,BLOCKS.HALF_E,false},
-    --             {6,1,1,BLOCKS.HALF_S,false},
-    --         },
-    --     }
-    -- }
+    -- diagonal ramps
 }
 
 current_level = 0
@@ -209,20 +196,54 @@ function get_sub_seeds()
         end
     end
 
-    globalSubSeeds = {baseLevelPickerSeed = subSeeds[1], themeSeed = subSeeds[2], darkPalette = subSeeds[3], baseLevel = subSeeds[4], waveFn1 = subSeeds[5], waveFn2 = subSeeds[6], shadowDir1 = subSeeds[7], shadowDir2 = subSeeds[8]}
+    globalSubSeeds = {
+        baseLevelPickerSeed = subSeeds[1], 
+        themeSeed = subSeeds[2], 
+        darkPalette = subSeeds[3], 
+        baseLevel = subSeeds[4], 
+        waveFn1 = subSeeds[5], 
+        waveFn2 = subSeeds[6], 
+        shadowDir1 = subSeeds[7], 
+        shadowDir2 = subSeeds[8],
+        microscopic = subSeeds[9],
+        floorWireframe = subSeeds[10],
+        theCrowd = subSeeds[11]
+    }
     
     return globalSubSeeds
 end
 
 function load_level(level_to_load, subSeeds)
     reset_map()
-    
+
+    teletransport_ball_to(ball, 3, 1, 10)
+    srand(subSeeds.microscopic)
+    if rnd() < 0.3 then
+        TILE_WIDTH /= 2
+        TILE_HEIGHT /= 2
+        TILE_HEIGHT_HALF /= 2
+        TILE_WIDTH_HALF /= 2
+        DEFAULT_BLOCK_HEIGHT /= 2
+        teletransport_ball_to(ball, 3, 1, 10)
+    end
+
     local theme = getRandomTheme(subSeeds.themeSeed)
 
+    -- dark palette
     srand(subSeeds.darkPalette)
-    if rnd() < 0.15 then
+    if rnd() < 0.30 then
         for i=0,15 do
             pal(i,i+128,1)
+        end
+        attr_is_night = true
+    end
+
+    -- crazy palette
+    srand(subSeeds.darkPalette)
+    if rnd() < 0.05 then
+        crazyPaletteOffsets = { 666, 115, 108 }
+        for i=0,15 do
+            pal(i,i+rnd(crazyPaletteOffsets),1)
         end
         attr_is_night = true
     end
@@ -235,6 +256,15 @@ function load_level(level_to_load, subSeeds)
     c6 = theme.c6
     c7 = theme.c7
     
+    srand(subSeeds.theCrowd)
+    chanceOfFlamingo = 0.01
+    chanceOfFolliage = 0.1
+
+    if rnd() <= 0.02 then
+        chanceOfFolliage = 0
+        chanceOfFlamingo = 0.65
+    end 
+
     srand(subSeeds.baseLevel)
     randomLevel = rnd(level_to_load.level)
     
@@ -243,15 +273,16 @@ function load_level(level_to_load, subSeeds)
         foreach(level_floor, create_block)
     end
 
+    possibleSteps = { 0, 1, 3, 4, 5, 7, 8, 10, 20 }
     if level_to_load.metadata.procedural then
-        wave_function_collapse(blocks, 5, subSeeds)
+        wave_function_collapse(blocks, rnd(possibleSteps), subSeeds)
     end
 
-    for x = -5,5 do
-        for y = -5,5 do
+    for x = -8,8 do
+        for y = -8,8 do
             block = get_block_at(x, y, 1)
             if block == nil then
-                if rnd() < 0.10 then 
+                if rnd() < chanceOfFolliage then 
                     add(decorations, generate_decoration(x, y, 0, "folliage"))
                 end
             end 
@@ -259,12 +290,11 @@ function load_level(level_to_load, subSeeds)
             if attr_is_night ~= true then
                 block = get_block_at(x, y, 1)
                 if block == nil then
-                    if rnd() < 0.01 then 
+                    if rnd() < chanceOfFlamingo then 
                         add(decorations, generate_decoration(x, y, 0, "flamingo"))
                     end
                 end 
             end 
-        
         end    
     end
     
