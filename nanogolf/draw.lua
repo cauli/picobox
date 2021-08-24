@@ -96,7 +96,9 @@ function draw_decoration(decoration)
   local y = pos.y + (64 - ball.y) + 5 + decoration.offsetY
   local z = pos.z
   
-  spr(decoration.sprites[decoration.frame], x, y, decoration.w, decoration.h)
+  if (decoration.sprites[decoration.frame] ~= nil) then
+    spr(decoration.sprites[decoration.frame], x, y, decoration.w, decoration.h)
+  end
 end
 
 function draw_block(block, is_shadow)
@@ -352,7 +354,7 @@ function render_scene(blocks, ball)
   end
 
   srand(globalSubSeeds.waveFn1)
-  if rnd() < 0.12 then
+  if rnd() < 0.4 then
     for renderable in all(renderables) do
       if (renderable.class == 'block') then
         draw_block_shadow(renderable)
@@ -394,11 +396,11 @@ function _draw()
     
     render_scene(blocks, ball)
         
-    if block == nil then
-        print(ball.current_grid.x .. ", " .. ball.current_grid.y, 1, 120, 5)
-    else 
-        print(block.x0 .. ", " .. block.y0, 1, 120, 9)
-    end
+    -- if block == nil then
+    --     print(ball.current_grid.x .. ", " .. ball.current_grid.y, 1, 120, 5)
+    -- else 
+    --     print(block.x0 .. ", " .. block.y0, 1, 120, 9)
+    -- end
 
 end
   

@@ -91,6 +91,21 @@ function generate_decoration(x0,y0,z0,type)
     decoration.frame = flr(rnd() * #decoration.sprites)
   end 
 
+  if decoration.type == 'windy' then
+    decoration.zIndex = 0
+    decoration.offsetY = (rnd() * 3)
+    decoration.offsetY = (rnd() * 3)
+    decoration.w = 1
+    decoration.h = 1
+    decoration.tick = 0
+    decoration.step = 5
+    decoration.sprites = {165,181,165,181}
+    for i=1,30 do 
+      add(decoration.sprites, 164)
+    end
+    decoration.frame = flr(rnd() * #decoration.sprites)
+  end 
+
   return decoration
 end
 

@@ -238,7 +238,6 @@ BLOCK_GROUPS = {
         NE = {
             nil,
             nil,
-            nil,
             BLOCKS.HALF_E, BLOCKS.HALF_N
         }
     }
@@ -355,7 +354,6 @@ BLOCK_CONNECTIONS['RAMP_HALF_E'] = {
 
 
 -- TODO
-    --   RAMP_HALF_E
     --   RAMP_HALF_S
     --   RAMP_HALF_W
     --   RAMP_HALF_N

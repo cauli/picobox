@@ -75,12 +75,8 @@ function project_point(p, offset_x, offset_y)
     local y = p.y
     local z = p.z
     
-    -- 1 = midday = applies offsets once
-    -- 0.1 = "sunset-like" long shadow
-    sunset_factor = 1
-    
     while z > 0 do 
-        z -= sunset_factor
+        z -= 1
         x += offset_x
         y += offset_y
     end

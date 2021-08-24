@@ -32,7 +32,6 @@ bounce = 1
 blocks = {}
 decorations = {}
 
-
 debug_quadrants = false
 debug_count_triangles = 0
 
@@ -66,19 +65,6 @@ function toggle_shadow_debug()
   end
 end
 menuitem(2, "shade party mode", toggle_shadow_debug )
-
-is_jumping_debug = false
-function toggle_jumping_debug()
-  -- TODO how to invert boolean on lua?
-  if is_jumping_debug then 
-    is_jumping_debug = false
-    jumpy_angle = 0
-  else 
-    is_jumping_debug = true
-  end
-end
-menuitem(3, "jumpy blocks", toggle_jumping_debug )
-
 
 --        ..1..
 --     ...     ...
@@ -402,24 +388,14 @@ function update_edit_mode()
 end
 
 function _update()
-  if is_jumping_debug == true then
-    jumpy_angle += 0.01
-  end 
-  if is_shadow_debug == true then
-    shadow_angle1_percent += 0.04 
-    shadow_angle2_percent += 0.02 
-    ox = -10 * sin(shadow_angle1_percent)
-    oy = -10 * cos(shadow_angle2_percent)
-  end 
+ 
+  -- if (global_state.change_level.will_change_level) then
+  --   global_state.change_level.counter = global_state.change_level.counter + 1
 
-  
-  if (global_state.change_level.will_change_level) then
-    global_state.change_level.counter = global_state.change_level.counter + 1
-
-    if (global_state.change_level.counter > global_state.change_level.max_counter) then 
-      next_level()
-    end 
-  end 
+  --   if (global_state.change_level.counter > global_state.change_level.max_counter) then 
+  --     next_level()
+  --   end 
+  -- end 
 
   for decoration in all(decorations) do
     decoration.tick = (decoration.tick+1)%decoration.step
@@ -457,7 +433,7 @@ function _update()
     end
   
     if (btnp(4,0)) then raise(ball) end
-    if (btnp(5,0)) then next_level() end
+    if (btnp(5,0)) then random_level() end
   
     -- no need to call this if update_movement_ball is one
     ball.current_grid =       px_to_grid(ball.x, ball.y)

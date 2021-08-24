@@ -44,10 +44,10 @@ function wave_function_collapse(blocks, rounds_left, subSeeds)
       if rnd() < 0.13 then
         
         offsets = {
-          {x=rnd({-1, 0, 1}), y=rnd({-1, 0, 1}), coord="SW"},
-          {x=rnd({-1, 0, 1}), y=rnd({-1, 0, 1}), coord="SE"},
-          {x=rnd({-1, 0, 1}), y=rnd({-1, 0, 1}), coord="NE"},
-          {x=rnd({-1, 0, 1}), y=rnd({-1, 0, 1}), coord="NW"}
+          {x=rnd({-1, 1}), y=rnd({-1, 1}), coord="SW"},
+          {x=rnd({-1, 1}), y=rnd({-1, 1}), coord="SE"},
+          {x=rnd({-1, 1}), y=rnd({-1, 1}), coord="NE"},
+          {x=rnd({-1, 1}), y=rnd({-1, 1}), coord="NW"}
         }  
       end
 

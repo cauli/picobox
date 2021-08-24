@@ -1,164 +1,7 @@
 globalSubSeeds = {}
 
--- levels = {   
---      {
---         metadata = {
---             procedural = true
---         },
---         level = {
---             {
---                 {3,1,1,BLOCKS.RAMP_HALF_E,false},
---             },
---         }
---     },
-    -- {
-    --     metadata = {
-    --         procedural = true
-    --     },
-    --     level = {
-    --         {
-    --             {3,1,1,BLOCKS.RAMP_E,false},
-    --         },
-    --     }
-    -- },
-    -- {
-    --     metadata = {
-    --         procedural = true
-    --     },
-    --     level = {
-    --         {
-    --             {3,1,1,BLOCKS.REGULAR,false},
-    --         },
-    --     }
-    -- },
-    -- {
-    --     metadata = {
-    --         procedural = true
-    --     },
-    --     level = {
-    --         {
-    --             {3,1,1,BLOCKS.RAMP_SW,false},
-    --         },
-    --     }
-    -- },
-    -- {
-    --     metadata = {
-    --         procedural = true
-    --     },
-    --     level = {
-    --         {
-    --             {3,1,1,BLOCKS.RAMP_NW,false},
-    --         },
-    --     }
-    -- },
-    -- {
-    --     metadata = {
-    --         procedural = true
-    --     },
-    --     level = {
-    --         {
-    --             {3,1,1,BLOCKS.RAMP_W,false},
-    --         },
-    --     }
-    -- },
-    -- {
-    --     metadata = {
-    --         procedural = true
-    --     },
-    --     level = {
-    --         {
-    --             {2,1,1,BLOCKS.RAMP_N,false},
-    --         },
-    --     }
-    -- },
-    -- {
-    --     metadata = {
-    --         name = "multiple heights",
-    --         theme = THEMES.SQUASH,
-    --         procedural = true
-    --     },
-    --     level = {
-    --         {
-    --             {3,-4,1.0,BLOCKS.RAMP_SE,false},
-            
-    --             {3,0,1.0,BLOCKS.RAMP_NE,false},
-
-    --             {3,4,1.0,BLOCKS.RAMP_SW,false},
-
-    --             {3,8,1.0,BLOCKS.RAMP_NW,false},
-
-    --             {3,12,1.0,BLOCKS.REGULAR,false},
-
-    --             {3,16,1.0,BLOCKS.RAMP_HALF_E,false},
-
-    --             {3,20,1.0,BLOCKS.RAMP_HALF_N,false},
-
-    --             {3,24,1.0,BLOCKS.RAMP_HALF_W,false},
-
-    --             {3,28,1.0,BLOCKS.RAMP_HALF_S,false},
-
-    --             {3,32,1.0,BLOCKS.HALF_E,false},
-
-    --             {3,36,1.0,BLOCKS.HALF_N,false},
-
-    --             {3,40,1.0,BLOCKS.HALF_W,false},
-
-    --             {3,44,1.0,BLOCKS.HALF_S,false},
-
-    --             {3,48,1.0,BLOCKS.RAMP_E,false},
-
-    --             {3,52,1.0,BLOCKS.RAMP_N,false},
-
-    --             {3,56,1.0,BLOCKS.RAMP_W,false},
-
-    --             {3,60,1.0,BLOCKS.RAMP_S,false},
-    --         },
-    --     }
-    -- },
-    -- {
-    --     metadata = {
-    --         name = "multiple floors",
-    --         theme = THEMES.LEAN,
-    --         procedural = false
-    --     },
-    --     level = {
-    --         {
-    --             {3,-2,1,BLOCKS.REGULAR,false},
-    --             {3,-1,1,BLOCKS.REGULAR,false},
-    --             {3,0,1,BLOCKS.RAMP_NE,false},
-
-    --             --{4,-1,1,BLOCKS.RAMP_SE,false},
-
-    --             {5,-4,1,BLOCKS.RAMP_SW,false},
-    --             {5,-3,1,BLOCKS.REGULAR,false},
-    --             {5,-2,1,BLOCKS.REGULAR,false},
-    --         },
-    --         {
-    --             {5,-3,1,BLOCKS.RAMP_SW,false},
-    --             {3,-2,1,BLOCKS.HALF_S,false},
-    --             {4,-2,1,BLOCKS.REGULAR,false},
-    --             {5,-2,1,BLOCKS.REGULAR,false},
-    --             {3,-1,1,BLOCKS.RAMP_NE,false},
-    --         },
-    --     }
-    -- },
-    -- diagonal ramps
--- }
-
 current_level = 0
-function next_level()
-  subSeeds = get_sub_seeds()
 
-  local total_levels = #levels
-  
-  if current_level == total_levels then
-    current_level = 1
-  else 
-    current_level = current_level + 1
-  end
-  
-  load_level(levels[current_level], subSeeds)
-end
 
 function random_level()
     subSeeds = get_sub_seeds()
@@ -168,7 +11,6 @@ function random_level()
 
     load_level(rnd(levels), subSeeds)
 end
-
   
 function reset_map()
     blocks = {}
@@ -190,9 +32,13 @@ function get_sub_seeds()
     maxInt = 65534
     -- seed = "1364330648715260564240796008920406354802159042933974286750175206921467854849";
     -- seed = "1264370628715260564250796008920406354802159042933974286750175205821956227073";
-    seed = "66418630152144138420887529467591841897902352589395023086471333752449146031912";
+    -- seed = "66418630152144138420887529467591841897902352589395023086471333752449146031912";
 
-    randomSeed = true
+    randomSeed = false
+    
+    if seed == "0000000000000000000000000000000000000000000000000000000000000000000000000000" then
+        randomSeed = true
+    end 
     pointer = 1
     seedLength = 4
     seedCount = flr(#seed / 4)
@@ -234,11 +80,15 @@ function load_level(level_to_load, subSeeds)
         gravity = 0.05
     end
     
-
+    TILE_WIDTH = 50
+    TILE_HEIGHT = 25
+    TILE_HEIGHT_HALF = TILE_HEIGHT/2
+    TILE_WIDTH_HALF = TILE_WIDTH/2
+    DEFAULT_BLOCK_HEIGHT = 12.5/2
 
     teletransport_ball_to(ball, 3, 1, 10)
     srand(subSeeds.microscopic)
-    if rnd() < 0.3 then
+    if rnd() < 0.35 then
         TILE_WIDTH /= 2
         TILE_HEIGHT /= 2
         TILE_HEIGHT_HALF /= 2
@@ -247,11 +97,12 @@ function load_level(level_to_load, subSeeds)
         teletransport_ball_to(ball, 3, 1, 10)
     end
 
+
     local theme = getRandomTheme(subSeeds.themeSeed)
 
     -- dark palette
     srand(subSeeds.darkPalette)
-    if rnd() < 0.30 then
+    if rnd() < 0.5 then
         for i=0,15 do
             pal(i,i+128,1)
         end
@@ -279,8 +130,10 @@ function load_level(level_to_load, subSeeds)
     srand(subSeeds.theCrowd)
     chanceOfFlamingo = 0.01
     chanceOfFolliage = 0.1
+    chanceOfWindy = 0.01
 
-    if rnd() <= 0.02 then
+
+    if rnd() <= 0.05 then
         chanceOfFolliage = 0
         chanceOfFlamingo = 0.65
     end 
@@ -289,7 +142,7 @@ function load_level(level_to_load, subSeeds)
     -- randomLevel = rnd(level_to_load.level)
 
     current_level_floor = current_level_floor + 1
-    create_block({3,1,1,rnd({BLOCKS.RAMP_HALF_E,
+    create_block({rnd({1,2,3}),rnd({-1,1}),1,rnd({BLOCKS.RAMP_HALF_E,
     BLOCKS.RAMP_E,
     BLOCKS.REGULAR,
     BLOCKS.RAMP_SW,
@@ -297,13 +150,7 @@ function load_level(level_to_load, subSeeds)
     BLOCKS.RAMP_W,
     BLOCKS.RAMP_N}),false}, false)
 
-    -- original level loader
-    -- for level_floor in all(level_to_load.level) do
-    --     current_level_floor = current_level_floor + 1
-    --     foreach(level_floor, create_block)
-    -- end
-
-    possibleSteps = { 0, 1, 3, 4, 5, 7, 8, 10, 20 }
+    possibleSteps = { 1, 3, 5, 7, 8, 10, 20 }
     -- if level_to_load.metadata.procedural then
         wave_function_collapse(blocks, rnd(possibleSteps), subSeeds) 
     -- end
@@ -317,6 +164,14 @@ function load_level(level_to_load, subSeeds)
                 end
             end 
             
+            block = get_block_at(x, y, 1)
+            if block == nil then
+                if rnd() < chanceOfWindy then 
+                    chanceOfWindy *= 0.2 -- there shouldnt be two windys at the same level... most likely!
+                    add(decorations, generate_decoration(x, y, 0, "windy"))
+                end
+            end 
+
             if attr_is_night ~= true then
                 block = get_block_at(x, y, 1)
                 if block == nil then
