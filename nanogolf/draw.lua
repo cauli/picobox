@@ -60,24 +60,66 @@ function draw_block_shadow(block)
 end 
 
 function project_shadow_px(p, f)
-  -- in order to keep the triangles drawn for the blocks, 
-  -- the shadow can only project "up"
-  -- in the screen (towards NORTH)
-  -- if we wish to draw shadows to other directions, we need to choose other triangles to draw
-  -- depending on the base block type
   local offset_x = ox
   local offset_y = oy
-
 
   local p_grid = px_to_grid_float(p.x, p.y)
   p_grid.z = f
   local p_projected = project_point(p_grid, offset_x, offset_y)
   local p_to_px = grid_to_px(p_projected.x, p_projected.y, p_projected.z)
 
-  -- pset(p_to_px.x, p_to_px.y, 0)
   return p_to_px
 end
 
+-- triangle definitions per block type
+-- each entry: {point_index_a, point_index_b, point_index_c, color_index}
+-- points: 1=top-n 2=top-e 3=top-s 4=top-w 5=bot-n 6=bot-e 7=bot-s 8=bot-w
+-- colors: 1=c1(top) 2=c2(left) 3=c3(right) 4=c4 5=c5 6=c6(slope)
+--
+--        ..1..          point layout (top view):
+--     ...     ...
+--  4..           ..2        1
+--  .  ...     ...  .      4   2
+--  .     ..3..     .        3
+--  8..     .     ..6
+--     ...  .  ...       (mirrored below: 5-8)
+--        ..7..
+BLOCK_TRIS = {
+  -- REGULAR: full flat top + left + right faces
+  [0]  = {{3,2,1,1},{1,4,3,1},{8,7,3,2},{3,4,8,2},{7,6,2,3},{2,3,7,3}},
+  -- HALF_S: plateau on south half (4-2 edge cuts across middle)
+  [1]  = {{4,3,2,1},{8,7,3,2},{4,8,3,2},{2,3,7,3},{7,6,2,3}},
+  -- HALF_W: plateau on west half (1-3 edge cuts across middle)
+  [2]  = {{4,3,1,1},{8,7,3,2},{4,8,3,2}},
+  -- HALF_N: plateau on north half, rectfill for front face
+  [3]  = {{4,2,1,1},{4,2,6,3},{4,6,8,3}},
+  -- HALF_E: plateau on east half
+  [4]  = {{1,3,2,1},{2,3,7,3},{7,6,2,3}},
+  -- RAMP_NW: diagonal ramp rising to NW
+  [5]  = {{1,4,7,1},{7,6,1,1},{8,7,4,2}},
+  -- RAMP_NE: diagonal ramp rising to NE
+  [6]  = {{1,8,7,1},{7,2,1,1},{7,6,2,3}},
+  -- RAMP_SW: diagonal ramp rising to SW
+  [7]  = {{4,8,3,2},{8,7,3,2},{7,6,3,3},{3,6,5,6},{5,4,3,6}},
+  -- RAMP_SE: diagonal ramp rising to SE
+  [8]  = {{7,6,2,3},{2,3,7,3},{8,7,3,2},{8,3,2,1},{5,8,2,1}},
+  -- RAMP_HALF_E: half ramp rising to NE, plateau on SE
+  [9]  = {{1,3,2,1},{1,8,3,6},{3,8,7,2},{2,3,7,3},{7,6,2,3}},
+  -- RAMP_HALF_S: half ramp rising to SE, plateau on NE
+  [10] = {{3,2,4,1},{4,2,5,6},{4,8,3,2},{8,7,3,2},{7,6,3,3},{2,3,6,3}},
+  -- RAMP_HALF_W: half ramp rising to SW, plateau on NW
+  [11] = {{4,3,1,1},{3,6,1,6},{4,8,3,2},{8,7,3,2},{7,6,3,3}},
+  -- RAMP_HALF_N: half ramp rising to NW, plateau on NE
+  [12] = {{1,4,2,1},{4,7,2,3},{8,7,4,2},{6,2,7,3}},
+  -- RAMP_E: small corner ramp, rises from 7 to 2 (east corner)
+  [13] = {{2,5,7,6},{2,7,6,3}},
+  -- RAMP_S: small corner ramp, rises from 8+2 to 3 (south corner)
+  [14] = {{8,7,3,2},{3,7,6,3}},
+  -- RAMP_W: small corner ramp, rises from 7 to 4 (west corner)
+  [15] = {{4,8,7,2},{5,4,7,6}},
+  -- RAMP_N: small corner ramp, rises from 8+6 to 1 (north corner)
+  [16] = {{1,8,6,3}},
+}
 
 function draw_block(block, is_shadow)
     local x = block.x + (64 - ball.x)
@@ -89,18 +131,18 @@ function draw_block(block, is_shadow)
     local is_user = block.is_user
 
     -- top 4
-    local p1 = generators.point(x, y-z, f) -- ttc
-    local p2 = generators.point(x+TILE_WIDTH_HALF,y+TILE_HEIGHT_HALF-z, f)   -- tcr
-    local p3 = generators.point(x,y+TILE_HEIGHT-z, f) -- tbc
-    local p4 = generators.point(x-TILE_WIDTH_HALF,y+TILE_HEIGHT_HALF-z, f) -- tcl
+    local p1 = generators.point(x, y-z, f)
+    local p2 = generators.point(x+TILE_WIDTH_HALF,y+TILE_HEIGHT_HALF-z, f)
+    local p3 = generators.point(x,y+TILE_HEIGHT-z, f)
+    local p4 = generators.point(x-TILE_WIDTH_HALF,y+TILE_HEIGHT_HALF-z, f)
 
     local pc = generators.point(x, y, f)
 
     -- bottom 4
-    local p5 = generators.point(x, y, f)  -- btc
-    local p6 = generators.point(x+TILE_WIDTH_HALF, y+TILE_HEIGHT_HALF, f) -- bcr
-    local p7 = generators.point(x, y+TILE_HEIGHT, f)  -- bbc
-    local p8 = generators.point(x-TILE_WIDTH_HALF, y+TILE_HEIGHT_HALF, f)  -- bcl
+    local p5 = generators.point(x, y, f)
+    local p6 = generators.point(x+TILE_WIDTH_HALF, y+TILE_HEIGHT_HALF, f)
+    local p7 = generators.point(x, y+TILE_HEIGHT, f)
+    local p8 = generators.point(x-TILE_WIDTH_HALF, y+TILE_HEIGHT_HALF, f)
 
     local c1 = c1 
     local c2 = c2
@@ -126,301 +168,30 @@ function draw_block(block, is_shadow)
         c6 = COLORS.DARK_PURPLE
       end
 
-
-      -- top
       p1 = project_shadow_px(p1, block.z)
       p2 = project_shadow_px(p2, block.z)
       p3 = project_shadow_px(p3, block.z)
       p4 = project_shadow_px(p4, block.z)
-
-      -- bottom
-      -- p5 = project_shadow_px(p5, f)
-      -- p6 = project_shadow_px(p6, f)
-      -- p7 = project_shadow_px(p7, f)
-      -- p8 = project_shadow_px(p8, f)
-
     end 
-   
-    if(block.i == BLOCKS.REGULAR)then
-      --draw top
-      solid_trifill_v3(p3,p2,p1,c1)
-      solid_trifill_v3(p1,p4,p3,c1)
 
-      --draw left
-      solid_trifill_v3(p8,p7,p3,c2)
-      solid_trifill_v3(p3,p4,p8,c2)
-      
-      --draw right
-      solid_trifill_v3(p7,p6,p2,c3)
-      solid_trifill_v3(p2,p3,p7,c3)
-
-      if(block.has_hole)then
-        palt(14, true)
-        palt(0,false)
-        spr(21,pc.x-4,pc.y-4)
-  
-        palt() 
-  
-        spr(22,pc.x-4,pc.y-4)
-        spr(6,pc.x-4,pc.y-4-8)
+    local pts = {p1,p2,p3,p4,p5,p6,p7,p8}
+    local cols = {c1,c2,c3,c4,c5,c6}
+    local tris = BLOCK_TRIS[block.i]
+    if tris then
+      for t in all(tris) do
+        solid_trifill_v3(pts[t[1]],pts[t[2]],pts[t[3]],cols[t[4]])
       end
-    elseif(block.i == BLOCKS.HALF_S)then
-  
-        -- i == BLOCKS.HALF_S
-        --        ..1..
-        --     ...     ...
-        --  4_______________2
-        --  |  ---     ---  |
-        --  |     --3--     |
-        --  8--     |     --6
-        --     ---  |  ---
-        --        --7--
-  
-  
-      --draw top
-      solid_trifill_v3(p4,p3,p2,c1) --t
-  
-      solid_trifill_v3(p8,p7,p3,c2) -- l
-      solid_trifill_v3(p4,p8,p3,c2) -- l
-  
-      solid_trifill_v3(p2,p3,p7,c3) -- r
-      solid_trifill_v3(p7,p6,p2,c3) 
-    elseif(block.i == BLOCKS.HALF_W)then
-      -- i == BLOCKS.HALF_W
-      --        __1..
-      --     ___  |  ...
-      --  4__     |     ..2
-      --  |  ___  |  ...  .
-      --  |     __3..     .
-      --  8__     |     ..6
-      --     ___  |  ...
-      --        __7..
-  
-  
-      --draw top
-      solid_trifill_v3(p4,p3,p1,c1)
-  
-      solid_trifill_v3(p8,p7,p3,c2) -- l
-      solid_trifill_v3(p4,p8,p3,c2) -- l
-  
-    elseif(block.i == BLOCKS.HALF_N)then
-    -- i ==102
-    --        __1__
-    --    ___       ___
-    --  4_______________2
-    --  |  ...     ...  |
-    --  |     ..3..     |
-    --  8_______________6
-    --     ...  .  ...
-    --        ..7..  
-  
-      --draw top
-      solid_trifill_v3(p4,p2,p1,c1)
-  
-      --draw 'front' (se)
-      color(c3)
-      rectfill(p4.x,p4.y,p6.x,p6.y)
-  
-    elseif(block.i == BLOCKS.HALF_E)then
-    -- i == BLOCKS.HALF_E
-    --        ..1__
-    --     ...  |  ___
-    --  4..     |     __2
-    --  .  ...  |  ___  |
-    --  .     ..3__     |
-    --  8..     |     __6
-    --     ...  |  ___
-    --        ..7__  
-      --draw top
-      solid_trifill_v3(p1,p3,p2,c1)
-  
-      solid_trifill_v3(p2,p3,p7,c3) -- r
-      solid_trifill_v3(p7,p6,p2,c3) 
-    elseif(block.i == BLOCKS.RAMP_NW)then
-      --draw top
-      solid_trifill_v3(p1,p4,p7,c1)
-      solid_trifill_v3(p7,p6,p1,c1)
-  
-      --draw left
-      solid_trifill_v3(p8,p7,p4,c2)
-    elseif(block.i == BLOCKS.RAMP_NE)then
-  
-      -- draw top
-      solid_trifill_v3(p1,p8,p7,c1)
-      solid_trifill_v3(p7,p2,p1,c1)
-  
-      --draw right
-      solid_trifill_v3(p7,p6,p2,c3)
-  
-  
-    elseif(block.i == BLOCKS.RAMP_SE)then
-    --        ..1..
-    --     ...     ...
-    --  4..           ..2
-    --  .  ...     ...  .
-    --  .     ..3--------
-    --  8..     .     ..6
-    --     ...  .  ...
-    --        ..7..
-
-  
-      -- draw top
-      solid_trifill_v3(p7,p6,p2,c3)
-      solid_trifill_v3(p2,p3,p7,c3)
-  
-      --draw left
-      solid_trifill_v3(p8,p7,p3,c2)
-  
-      --draw top
-      solid_trifill_v3(p8,p3,p2,c1)
-      solid_trifill_v3(p5,p8,p2,c1)
-    elseif(block.i == BLOCKS.RAMP_SW)then
-    --        ..1..
-    --     ...     ...
-    --  4..           ..2
-    --  .  ...     ...  .
-    --  --------.3..     .
-    --  8..     .     ..6
-    --     ...  .  ...
-    --        ..7..
-  
-      solid_trifill_v3(p4,p8,p3,c2) 
-      solid_trifill_v3(p8,p7,p3,c2) -- l
-  
-      solid_trifill_v3(p7,p6,p3,c3) -- r
-  
-      solid_trifill_v3(p3,p6,p5,c6) --t
-      solid_trifill_v3(p5,p4,p3,c6) 
-    elseif(block.i == BLOCKS.RAMP_HALF_E)then
-    -- i == BLOCKS.RAMP_HALF_E
-    --        ./1..
-    --     ../  |  ...
-    --  4../    |     ..2
-    --  ./      |  ...  .
-    --  --------.3..     .
-    --  8..     .     ..6
-    --     ...  .  ...
-    --        ..7..
-  
-      solid_trifill_v3(p1,p3,p2,c1) -- t
-  
-      solid_trifill_v3(p1,p8,p3,c6) -- sw
-  
-      solid_trifill_v3(p3,p8,p7,c2) -- l
-  
-      solid_trifill_v3(p2,p3,p7,c3) -- r
-      solid_trifill_v3(p7,p6,p2,c3) 
-    elseif(block.i == BLOCKS.RAMP_HALF_S)then
-    --          1 
-    --     _____5_____
-    --  4_______________2
-    --  .  ...      ...  .
-    --  .     ..3..     .
-    --  8..     .     ..6
-    --     ...  .  ...
-    --        ..7..
-      solid_trifill_v3(p3,p2,p4,c1) -- t
-  
-      solid_trifill_v3(p4,p2,p5,c6) -- 𝘯𝘸
-  
-      solid_trifill_v3(p4,p8,p3,c2) -- l
-      solid_trifill_v3(p8,p7,p3,c2) -- l
-  
-      solid_trifill_v3(p7,p6,p3,c3) -- r
-      solid_trifill_v3(p2,p3,p6,c3) -- r
-    
-      
-    elseif(block.i == BLOCKS.RAMP_HALF_W)then
-    --        ..1\
-    --     ...  |  \
-    --  4..     |   \    2
-    --  .  ...  |    \   
-    --  .     ..3__   \  
-    --  8..     .  --- \ 6
-    --     ...  .  ...
-    --        ..7..  
-  
-      solid_trifill_v3(p4,p3,p1,c1) -- t
-  
-      solid_trifill_v3(p3,p6,p1,c6) -- 𝘯𝘦
-  
-      solid_trifill_v3(p4,p8,p3,c2) -- l
-      solid_trifill_v3(p8,p7,p3,c2) -- l
-  
-      solid_trifill_v3(p7,p6,p3,c3) -- r
-    elseif(block.i == BLOCKS.RAMP_HALF_N)then
-    -- i == BLOCKS.RAMP_HALF_N
-    --        ..1..
-    --     ...     ...
-    --  4_______________2
-    --  . \           / .
-    --  .   \        /  .
-    --  8..  \     /  ..6
-    --     ... \ /  ...
-    --        ..7..  
-      solid_trifill_v3(p1,p4,p2,c1) -- t
-  
-      solid_trifill_v3(p4,p7,p2,c3) -- 𝘴𝘦
-      solid_trifill_v3(p8,p7,p4,c2) -- l
-  
-      solid_trifill_v3(p6,p2,p7,c3) -- r
-  
-    elseif(block.i == BLOCKS.RAMP_E)then
-    --        ..1..
-    --     ...     ...
-    --  4..     5-------2
-    --  .       |      /|
-    --  .       |    /  |
-    --  8..     |  /  __6
-    --     ...  |/ ___
-    --        ..7__
-  
-  
-      solid_trifill_v3(p2,p5,p7,c6) -- sw
-  
-      solid_trifill_v3(p2,p7,p6,c3) -- r
-   
-    elseif(block.i == BLOCKS.RAMP_S)then
-    --        ..1..
-    --     ...     ...
-    --  4..           ..2
-    --  .     / 3 \     .  
-    --  .   /   |   \   . 
-    --  8 /     |     \ 6
-    --     ___  |   ___
-    --        __7__
-  
-      solid_trifill_v3(p8,p7,p3,c2) -- l
-  
-      solid_trifill_v3(p3,p7,p6,c3) -- r
-    elseif(block.i == BLOCKS.RAMP_W)then
-    --        ..1..
-    --     ...     ...
-    --  4-------5      ..2
-    --  |  \    |   ..   .  
-    --  |   \   |..      . 
-    --  8    \  |       6
-    --    ___  \|  ...
-    --        __7..
-  
-      solid_trifill_v3(p4,p8,p7,c2) -- l
-  
-      solid_trifill_v3(p5,p4,p7,c6) -- 𝘯𝘦
-    elseif(block.i == BLOCKS.RAMP_N)then
-    -- i == BLOCKS.RAMP_N
-    --        ..1..
-    --     ... / \ ...
-    --  4..  /     \  ..2
-    --  .  /         \  .  
-    --  ./             \. 
-    --  8---------------6
-    --     ...  .  ...
-    --        ..7..
-  
-      solid_trifill_v3(p1,p8,p6,c3) -- 𝘴𝘦
     end
-  
-   
+
+    if block.i == BLOCKS.REGULAR and block.has_hole then
+      palt(14, true)
+      palt(0,false)
+      spr(21,pc.x-4,pc.y-4)
+      palt() 
+      spr(22,pc.x-4,pc.y-4)
+      spr(6,pc.x-4,pc.y-4-8)
+    end
+
     if(debug_quadrants)then
       if(block.x0 == ball.current_grid.x and block.y0 == ball.current_grid.y)then
   
@@ -494,9 +265,6 @@ function sortDepth(elem)
 end
 
 function render_scene(blocks, ball)
-  -- NOTE a ball moving it's Z coordinate currently isn't
-  -- followed by the camera. This might need to be tweaked
-  -- if that's the case in the future
   local renderable_min_x = ball.current_grid.x - 2
   local renderable_max_x = ball.current_grid.x + 2
   local renderable_min_y = ball.current_grid.y - 2
@@ -508,20 +276,9 @@ function render_scene(blocks, ball)
     end    
   end
 
-
-  local drawn_ball = false
-  local drawn_ball_shadow = false
-
-  local renderables = {}
-  for key, value in pairs(blocks) do
-    renderables[key] = value
-  end
-
-  sortDepth(renderables)
-
-  for renderable in all(renderables) do
-    if (renderable.class == 'block') then
-      draw_block_shadow(renderable)
+  for b in all(blocks) do
+    if b.class == 'block' then
+      draw_block_shadow(b)
     end
   end
 
@@ -531,25 +288,24 @@ function render_scene(blocks, ball)
   local ball_depth = ball.current_grid.x + ball.current_grid.y + ball.current_floor
 
   -- draw blocks behind the ball
-  for renderable in all(renderables) do
-    if renderable.class == 'block' then
-      local block_depth = renderable.x0 + renderable.y0 + renderable.z0
+  for b in all(blocks) do
+    if b.class == 'block' then
+      local block_depth = b.x0 + b.y0 + b.z0
       if block_depth < ball_depth then
-        draw_block(renderable)
+        draw_block(b)
       end
     end
   end
 
-  -- draw ball and shadow
+  -- draw ball marker, then blocks in front
   pset(64, shadow_screen_y, 0)
-  pset(64, ball_screen_y, COLORS.PINK) -- temporary marker
+  pset(64, ball_screen_y, COLORS.PINK)
 
-  -- draw blocks in front of the ball
-  for renderable in all(renderables) do
-    if renderable.class == 'block' then
-      local block_depth = renderable.x0 + renderable.y0 + renderable.z0
+  for b in all(blocks) do
+    if b.class == 'block' then
+      local block_depth = b.x0 + b.y0 + b.z0
       if block_depth >= ball_depth then
-        draw_block(renderable)
+        draw_block(b)
       end
     end
   end
@@ -562,26 +318,15 @@ function render_scene(blocks, ball)
   end
 
   if is_edit_mode == true then
-    -- edit mode current tile
     draw_wireframe_block(cursor_position.x, cursor_position.y, cursor_position.z, COLORS.PINK)
   end 
 end
 
 function _draw()
-    -- camera and bg
-
-    -- in this setup, camera follows ball around
-    -- camera(-64+ball.x, -64 + ball.y)
-    -- clip(-64+ball.x, -64+ ball.y)
-    -- rectfill(-64+ball.x, -64+ ball.y, ball.x + 64, 64+ ball.y, c5)
     clip(-64, -64, 64, 64)
     rectfill(0, 0, 128, 128, c5)
     
     render_scene(blocks, ball)
-
-    -- this will bring debug stuff to fixed position
-    -- camera()
-    -- clip()
 
     if current_distance_to_hole ~= nil then 
         print("dist hole " .. current_distance_to_hole, 1, 110, 5)
@@ -592,13 +337,4 @@ function _draw()
     else 
         print(ball.current_block.x0 .. ", " .. ball.current_block.y0, 1, 120, 9)
     end
-
-    -- print("b x:" .. ball.x .. " y:" .. ball.y .. " z:" .. ball.z, 1, 7, COLORS.BLACK)
-    -- print("floor" .. ball.current_floor, 1, 7, COLORS.BLACK)
-    -- print("ballg x:" .. ball.current_grid.x .. "   y:" .. ball.current_grid.y , 1, 14, COLORS.BLACK)
-    -- print("ballf x:" .. ball.current_grid_float.x .. "   y:" .. ball.current_grid_float.y , 1, 21, COLORS.BLACK)
-    -- print("floor z:" .. ball.floor_height , 1, 28, COLORS.BLACK)
-    -- print("cpu:" .. stat(1)*100 .. "%" , 1, 35, COLORS.DARK_PURPLE)
-    -- print("triangles:" .. debug_count_triangles , 1, 42, COLORS.DARK_PURPLE)
 end
-  
