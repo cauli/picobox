@@ -40,12 +40,9 @@ current_distance_to_hole = nil
 cursor_position = {x=0, y=0, z=0}
 is_edit_mode = false
 function toggle_edit_mode()
-  -- TODO how to invert boolean on lua?
-  if is_edit_mode then 
-    is_edit_mode = false
-  else 
-    is_edit_mode = true
+  is_edit_mode = not is_edit_mode
 
+  if is_edit_mode then
     cursor_position.x = ball.current_grid.x
     cursor_position.y = ball.current_grid.y
     cursor_position.z = 0
@@ -57,23 +54,15 @@ menuitem(1, "edit level", toggle_edit_mode )
 
 is_shadow_debug = false
 function toggle_shadow_debug()
-  -- TODO how to invert boolean on lua?
-  if is_shadow_debug then 
-    is_shadow_debug = false
-  else 
-    is_shadow_debug = true
-  end
+  is_shadow_debug = not is_shadow_debug
 end
 menuitem(2, "shade party mode", toggle_shadow_debug )
 
 is_jumping_debug = false
 function toggle_jumping_debug()
-  -- TODO how to invert boolean on lua?
-  if is_jumping_debug then 
-    is_jumping_debug = false
+  is_jumping_debug = not is_jumping_debug
+  if not is_jumping_debug then
     jumpy_angle = 0
-  else 
-    is_jumping_debug = true
   end
 end
 menuitem(3, "jumpy blocks", toggle_jumping_debug )
@@ -204,7 +193,7 @@ function update_movement_ball(b)
 end
 
 function teletransport_ball_to(b, x0,y0,z0)
-  pos_px = grid_to_px(x0,y0,z0+1)
+  local pos_px = grid_to_px(x0,y0,z0+1)
 
   b.x = pos_px.x
   b.y = pos_px.y
@@ -245,7 +234,7 @@ function get_block_at(x,y,z)
     return possible_blocks[1]
   end 
 
-  selected_block = possible_blocks[0]
+  local selected_block = possible_blocks[1]
   for b in all(possible_blocks) do 
     if selected_block == nil then 
       selected_block = b
@@ -427,9 +416,10 @@ function _update()
     ball.current_grid_float = px_to_grid_float(ball.x, ball.y)
     ball.current_floor = 1 + (ball.z / (TILE_HEIGHT_HALF))
   
-    block = get_block_at(ball.current_grid.x, ball.current_grid.y, ball.z)
-  
-    hole = {}
+    local block = get_block_at(ball.current_grid.x, ball.current_grid.y, ball.z)
+    ball.current_block = block
+
+    local hole = {}
     hole.x = 0
     hole.y = 0
     
@@ -439,8 +429,8 @@ function _update()
       ball.floor_height = 0
     -- plain block
     else 
-      block_floor_offset = ((block.floor-1) * DEFAULT_BLOCK_HEIGHT * 2)
-      quadrant = get_quadrant(ball.current_grid_float.x % flr(ball.current_grid_float.x), ball.current_grid_float.y % flr(ball.current_grid_float.y))
+      local block_floor_offset = ((block.floor-1) * DEFAULT_BLOCK_HEIGHT * 2)
+      local quadrant = get_quadrant(ball.current_grid_float.x % flr(ball.current_grid_float.x), ball.current_grid_float.y % flr(ball.current_grid_float.y))
       ball.quadrant = quadrant
   
       -- it's simple to calculate this type of block's height
@@ -451,7 +441,7 @@ function _update()
           hole.x = block.x
           hole.y = block.y - block_floor_offset
   
-          ball_copy = {}
+          local ball_copy = {}
           ball_copy.x = ball.x
           ball_copy.y = ball.y - ball.z
   
@@ -514,6 +504,7 @@ function _update()
         pns = ball.current_grid_float.y % flr(ball.current_grid_float.y)
         pwe = ball.current_grid_float.x % flr(ball.current_grid_float.x)
   
+        local percent
         if(block.directionup == "n" or block.directionup == "s")then
           percent = pns
         elseif(block.directionup == "w" or block.directionup == "e")then
@@ -575,7 +566,7 @@ function _update()
   
   
       -- slope exists and is in contact with floor
-      if(block ~= nil and block.slope ~= nil and ball.slope != 0 and is_on_floor(ball))then
+      if(block ~= nil and block.slope ~= nil and block.slope != 0 and is_on_floor(ball))then
         if(not_on_slope)then
           -- dont move
         else
@@ -600,7 +591,7 @@ end
 function is_on_floor(ball)
   if(ball.z <= ball.floor_height)then
     return true
-  elseif(abs(ball.floor_height - ball.floor_height - ball.z) < 0.1)then
+  elseif(abs(ball.z - ball.floor_height) < 0.1)then
     return true
   else
     return false

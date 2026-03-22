@@ -71,8 +71,8 @@ function project_shadow_px(p, f)
 
   local p_grid = px_to_grid_float(p.x, p.y)
   p_grid.z = f
-  p_projected = project_point(p_grid, offset_x, offset_y)
-  p_to_px = grid_to_px(p_projected.x, p_projected.y, p_projected.z)
+  local p_projected = project_point(p_grid, offset_x, offset_y)
+  local p_to_px = grid_to_px(p_projected.x, p_projected.y, p_projected.z)
 
   -- pset(p_to_px.x, p_to_px.y, 0)
   return p_to_px
@@ -436,7 +436,7 @@ function draw_block(block, is_shadow)
         line(p3.x, p3.y, p4.x, p4.y)
         line(p4.x, p4.y, p1.x, p1.y)
   
-        q = get_quadrant(ball.current_grid_float.x % flr(ball.current_grid_float.x),ball.current_grid_float.y % flr(ball.current_grid_float.y))
+        local q = get_quadrant(ball.current_grid_float.x % flr(ball.current_grid_float.x),ball.current_grid_float.y % flr(ball.current_grid_float.y))
 
         color(c4)
      
@@ -509,16 +509,13 @@ function render_scene(blocks, ball)
   end
 
 
-  drawn_ball = false
-  drawn_ball_shadow = false
+  local drawn_ball = false
+  local drawn_ball_shadow = false
 
-  renderables = {}
+  local renderables = {}
   for key, value in pairs(blocks) do
     renderables[key] = value
   end
-
-  add(renderables, {zIndex=1,x0=ball.current_grid.x, y0=ball.current_grid.y, z0=ball.floor_height, class="ball_shadow"})
-  add(renderables, {zIndex=-1,x0=ball.current_grid.x, y0=ball.current_grid.y, z0=ball.current_floor, class="ball"})
 
   sortDepth(renderables)
 
@@ -528,18 +525,40 @@ function render_scene(blocks, ball)
     end
   end
 
-  for renderable in all(renderables) do
-    if (renderable.class == 'block') then
-      draw_block(renderable)
-    end
+  local ball_draw_z = max(ball.z, ball.floor_height)
+  local ball_screen_y = 64 - ball_draw_z
+  local shadow_screen_y = 64 - ball.floor_height
+  local ball_depth = ball.current_grid.x + ball.current_grid.y + ball.current_floor
 
-    if (renderable.class == 'ball_shadow') then
-      pset(64, 64 - ball.floor_height, 0) -- shadow      
-    end 
-    
-    if (renderable.class == 'ball') then    
-      pset(64, 64 - ball.z, ball.color)
-    end 
+  -- draw blocks behind the ball
+  for renderable in all(renderables) do
+    if renderable.class == 'block' then
+      local block_depth = renderable.x0 + renderable.y0 + renderable.z0
+      if block_depth < ball_depth then
+        draw_block(renderable)
+      end
+    end
+  end
+
+  -- draw ball and shadow
+  pset(64, shadow_screen_y, 0)
+  pset(64, ball_screen_y, COLORS.PINK) -- temporary marker
+
+  -- draw blocks in front of the ball
+  for renderable in all(renderables) do
+    if renderable.class == 'block' then
+      local block_depth = renderable.x0 + renderable.y0 + renderable.z0
+      if block_depth >= ball_depth then
+        draw_block(renderable)
+      end
+    end
+  end
+
+  -- if the marker was overwritten, the ball is occluded
+  if pget(64, ball_screen_y) ~= COLORS.PINK then
+    pset(64, ball_screen_y, COLORS.DARK_GREY)
+  else
+    pset(64, ball_screen_y, ball.color)
   end
 
   if is_edit_mode == true then
@@ -568,10 +587,10 @@ function _draw()
         print("dist hole " .. current_distance_to_hole, 1, 110, 5)
     end
 
-    if block == nil then
+    if ball.current_block == nil then
         print(ball.current_grid.x .. ", " .. ball.current_grid.y, 1, 120, 5)
     else 
-        print(block.x0 .. ", " .. block.y0, 1, 120, 9)
+        print(ball.current_block.x0 .. ", " .. ball.current_block.y0, 1, 120, 9)
     end
 
     -- print("b x:" .. ball.x .. " y:" .. ball.y .. " z:" .. ball.z, 1, 7, COLORS.BLACK)
