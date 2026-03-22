@@ -38,9 +38,9 @@ function generate_ball(x0,y0,z0)
   b.latest_safe_y = y
   b.latest_safe_z = z
 
-  b.vx = vx
-  b.vy = vy
-  b.vz = vz
+  b.vx = 0
+  b.vy = 0
+  b.vz = 0
 
   b.color = 7
 
